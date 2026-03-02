@@ -154,7 +154,7 @@ const StudentFormBuilder = ({ onSuccess }) => {
     setIsLoading(true);
     setErrorMessage('');
     try {
-      await axios.post('http://localhost:5000/api/students/create-form', {
+      await axios.post(`${import.meta.env.VITE_API_URL}/students/create-form`, {
         classCount,
         classes,
         customFields
