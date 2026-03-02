@@ -111,11 +111,11 @@ router.post('/configure-subjects', async (req, res) => {
     // Clear existing subjects
     await client.query('DELETE FROM subjects_of_school_schema.subjects');
     
-    // Insert new subjects
+    // Insert new subjects with ON CONFLICT to handle duplicates
     for (const subjectName of subjectNames) {
       if (subjectName.trim()) {
         await client.query(
-          'INSERT INTO subjects_of_school_schema.subjects (subject_name) VALUES ($1)',
+          'INSERT INTO subjects_of_school_schema.subjects (subject_name) VALUES ($1) ON CONFLICT (subject_name) DO NOTHING',
           [subjectName.trim()]
         );
       }

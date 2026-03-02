@@ -59,13 +59,13 @@ const SalaryManagement = () => {
       for (const staffType of types) {
         try {
           const classesResponse = await axios.get(
-            `${API_URL}/api/staff/classes?staffType=${encodeURIComponent(staffType)}`
+            `${API_URL}/staff/classes?staffType=${encodeURIComponent(staffType)}`
           );
           
           for (const className of classesResponse.data) {
             try {
               const dataResponse = await axios.get(
-                `${API_URL}/api/staff/data/${staffType}/${className}`
+                `${API_URL}/staff/data/${staffType}/${className}`
               );
               const staffData = dataResponse.data.data || [];
               
@@ -105,7 +105,7 @@ const SalaryManagement = () => {
     try {
       const token = localStorage.getItem('authToken') || localStorage.getItem('token');
       
-      const response = await axios.get(`${API_URL}/api/hr/salary/all-salaries`, {
+      const response = await axios.get(`${API_URL}/hr/salary/all-salaries`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       
@@ -120,7 +120,7 @@ const SalaryManagement = () => {
   const fetchDeductions = async () => {
     try {
       const token = localStorage.getItem('authToken') || localStorage.getItem('token');
-      const response = await axios.get(`${API_URL}/api/hr/salary/deductions`, {
+      const response = await axios.get(`${API_URL}/hr/salary/deductions`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (response.data.success) {
@@ -134,7 +134,7 @@ const SalaryManagement = () => {
   const fetchAllowances = async () => {
     try {
       const token = localStorage.getItem('authToken') || localStorage.getItem('token');
-      const response = await axios.get(`${API_URL}/api/hr/salary/allowances`, {
+      const response = await axios.get(`${API_URL}/hr/salary/allowances`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (response.data.success) {
@@ -148,7 +148,7 @@ const SalaryManagement = () => {
   const fetchRetentions = async () => {
     try {
       const token = localStorage.getItem('authToken') || localStorage.getItem('token');
-      const response = await axios.get(`${API_URL}/api/hr/salary/retentions`, {
+      const response = await axios.get(`${API_URL}/hr/salary/retentions`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (response.data.success) {
@@ -163,7 +163,7 @@ const SalaryManagement = () => {
     if (!window.confirm('Are you sure you want to delete this deduction?')) return;
     try {
       const token = localStorage.getItem('authToken') || localStorage.getItem('token');
-      await axios.delete(`${API_URL}/api/hr/salary/deductions/${id}`, {
+      await axios.delete(`${API_URL}/hr/salary/deductions/${id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       fetchDeductions();
@@ -176,7 +176,7 @@ const SalaryManagement = () => {
     if (!window.confirm('Are you sure you want to delete this allowance?')) return;
     try {
       const token = localStorage.getItem('authToken') || localStorage.getItem('token');
-      await axios.delete(`${API_URL}/api/hr/salary/allowances/${id}`, {
+      await axios.delete(`${API_URL}/hr/salary/allowances/${id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       fetchAllowances();
@@ -189,7 +189,7 @@ const SalaryManagement = () => {
     if (!window.confirm('Are you sure you want to delete this retention benefit?')) return;
     try {
       const token = localStorage.getItem('authToken') || localStorage.getItem('token');
-      await axios.delete(`${API_URL}/api/hr/salary/retentions/${id}`, {
+      await axios.delete(`${API_URL}/hr/salary/retentions/${id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       fetchRetentions();

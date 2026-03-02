@@ -38,7 +38,7 @@ const PayrollSystem = () => {
       console.log(`📊 Generating payroll for Ethiopian month ${ethMonth}/${ethYear}`);
       
       const response = await axios.post(
-        `${API_URL}/api/hr/payroll/generate`,
+        `${API_URL}/hr/payroll/generate`,
         { ethMonth, ethYear },
         { headers: { 'Authorization': `Bearer ${token}` } }
       );
@@ -71,7 +71,7 @@ const PayrollSystem = () => {
     try {
       const token = localStorage.getItem('authToken') || localStorage.getItem('token');
       const response = await axios.post(
-        `${API_URL}/api/hr/payroll/export-excel`,
+        `${API_URL}/hr/payroll/export-excel`,
         {
           ethMonth: selectedMonth,
           ethYear: selectedYear,

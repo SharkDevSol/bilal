@@ -1,6 +1,6 @@
 // ReportCard.jsx - Iqra Academy Report Card Design
 import React, { useState, useEffect, useRef } from 'react';
-import axios from 'axios';
+import api from '../../../utils/api';
 import styles from './ReportCard.module.css';
 import { 
   FaPrint, FaUserGraduate, FaSchool, 
@@ -12,8 +12,6 @@ import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import { useApp } from '../../../context/AppContext';
 import { getFileUrl } from '../../List/utils/fileUtils';
-
-const API_BASE_URL = 'http://localhost:5000/api';
 
 const ReportCard = () => {
   const { theme } = useApp();
@@ -43,8 +41,8 @@ const ReportCard = () => {
     const fetchInitialData = async () => {
       try {
         const [classesRes, brandingRes] = await Promise.all([
-          axios.get(`${API_BASE_URL}/mark-list/classes`),
-          axios.get(`${API_BASE_URL}/admin/branding`)
+          api.get('/mark-list/classes'),
+          api.get('/admin/branding')
         ]);
         
         setClasses(classesRes.data || []);
@@ -58,7 +56,7 @@ const ReportCard = () => {
           phone: branding.school_phone || '+251775669 : 0911775841 : 0915710209',
           email: branding.school_email || 'adilh5254@gmail.com',
           academicYear: branding.academic_year || '',
-          logo: branding.school_logo ? `http://localhost:5000/uploads/branding/${branding.school_logo}` : null
+          logo: branding.school_logo ? `${import.meta.env.VITE_API_URL.replace('/api', '')}/uploads/branding/${branding.school_logo}` : null
         }));
       } catch (error) {
         console.error('Error fetching initial data:', error);
@@ -73,7 +71,7 @@ const ReportCard = () => {
     if (!selectedClass) return;
     const fetchStudents = async () => {
       try {
-        const response = await axios.get(`${API_BASE_URL}/mark-list/comprehensive-ranking/${selectedClass}/1`);
+        const response = await api.get(`/mark-list/comprehensive-ranking/${selectedClass}/1`);
         const studentList = response.data.rankings || [];
         setStudents(studentList);
         if (studentList.length > 0) setSelectedStudent(studentList[0].studentName);
@@ -95,8 +93,8 @@ const ReportCard = () => {
     setLoadingReport(true);
     try {
       const [term1Res, term2Res] = await Promise.all([
-        axios.get(`${API_BASE_URL}/mark-list/comprehensive-ranking/${selectedClass}/1`),
-        axios.get(`${API_BASE_URL}/mark-list/comprehensive-ranking/${selectedClass}/2`)
+        api.get(`/mark-list/comprehensive-ranking/${selectedClass}/1`),
+        api.get(`/mark-list/comprehensive-ranking/${selectedClass}/2`)
       ]);
 
       const term1Rankings = term1Res.data.rankings || [];
@@ -111,7 +109,7 @@ const ReportCard = () => {
         let studentAge = '';
         let studentPhoto = '';
         try {
-          const studentListRes = await axios.get(`${API_BASE_URL}/student-list/students/${selectedClass}`);
+          const studentListRes = await api.get(`/student-list/students/${selectedClass}`);
           const studentInfo = studentListRes.data.find(s => s.student_name === selectedStudent);
           
           console.log('Student Info:', studentInfo); // Debug log
@@ -132,6 +130,17 @@ const ReportCard = () => {
           console.log('Could not fetch student info:', error.message);
         }
 
+        // Fetch activity data for both terms
+        let activities = { term1: null, term2: null };
+        try {
+          const activitiesRes = await api.get(`/student-activities/activities/${selectedClass}/${selectedStudent}`);
+          const activityData = activitiesRes.data.activities || [];
+          activities.term1 = activityData.find(a => a.term_number === 1) || null;
+          activities.term2 = activityData.find(a => a.term_number === 2) || null;
+        } catch (error) {
+          console.log('Could not fetch activity data:', error.message);
+        }
+
         const combinedData = {
           studentName: selectedStudent,
           className: selectedClass,
@@ -146,7 +155,8 @@ const ReportCard = () => {
           },
           gender: studentGender,
           age: studentAge,
-          photo: studentPhoto
+          photo: studentPhoto,
+          activities: activities
         };
         
         console.log('Combined Data:', combinedData); // Debug log
@@ -158,10 +168,19 @@ const ReportCard = () => {
       // Fetch all students for print all - fetch gender once for all students
       let studentListData = [];
       try {
-        const studentListRes = await axios.get(`${API_BASE_URL}/student-list/students/${selectedClass}`);
+        const studentListRes = await api.get(`/student-list/students/${selectedClass}`);
         studentListData = studentListRes.data || [];
       } catch (error) {
         console.log('Could not fetch student list:', error.message);
+      }
+
+      // Fetch all activities for the class
+      let allActivities = [];
+      try {
+        const allActivitiesRes = await api.get(`/student-activities/activities/${selectedClass}/all`);
+        allActivities = allActivitiesRes.data.activities || [];
+      } catch (error) {
+        console.log('Could not fetch all activities:', error.message);
       }
 
       const allStudentsWithData = term1Rankings.map(student => {
@@ -174,6 +193,13 @@ const ReportCard = () => {
         
         // Get photo URL using the same utility function as ListStudent
         const studentPhoto = studentInfo?.image_student ? getFileUrl(studentInfo.image_student, 'student') : '';
+
+        // Get activities for this student
+        const studentActivities = allActivities.filter(a => a.student_name === student.studentName);
+        const activities = {
+          term1: studentActivities.find(a => a.term_number === 1) || null,
+          term2: studentActivities.find(a => a.term_number === 2) || null
+        };
 
         return {
           studentName: student.studentName,
@@ -189,7 +215,8 @@ const ReportCard = () => {
           },
           gender: studentGender,
           age: studentAge,
-          photo: studentPhoto
+          photo: studentPhoto,
+          activities: activities
         };
       });
       setAllStudentsData(allStudentsWithData);
@@ -371,8 +398,8 @@ const ReportCard = () => {
       
       // Save PDF
       const fileName = printAllStudents 
-        ? `IqraReportCards_${selectedClass}_All.pdf`
-        : `IqraReportCard_${selectedClass}_${selectedStudent}.pdf`;
+        ? `BilalReportCards_${selectedClass}_All.pdf`
+        : `BilalReportCard_${selectedClass}_${selectedStudent}.pdf`;
       
       pdf.save(fileName);
       
@@ -384,300 +411,370 @@ const ReportCard = () => {
     }
   };
 
-  // Single Report Card Component
+  // Single Report Card Component - Bilal School Design
   const SingleIqraCard = ({ data }) => {
     if (!data) return null;
 
-    // Get subjects dynamically from the data
     const subjects = Object.keys(data.subjectsData?.subjects || {}).sort();
 
     return (
       <div className={styles.reportCard}>
-        {/* FRONT PAGE */}
-        <div className={styles.frontPage}>
-          <div className={styles.decorativeCorner}></div>
-          
-          <div className={styles.headerSection}>
-            <div className={styles.photoBox}>
-              {data.photo ? (
-                <img src={data.photo} alt="Student" className={styles.studentPhoto} />
-              ) : (
-                <span>Photo</span>
-              )}
-            </div>
+        {/* BACK PAGE LEFT - Grading System (Oromo & English) */}
+        <div className={styles.backPageLeft}>
+          <div className={styles.gradingSystemSection}>
+            <h3 className={styles.gradingTitle}>SEERA KENNAA QABXII</h3>
+            <p className={styles.gradingIntro}>
+              Haalli sadarkaa qabxii barataa itti galmeeffamu akka armaan gaditti ramadama:
+            </p>
             
-            <div className={styles.logoSection}>
-              {schoolInfo.logo ? (
-                <img src={schoolInfo.logo} alt="School Logo" className={styles.schoolLogo} />
-              ) : (
-                <div className={styles.logoCircle}>
-                  <div className={styles.logoInner}>
-                    <span className={styles.logoArabic}>iqra</span>
-                    <span className={styles.logoSubtext}>ACADEMY</span>
-                    <span className={styles.logoTagline}>Bar Ama Baro</span>
-                  </div>
-                </div>
-              )}
+            <div className={styles.gradingList}>
+              <div className={styles.gradeRow}>
+                <span className={styles.gradeRange}>90% - 100%</span>
+                <span className={styles.gradeDesc}>kan argate haalaan gaariidha</span>
+              </div>
+              <div className={styles.gradeRow}>
+                <span className={styles.gradeRange}>80% - 89%</span>
+                <span className={styles.gradeDesc}>kan argate gaariidha</span>
+              </div>
+              <div className={styles.gradeRow}>
+                <span className={styles.gradeRange}>60% - 79%</span>
+                <span className={styles.gradeDesc}>kan argate quubsaadha</span>
+              </div>
+              <div className={styles.gradeRow}>
+                <span className={styles.gradeRange}>50% - 59%</span>
+                <span className={styles.gradeDesc}>kan argate gahaadha</span>
+              </div>
+              <div className={styles.gradeRow}>
+                <span className={styles.gradeRange}>%50 gad</span>
+                <span className={styles.gradeDesc}>kan argate haalaan xiqqaadha</span>
+              </div>
             </div>
-          </div>
 
-          <div className={styles.schoolNames}>
-            <h1 className={styles.schoolNameMain}>DUGSIGA HOOSE DHEXE & SARE EE IQRA</h1>
-            <p className={styles.schoolNameAmharic}>ኢቅራ ሕፃናት ዝቅተኛ፣መካከለኛና ከፍተኛ ደረጃ ት/ቤት</p>
-            <p className={styles.schoolNameEn}>IQRA KINDERGARTEN, PRIMERY, INTERMEDIATE & SECONDARY SCHOOL</p>
-            <p className={styles.schoolNameAr}>اقرأ روضة الاطفال ومدرسة الإبتدائية والمتوسطة والثانوية</p>
-          </div>
+            <p className={styles.gradingNote}>
+              Yeroo hunda barataa/ttuu barachaa ture tokkoof dhiibba irraa duwwaan (%0) hin kennamuuf. 
+              Duwwaa kennuu jechuun barataan kun hin baranne jechuu wan taheef yoo hin baranne hafaa/tte 
+              "H" jechamee barreefama.
+            </p>
 
-          <div className={styles.reportTitle}>
-            <h2>Student's Report Card</h2>
-          </div>
+            <h3 className={styles.gradingTitle}>METHOD OF RANKING</h3>
+            <p className={styles.gradingIntro}>
+              Students achievement in class will be assigned the following values:
+            </p>
+            
+            <div className={styles.gradingList}>
+              <div className={styles.gradeRow}>
+                <span className={styles.gradeRange}>90-100%</span>
+                <span className={styles.gradeDesc}>Excellent</span>
+              </div>
+              <div className={styles.gradeRow}>
+                <span className={styles.gradeRange}>80-89%</span>
+                <span className={styles.gradeDesc}>Very good</span>
+              </div>
+              <div className={styles.gradeRow}>
+                <span className={styles.gradeRange}>60-79%</span>
+                <span className={styles.gradeDesc}>Satisfactory</span>
+              </div>
+              <div className={styles.gradeRow}>
+                <span className={styles.gradeRange}>50-59%</span>
+                <span className={styles.gradeDesc}>Fair</span>
+              </div>
+              <div className={styles.gradeRow}>
+                <span className={styles.gradeRange}>Below 50%</span>
+                <span className={styles.gradeDesc}>Poor</span>
+              </div>
+            </div>
 
-          <div className={styles.studentInfo}>
-            <div className={styles.infoRow}>
-              <span className={styles.label}>Branch:</span>
-              <span className={styles.value}>_______________________________</span>
-            </div>
-            <div className={styles.infoRow}>
-              <span className={styles.label}>Academic Year:</span>
-              <span className={styles.value}>{schoolInfo.academicYear || '_______________________________'}</span>
-            </div>
-            <div className={styles.infoRow}>
-              <span className={styles.label}>Issue Date:</span>
-              <span className={styles.value}>_______________________________</span>
-            </div>
-            <div className={styles.infoRow}>
-              <span className={styles.label}>Student's Full Name:</span>
-              <span className={styles.value}>{data.studentName}</span>
-            </div>
-            <div className={styles.infoRowSplit}>
-              <div className={styles.infoHalf}>
-                <span className={styles.label}>Gender:</span>
-                <span className={styles.value}>{data.gender || '____'}</span>
-              </div>
-              <div className={styles.infoHalf}>
-                <span className={styles.label}>Age:</span>
-                <span className={styles.value}>{data.age || '____'}</span>
-              </div>
-            </div>
-            <div className={styles.infoRowSplit}>
-              <div className={styles.infoHalf}>
-                <span className={styles.label}>Grade:</span>
-                <span className={styles.value}>{data.className}</span>
-              </div>
-              <div className={styles.infoHalf}>
-                <span className={styles.label}>Address:</span>
-                <span className={styles.value}>____</span>
-              </div>
-            </div>
+            <p className={styles.gradingNote}>
+              A mark Zero (0) should never be given since it would mean no work has been done absolutely. 
+              If a student has been absent from class for whole period covered and has not made up any of 
+              the work he/she should be marked "AB" for "Absent".
+            </p>
           </div>
+        </div>
 
-          <div className={styles.promotionText}>
-            <p>Based on the student's score as per the method of marking the student is</p>
-            <div className={styles.promotionLine}>
-              <span className={styles.underline}>_______________________________</span>
-              <span>to grade</span>
-              <span className={styles.underline}>________</span>
-            </div>
-          </div>
-
-          <div className={styles.signatures}>
-            <div className={styles.signatureRow}>
-              <div className={styles.signatureField}>
-                <span className={styles.label}>Home Room Teacher's Signature:</span>
-                <span className={styles.underline}>____________</span>
-              </div>
-              <div className={styles.signatureField}>
-                <span className={styles.label}>Date:</span>
-                <span className={styles.underline}>________</span>
-              </div>
-            </div>
-            <div className={styles.signatureRow}>
-              <div className={styles.signatureField}>
-                <span className={styles.label}>Principal's Signature:</span>
-                <span className={styles.underline}>____________</span>
-              </div>
-              <div className={styles.signatureField}>
-                <span className={styles.label}>Date:</span>
-                <span className={styles.underline}>________</span>
-              </div>
-            </div>
-          </div>
-
-          <div className={styles.gradingScale}>
-            <h3>METHOD OF MARKING</h3>
-            <div className={styles.gradeList}>
-              <div className={styles.gradeItem}>
-                <span>90-100%</span>
-                <span className={styles.gradeLetter}>A</span>
-                <span>Excellent</span>
-              </div>
-              <div className={styles.gradeItem}>
-                <span>80-89%</span>
-                <span className={styles.gradeLetter}>B</span>
-                <span>Very Good</span>
-              </div>
-              <div className={styles.gradeItem}>
-                <span>60-79%</span>
-                <span className={styles.gradeLetter}>C</span>
-                <span>Good</span>
-              </div>
-              <div className={styles.gradeItem}>
-                <span>50-59%</span>
-                <span className={styles.gradeLetter}>D</span>
-                <span>Satisfactory</span>
-              </div>
-              <div className={styles.gradeItem}>
-                <span>Below 50%</span>
-                <span className={styles.gradeLetter}>F</span>
-                <span>Poor</span>
-              </div>
-            </div>
-          </div>
-
-          <div className={styles.parentSection}>
-            <div className={styles.parentSignature}>
-              <div className={styles.signatureField}>
-                <span className={styles.label}>Parent's/Guardian's Signature:</span>
-                <span className={styles.underline}>____________</span>
-              </div>
-              <div className={styles.signatureField}>
-                <span className={styles.label}>Date:</span>
-                <span className={styles.underline}>________</span>
-              </div>
-            </div>
-            <div className={styles.parentMessage}>
-              <h4>Dear Parents/Guardians,</h4>
-              <p>
-                Strong communication between school and parents is vital for improving student 
-                performance. The school welcomes questions regarding the teaching-learning process 
-                and your children's schoolwork.
+        {/* BACK PAGE RIGHT - Student Information */}
+        <div className={styles.backPageRight}>
+          <div className={styles.schoolHeader}>
+            {schoolInfo.logo && (
+              <img src={schoolInfo.logo} alt="School Logo" className={styles.headerLogo} />
+            )}
+            <div className={styles.schoolInfo}>
+              <h2 className={styles.schoolNameArabic}>مدرسة بلال الإسلامية دريدوا</h2>
+              <h2 className={styles.schoolNameOromo}>MANA BARNOOTA BILAAL SADARKAA 1<sup>HAA</sup> FI 2<sup>FFAA</sup></h2>
+              <h2 className={styles.schoolNameOromo}>DIRREE DAWAA</h2>
+              <h2 className={styles.schoolNameAmharic}>ቢላል እስላማዊ አንደኛ እና ሁለተኛ ደረጃ የህዝብ ት/ቤት - ድሬ ዳዋ</h2>
+              <p className={styles.contactInfo}>
+                ☎ 0254119494 | E-mail: bilalschool19@gmail.com | Dire Dawa
               </p>
-              <p>Please examine this report card carefully, sign it, and return it promptly.</p>
+            </div>
+          </div>
+
+          <h3 className={styles.reportCardTitle}>STUDENT'S REPORT CARD</h3>
+
+          <div className={styles.studentInfoSection}>
+            <div className={styles.infoField}>
+              <span className={styles.fieldLabel}>Maqaa Barataa/ttuu / Name of Student:</span>
+              <span className={styles.fieldValue}>{data.studentName}</span>
+              <span className={styles.fieldLabelArabic}>(إسم الطالب)</span>
+            </div>
+
+            <div className={styles.infoFieldRow}>
+              <div className={styles.infoFieldHalf}>
+                <span className={styles.fieldLabel}>Saala (Sex):</span>
+                <span className={styles.fieldValue}>{data.gender || '_____'}</span>
+                <span className={styles.fieldLabelArabic}>(الجنس)</span>
+              </div>
+              <div className={styles.infoFieldHalf}>
+                <span className={styles.fieldLabel}>Umrii (Age):</span>
+                <span className={styles.fieldValue}>{data.age || '_____'}</span>
+                <span className={styles.fieldLabelArabic}>(العمر)</span>
+              </div>
+            </div>
+
+            <div className={styles.infoField}>
+              <span className={styles.fieldLabel}>Araddaa (Kebele):</span>
+              <span className={styles.fieldValue}>__________</span>
+              <span className={styles.fieldLabel}>L.Manaa (H.No.):</span>
+              <span className={styles.fieldValue}>__________</span>
+              <span className={styles.fieldLabel}>L.Mob. (Mob.No.):</span>
+              <span className={styles.fieldValue}>__________</span>
+            </div>
+
+            <div className={styles.infoField}>
+              <span className={styles.fieldLabel}>Bulchiinsa naannoo (Administrative region):</span>
+              <span className={styles.fieldValue}>Dire Dawa</span>
+              <span className={styles.fieldLabelArabic}>(المحافظة)</span>
+            </div>
+
+            <div className={styles.infoField}>
+              <span className={styles.fieldLabel}>Bara barnootaa (Academic year):</span>
+              <span className={styles.fieldValue}>{schoolInfo.academicYear || '2016'}</span>
+              <span className={styles.fieldLabelArabic}>(العام الدراسي)</span>
+            </div>
+
+            <div className={styles.infoFieldRow}>
+              <div className={styles.infoFieldHalf}>
+                <span className={styles.fieldLabel}>Kutaa (Grade):</span>
+                <span className={styles.fieldValue}>{data.className}</span>
+                <span className={styles.fieldLabelArabic}>(الصف)</span>
+              </div>
+              <div className={styles.infoFieldHalf}>
+                <span className={styles.fieldLabel}>Gara kutaa itti dabare/tte (Promoted to grade):</span>
+                <span className={styles.fieldValue}>_____</span>
+                <span className={styles.fieldLabelArabic}>(منقول)</span>
+              </div>
+            </div>
+
+            <div className={styles.infoField}>
+              <span className={styles.fieldLabel}>Promoted/Dabarte/tte:</span>
+              <span className={styles.fieldValue}>Promoted</span>
+            </div>
+
+            <div className={styles.signatureSection}>
+              <div className={styles.signatureField}>
+                <span className={styles.fieldLabel}>Maqaa fi mallattoo dura bu'aa M/B (Director's name and signature):</span>
+                <div className={styles.signatureLine}>
+                  <span className={styles.fieldValue}>Yuusuf Ahmad</span>
+                </div>
+              </div>
+            </div>
+
+            <div className={styles.schoolFooter}>
+              <p className={styles.schoolFooterText}>የቢላል እስላማዊ 2ኛ ደረጃ ም/ር/መምህር</p>
             </div>
           </div>
         </div>
 
-        {/* BACK PAGE */}
-        <div className={styles.backPage}>
-          <div className={styles.backHeader}>
-            <div className={styles.backLogo}>
-              {schoolInfo.logo ? (
-                <img src={schoolInfo.logo} alt="Logo" className={styles.backLogoImg} />
-              ) : (
-                <div className={styles.backLogoCircle}>
-                  <span className={styles.backLogoText}>iqra</span>
+        {/* FRONT PAGE - Top and Bottom Layout */}
+        <div className={styles.frontPage}>
+          {/* TOP SECTION - Student Information */}
+          <div className={styles.frontTop}>
+            <div className={styles.frontTopHeader}>
+              <div className={styles.photoBoxFront}>
+                {data.photo ? (
+                  <img src={data.photo} alt="Student" className={styles.studentPhoto} />
+                ) : (
+                  <div className={styles.photoPlaceholder}>Photo</div>
+                )}
+              </div>
+              
+              <div className={styles.schoolInfoBox}>
+                <div className={styles.schoolNameArabic}>مدرسة بلال الإسلامية دريدوا</div>
+                <div className={styles.schoolNameOromo}>MANA BARNOOTA BILAAL SADARKAA 1<sup>HAA</sup> FI 2<sup>FFAA</sup></div>
+                <div className={styles.schoolNameOromo}>DIRREE DAWAA</div>
+                <div className={styles.schoolNameAmharic}>ቢላል እስላማዊ አንደኛ እና ሁለተኛ ደረጃ የህዝብ ት/ቤት - ድሬ ዳዋ</div>
+                <div className={styles.contactInfo}>☎ 0254119494 | E-mail: bilalschool19@gmail.com | Dire Dawa</div>
+              </div>
+            </div>
+
+            <h3 className={styles.reportCardTitle}>STUDENT'S REPORT CARD</h3>
+
+            <div className={styles.studentInfoGrid}>
+              <div className={styles.infoFieldFrontTop}>
+                <span className={styles.fieldLabelFrontTop}>Maqaa Barataa/ttuu / Name of Student:</span>
+                <span className={styles.fieldValueFrontTop}>{data.studentName}</span>
+                <span className={styles.fieldLabelArabic}>(إسم الطالب)</span>
+              </div>
+
+              <div className={styles.infoRowFrontTop}>
+                <div className={styles.infoFieldHalfFrontTop}>
+                  <span className={styles.fieldLabelFrontTop}>Saala (Sex):</span>
+                  <span className={styles.fieldValueFrontTop}>{data.gender || '_____'}</span>
+                  <span className={styles.fieldLabelArabic}>(الجنس)</span>
                 </div>
-              )}
+                <div className={styles.infoFieldHalfFrontTop}>
+                  <span className={styles.fieldLabelFrontTop}>Umrii (Age):</span>
+                  <span className={styles.fieldValueFrontTop}>{data.age || '_____'}</span>
+                  <span className={styles.fieldLabelArabic}>(العمر)</span>
+                </div>
+              </div>
+
+              <div className={styles.infoFieldFrontTop}>
+                <span className={styles.fieldLabelFrontTop}>Bulchiinsa naannoo (Administrative region):</span>
+                <span className={styles.fieldValueFrontTop}>Dire Dawa</span>
+                <span className={styles.fieldLabelArabic}>(المحافظة)</span>
+              </div>
+
+              <div className={styles.infoRowFrontTop}>
+                <div className={styles.infoFieldHalfFrontTop}>
+                  <span className={styles.fieldLabelFrontTop}>Bara barnootaa (Academic year):</span>
+                  <span className={styles.fieldValueFrontTop}>{schoolInfo.academicYear || '2016'}</span>
+                  <span className={styles.fieldLabelArabic}>(العام الدراسي)</span>
+                </div>
+                <div className={styles.infoFieldHalfFrontTop}>
+                  <span className={styles.fieldLabelFrontTop}>Kutaa (Grade):</span>
+                  <span className={styles.fieldValueFrontTop}>{data.className}</span>
+                  <span className={styles.fieldLabelArabic}>(الصف)</span>
+                </div>
+              </div>
+
+              <div className={styles.infoRowFrontTop}>
+                <div className={styles.infoFieldHalfFrontTop}>
+                  <span className={styles.fieldLabelFrontTop}>Gara kutaa itti dabare/tte (Promoted to grade):</span>
+                  <span className={styles.fieldValueFrontTop}>_____</span>
+                  <span className={styles.fieldLabelArabic}>(منقول)</span>
+                </div>
+                <div className={styles.infoFieldHalfFrontTop}>
+                  <span className={styles.fieldLabelFrontTop}>Promoted/Dabarte/tte:</span>
+                  <span className={styles.promotedBadge}>Promoted</span>
+                </div>
+              </div>
             </div>
           </div>
 
-          <table className={styles.marksTable}>
-            <thead>
-              <tr>
-                <th rowSpan="2" className={styles.subjectCol}>Subject</th>
-                <th colSpan="2">Term</th>
-                <th rowSpan="2">Average</th>
-              </tr>
-              <tr>
-                <th>1st Term</th>
-                <th>2nd Term</th>
-              </tr>
-            </thead>
-            <tbody>
-              {subjects.map((subject, idx) => {
-                const subjectData = data.subjectsData.subjects[subject] || {};
-                return (
-                  <tr key={idx}>
-                    <td className={styles.subjectName}>{subject}</td>
-                    <td>{subjectData.term1 || ''}</td>
-                    <td>{subjectData.term2 || ''}</td>
-                    <td>{subjectData.average || ''}</td>
-                  </tr>
-                );
-              })}
-              <tr>
-                <td className={styles.subjectName}>Absent</td>
-                <td></td>
-                <td></td>
-                <td></td>
-              </tr>
-              <tr className={styles.totalRow}>
-                <td className={styles.subjectName}>Total</td>
-                <td>{data.subjectsData.totals?.term1 || ''}</td>
-                <td>{data.subjectsData.totals?.term2 || ''}</td>
-                <td>{data.subjectsData.totals?.combined || ''}</td>
-              </tr>
-              <tr className={styles.totalRow}>
-                <td className={styles.subjectName}>Average</td>
-                <td>{data.subjectsData.averages?.term1 || ''}</td>
-                <td>{data.subjectsData.averages?.term2 || ''}</td>
-                <td>{data.subjectsData.averages?.combined || ''}</td>
-              </tr>
-              <tr className={styles.totalRow}>
-                <td className={styles.subjectName}>Rank</td>
-                <td>{data.rank?.term1 || ''}</td>
-                <td>{data.rank?.term2 || ''}</td>
-                <td>{data.rank?.combined || ''}</td>
-              </tr>
-            </tbody>
-          </table>
-
-          <div className={styles.activitySection}>
-            <h3>Student's School Activity</h3>
-            <table className={styles.activityTable}>
+          {/* BOTTOM SECTION - Subjects Table */}
+          <div className={styles.frontBottom}>
+            <h3 className={styles.sectionTitleBottom}>Academic Performance / Raawwii Barnootaa</h3>
+            
+            <table className={styles.frontMarksTable}>
               <thead>
                 <tr>
-                  <th rowSpan="2" className={styles.characterCol}>Student Character</th>
-                  <th colSpan="2">Term</th>
-                  <th rowSpan="2" className={styles.legendCol}></th>
-                </tr>
-                <tr>
-                  <th>1st</th>
-                  <th>2nd</th>
+                  <th rowSpan="2" className={styles.subjectColFront}>
+                    <div>Gosa barnootaa</div>
+                    <div>Subjects</div>
+                    <div className={styles.arabicTextSmall}>المواد الدراسية</div>
+                  </th>
+                  <th>
+                    <div>Sem.1ffaa</div>
+                    <div>(1st Sem)</div>
+                  </th>
+                  <th>
+                    <div>Sem.2ffaa</div>
+                    <div>(2nd Sem)</div>
+                  </th>
+                  <th>
+                    <div>Cunfaa</div>
+                    <div>(Average)</div>
+                  </th>
                 </tr>
               </thead>
               <tbody>
-                <tr>
-                  <td>Personal Hygiene</td>
-                  <td></td>
-                  <td></td>
-                  <td className={styles.legendCell}>XC- Excellent</td>
+                {subjects.map((subject, idx) => {
+                  const subjectData = data.subjectsData.subjects[subject] || {};
+                  // Map subject names to Arabic
+                  const subjectArabicMap = {
+                    'Tafseer': 'التفسير',
+                    'Tafsiira': 'التفسير',
+                    'Islamic Education': 'التربية الاسلامية',
+                    'Tarbiyaa': 'التربية الاسلامية',
+                    'Arabic Language': 'اللغة العربية',
+                    'Arabiffaa': 'اللغة العربية',
+                    'English': 'الانجليزية',
+                    'Ingiliffaa': 'الانجليزية',
+                    'Mathematics': 'الرياضيات',
+                    'Herrega': 'الرياضيات',
+                    'Biology': 'العلوم',
+                    'Saayinsii': 'العلوم',
+                    'Chemistry': 'الكيمياء',
+                    'Keemistirrii': 'الكيمياء',
+                    'Physics': 'الفيزياء',
+                    'Fiiziksii': 'الفيزياء',
+                    'Agriculture': 'زراعة',
+                    'Qonnaa': 'زراعة',
+                    'ICT': 'الكومبيوتر',
+                    'Aaytii': 'الكومبيوتر',
+                    'Computer': 'الكومبيوتر',
+                    'History': 'التاريخ',
+                    'Geography': 'الجغرافيا',
+                    'Civics': 'التربية المدنية',
+                    'Amharic': 'الأمهرية',
+                    'Oromo': 'الأورومية'
+                  };
+                  
+                  const arabicName = subjectArabicMap[subject] || 'المادة';
+                  
+                  return (
+                    <tr key={idx}>
+                      <td className={styles.subjectNameFront}>
+                        <div className={styles.subjectOromo}>{subject}</div>
+                        <div className={styles.subjectArabic}>{arabicName}</div>
+                      </td>
+                      <td className={styles.markCell}>{subjectData.term1 || ''}</td>
+                      <td className={styles.markCell}>{subjectData.term2 || ''}</td>
+                      <td className={styles.avgCell}>{subjectData.average || ''}</td>
+                    </tr>
+                  );
+                })}
+                <tr className={styles.conductRow}>
+                  <td className={styles.subjectNameFront}>
+                    <div className={styles.subjectOromo}>Amala / Conduct</div>
+                    <div className={styles.subjectArabic}>السلوك</div>
+                  </td>
+                  <td className={styles.conductCell} colSpan="3"></td>
                 </tr>
-                <tr>
-                  <td>Taking Care of learning materials</td>
-                  <td></td>
-                  <td></td>
-                  <td className={styles.legendCell}>G-Good</td>
+                <tr className={styles.conductRow}>
+                  <td className={styles.subjectNameFront}>
+                    <div className={styles.subjectOromo}>G.Hafe / Absent</div>
+                    <div className={styles.subjectArabic}>المواظبه</div>
+                  </td>
+                  <td className={styles.conductCell} colSpan="3"></td>
                 </tr>
-                <tr>
-                  <td>Time management</td>
-                  <td></td>
-                  <td></td>
-                  <td className={styles.legendCell}>SI - Improved</td>
+                <tr className={styles.totalRowFront}>
+                  <td className={styles.subjectNameFront}>
+                    <div className={styles.subjectOromo}>Ida'ama / Total</div>
+                    <div className={styles.subjectArabic}>المجموع</div>
+                  </td>
+                  <td className={styles.totalCell}>{data.subjectsData.totals?.term1 || ''}</td>
+                  <td className={styles.totalCell}>{data.subjectsData.totals?.term2 || ''}</td>
+                  <td className={styles.totalAvgCell}>{data.subjectsData.totals?.combined || ''}</td>
                 </tr>
-                <tr>
-                  <td>Work Independently</td>
-                  <td></td>
-                  <td></td>
-                  <td className={styles.legendCell}>NI - Needs Improvement</td>
+                <tr className={styles.totalRowFront}>
+                  <td className={styles.subjectNameFront}>
+                    <div className={styles.subjectOromo}>Cuunfaa / Average</div>
+                    <div className={styles.subjectArabic}>المعدل</div>
+                  </td>
+                  <td className={styles.totalCell}>{data.subjectsData.averages?.term1 || ''}</td>
+                  <td className={styles.totalCell}>{data.subjectsData.averages?.term2 || ''}</td>
+                  <td className={styles.totalAvgCell}>{data.subjectsData.averages?.combined || ''}</td>
                 </tr>
-                <tr>
-                  <td>Obeys rule</td>
-                  <td></td>
-                  <td></td>
-                  <td></td>
-                </tr>
-                <tr>
-                  <td>Overall responsibility</td>
-                  <td></td>
-                  <td></td>
-                  <td></td>
-                </tr>
-                <tr>
-                  <td>Social Relation</td>
-                  <td></td>
-                  <td></td>
-                  <td></td>
+                <tr className={styles.rankRow}>
+                  <td className={styles.subjectNameFront}>
+                    <div className={styles.subjectOromo}>Sadarkaa / Rank</div>
+                    <div className={styles.subjectArabic}>الدرجة</div>
+                  </td>
+                  <td className={styles.rankCell}>{data.rank?.term1 || ''}</td>
+                  <td className={styles.rankCell}>{data.rank?.term2 || ''}</td>
+                  <td className={styles.rankAvgCell}>{data.rank?.combined || ''}</td>
                 </tr>
               </tbody>
             </table>
@@ -704,8 +801,8 @@ const ReportCard = () => {
             <div className={styles.headerContent}>
               <FaAward className={styles.headerIcon} />
               <div>
-                <h1>Iqra Report Card</h1>
-                <p>Iqra Academy Report Card Design (A5 Portrait)</p>
+                <h1>Bilal School Report Card</h1>
+                <p>Bilal Islamic School Report Card Design (A5 Portrait)</p>
               </div>
             </div>
           </div>
@@ -778,7 +875,7 @@ const ReportCard = () => {
             </div>
           ) : (
             <div className={styles.previewSection}>
-              <h3>Preview - Iqra Report Card (A5 Portrait)</h3>
+              <h3>Preview - Bilal School Report Card (A5 Portrait)</h3>
               <div className={styles.previewCard}>
                 <SingleIqraCard data={reportData} />
               </div>

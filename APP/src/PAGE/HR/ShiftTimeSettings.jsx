@@ -18,7 +18,7 @@ const ShiftTimeSettings = () => {
     try {
       const token = localStorage.getItem('authToken') || localStorage.getItem('token');
       const response = await axios.get(
-        `${API_URL}/api/hr/shift-settings`,
+        `${API_URL}/hr/shift-settings`,
         { headers: { 'Authorization': `Bearer ${token}` } }
       );
 
@@ -52,7 +52,7 @@ const ShiftTimeSettings = () => {
       const shift = shifts.find(s => s.shift_name === shiftName);
 
       const response = await axios.put(
-        `${API_URL}/api/hr/shift-settings/${shiftName}`,
+        `${API_URL}/hr/shift-settings/${shiftName}`,
         {
           check_in_time: shift.check_in_time,
           check_out_time: shift.check_out_time,

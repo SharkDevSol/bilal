@@ -3,6 +3,9 @@ import axios from 'axios';
 import { FiCalendar, FiUsers, FiCheckCircle, FiXCircle, FiClock, FiEdit2, FiX, FiSave } from 'react-icons/fi';
 import styles from './StudentAttendanceSystem.module.css';
 
+// API base URL
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+
 const StudentAttendanceSystem = ({ preSelectedClass = null }) => {
   const [selectedClass, setSelectedClass] = useState(preSelectedClass || '');
   const [selectedYear, setSelectedYear] = useState(2018);
@@ -110,7 +113,7 @@ const StudentAttendanceSystem = ({ preSelectedClass = null }) => {
   const runAutoMarkerSilently = async () => {
     try {
       console.log('Running auto-marker in background...');
-      await axios.post('http://localhost:5000/api/academic/student-attendance/mark-absent');
+      await axios.post(`${API_BASE_URL}/academic/student-attendance/mark-absent`);
       console.log('Auto-marker completed');
       // Refresh attendance data if we're viewing current data
       if (selectedClass && selectedWeekId) {
@@ -125,7 +128,7 @@ const StudentAttendanceSystem = ({ preSelectedClass = null }) => {
 
   const fetchCurrentDate = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/academic/student-attendance/current-date');
+      const response = await axios.get(`${API_BASE_URL}/academic/student-attendance/current-date`);
       if (response.data.success) {
         const date = response.data.data;
         setCurrentEthiopianDate(date);
@@ -138,7 +141,7 @@ const StudentAttendanceSystem = ({ preSelectedClass = null }) => {
 
   const fetchSettings = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/academic/student-attendance/settings');
+      const response = await axios.get(`${API_BASE_URL}/academic/student-attendance/settings`);
       if (response.data.success) {
         setSettings(response.data.data);
       }
@@ -152,7 +155,7 @@ const StudentAttendanceSystem = ({ preSelectedClass = null }) => {
 
   const fetchClasses = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/academic/student-attendance/classes');
+      const response = await axios.get(`${API_BASE_URL}/academic/student-attendance/classes`);
       if (response.data.success) {
         setClasses(response.data.data);
         // Only set first class if no preSelectedClass is provided
@@ -169,7 +172,7 @@ const StudentAttendanceSystem = ({ preSelectedClass = null }) => {
   const fetchStudents = async () => {
     try {
       setIsLoading(true);
-      const response = await axios.get('http://localhost:5000/api/academic/student-attendance/students', {
+      const response = await axios.get(`${API_BASE_URL}/academic/student-attendance/students`, {
         params: { class: selectedClass }
       });
       if (response.data.success) {
@@ -183,176 +186,94 @@ const StudentAttendanceSystem = ({ preSelectedClass = null }) => {
     }
   };
 
-  // Generate school weeks starting from Mondays
+  // Generate school weeks starting from Mondays (OPTIMIZED - single API call)
   const generateSchoolWeeks = async () => {
     if (!settings || !settings.school_days) return;
 
     setIsLoading(true);
-    const weeks = [];
-    const schoolDays = settings.school_days;
-    const daysPerWeek = schoolDays.length;
+    
+    try {
+      // Make a single API call to generate all weeks on the backend
+      const response = await axios.get(`${API_BASE_URL}/academic/student-attendance/generate-weeks`, {
+        params: {
+          year: selectedYear,
+          schoolDays: settings.school_days.join(',')
+        }
+      });
 
-    // Start from beginning of year
-    let currentYear = selectedYear;
-    let currentMonth = 1;
-    let currentDay = 1;
-    let weekNumber = 1;
-    let daysChecked = 0;
-    const maxDays = 365;
-
-    while (daysChecked < maxDays && weekNumber <= 52) {
-      // Get day of week for current date
-      try {
-        const response = await axios.get('http://localhost:5000/api/academic/student-attendance/day-of-week', {
-          params: { year: currentYear, month: currentMonth, day: currentDay }
-        });
-
-        if (response.data.success && response.data.data.dayOfWeek === 'Monday') {
-          // Found a Monday! Build a school week from here
-          const weekDays = [];
-          let tempYear = currentYear;
-          let tempMonth = currentMonth;
-          let tempDay = currentDay;
-          let schoolDaysCollected = 0;
-          let daysScanned = 0;
-
-          while (schoolDaysCollected < daysPerWeek && daysScanned < 14) {
-            const dayResponse = await axios.get('http://localhost:5000/api/academic/student-attendance/day-of-week', {
-              params: { year: tempYear, month: tempMonth, day: tempDay }
-            });
-
-            if (dayResponse.data.success) {
-              const dow = dayResponse.data.data.dayOfWeek;
-              
-              if (schoolDays.includes(dow)) {
-                weekDays.push({
-                  year: tempYear,
-                  month: tempMonth,
-                  day: tempDay,
-                  dayOfWeek: dow
-                });
-                schoolDaysCollected++;
-              }
-            }
-
-            // Move to next day
-            tempDay++;
-            daysScanned++;
-            const daysInMonth = tempMonth === 13 ? 5 : 30;
-            if (tempDay > daysInMonth) {
-              tempDay = 1;
-              tempMonth++;
-              if (tempMonth > 13) {
-                tempMonth = 1;
-                tempYear++;
-              }
-            }
-          }
-
-          if (weekDays.length > 0) {
-            const firstDay = weekDays[0];
-            const lastDay = weekDays[weekDays.length - 1];
+      if (response.data.success) {
+        const weeks = response.data.data.weeks;
+        
+        // Mark current week
+        const weeksWithCurrent = weeks.map(week => {
+          let isCurrentWeek = false;
+          
+          if (currentEthiopianDate) {
+            const firstDay = week.days[0];
+            const lastDay = week.days[week.days.length - 1];
             
-            // Check if this week contains today's date OR if today falls within the week range
-            let isCurrentWeek = false;
+            // Check if today is exactly one of the school days
+            const exactMatch = week.days.some(
+              d => d.year === currentEthiopianDate.year && 
+                   d.month === currentEthiopianDate.month && 
+                   d.day === currentEthiopianDate.day
+            );
             
-            if (currentEthiopianDate) {
-              // Check if today is exactly one of the school days
-              const exactMatch = weekDays.some(
-                d => d.year === currentEthiopianDate.year && 
-                     d.month === currentEthiopianDate.month && 
-                     d.day === currentEthiopianDate.day
-              );
-              
-              // Check if today falls within the week range (between first and last day)
-              const withinRange = 
+            // Check if today falls within the week range
+            const withinRange = 
+              currentEthiopianDate.year === firstDay.year &&
+              currentEthiopianDate.month === firstDay.month &&
+              currentEthiopianDate.day >= firstDay.day &&
+              currentEthiopianDate.day <= lastDay.day;
+            
+            // Check if week spans months
+            const spansMonths = firstDay.month !== lastDay.month;
+            if (spansMonths) {
+              const inFirstMonth = 
                 currentEthiopianDate.year === firstDay.year &&
                 currentEthiopianDate.month === firstDay.month &&
-                currentEthiopianDate.day >= firstDay.day &&
+                currentEthiopianDate.day >= firstDay.day;
+              
+              const inLastMonth = 
+                currentEthiopianDate.year === lastDay.year &&
+                currentEthiopianDate.month === lastDay.month &&
                 currentEthiopianDate.day <= lastDay.day;
               
-              // Also check if week spans months
-              const spansMonths = firstDay.month !== lastDay.month;
-              if (spansMonths) {
-                // If today is in first month and >= first day
-                const inFirstMonth = 
-                  currentEthiopianDate.year === firstDay.year &&
-                  currentEthiopianDate.month === firstDay.month &&
-                  currentEthiopianDate.day >= firstDay.day;
-                
-                // If today is in last month and <= last day
-                const inLastMonth = 
-                  currentEthiopianDate.year === lastDay.year &&
-                  currentEthiopianDate.month === lastDay.month &&
-                  currentEthiopianDate.day <= lastDay.day;
-                
-                isCurrentWeek = exactMatch || inFirstMonth || inLastMonth;
-              } else {
-                isCurrentWeek = exactMatch || withinRange;
-              }
+              isCurrentWeek = exactMatch || inFirstMonth || inLastMonth;
+            } else {
+              isCurrentWeek = exactMatch || withinRange;
             }
-            
-            const weekData = {
-              id: `week-${weekNumber}`,
-              weekNumber,
-              label: `${firstDay.day}/${firstDay.month} - ${lastDay.day}/${lastDay.month}`,
-              days: weekDays,
-              isCurrent: isCurrentWeek
-            };
-            
-            weeks.push(weekData);
-            
-            // Log current week for debugging
-            if (isCurrentWeek) {
-              console.log('Found current week:', weekData.label, 'containing date', currentEthiopianDate);
-            }
-            
-            weekNumber++;
           }
-
-          // Jump ahead by approximately 7 days to find next Monday
-          currentDay += 7;
+          
+          return {
+            ...week,
+            isCurrent: isCurrentWeek
+          };
+        });
+        
+        setSchoolWeeks(weeksWithCurrent);
+        
+        console.log(`Loaded ${weeksWithCurrent.length} school weeks for year ${selectedYear}`);
+        console.log('Current Ethiopian date:', currentEthiopianDate);
+        
+        // Select current week if found, otherwise first week
+        const currentWeek = weeksWithCurrent.find(w => w.isCurrent);
+        if (currentWeek) {
+          console.log('Auto-selecting current week:', currentWeek.label);
+          setSelectedWeekId(currentWeek.id);
         } else {
-          currentDay++;
-        }
-      } catch (err) {
-        console.error('Error generating week:', err);
-        currentDay++;
-      }
-
-      // Handle month/year transitions
-      const daysInMonth = currentMonth === 13 ? 5 : 30;
-      if (currentDay > daysInMonth) {
-        currentDay -= daysInMonth;
-        currentMonth++;
-        if (currentMonth > 13) {
-          currentMonth = 1;
-          currentYear++;
-          break; // Stop at year boundary
+          console.log('Current week not found, selecting first week');
+          if (weeksWithCurrent.length > 0) {
+            setSelectedWeekId(weeksWithCurrent[0].id);
+          }
         }
       }
-
-      daysChecked++;
+    } catch (err) {
+      console.error('Error generating weeks:', err);
+      setError('Failed to generate school weeks');
+    } finally {
+      setIsLoading(false);
     }
-
-    setSchoolWeeks(weeks);
-    
-    console.log(`Generated ${weeks.length} school weeks for year ${selectedYear}`);
-    console.log('Current Ethiopian date:', currentEthiopianDate);
-    
-    // Select current week if found, otherwise first week
-    const currentWeek = weeks.find(w => w.isCurrent);
-    if (currentWeek) {
-      console.log('Auto-selecting current week:', currentWeek.label);
-      setSelectedWeekId(currentWeek.id);
-    } else {
-      console.log('Current week not found, selecting first week');
-      if (weeks.length > 0) {
-        setSelectedWeekId(weeks[0].id);
-      }
-    }
-    
-    setIsLoading(false);
   };
 
   // Go to current week - show modal with calendar info
@@ -406,7 +327,7 @@ const StudentAttendanceSystem = ({ preSelectedClass = null }) => {
       
       // Fetch attendance for all days in the week
       const promises = selectedWeek.days.map(day =>
-        axios.get('http://localhost:5000/api/academic/student-attendance/weekly', {
+        axios.get(`${API_BASE_URL}/academic/student-attendance/weekly`, {
           params: {
             week: Math.ceil(day.day / 7),
             year: day.year,
@@ -513,7 +434,7 @@ const StudentAttendanceSystem = ({ preSelectedClass = null }) => {
     try {
       setIsLoading(true);
 
-      const response = await axios.put('http://localhost:5000/api/academic/student-attendance/update', {
+      const response = await axios.put(`${API_BASE_URL}/academic/student-attendance/update`, {
         studentId: editModal.student.student_id,
         className: editModal.student.class_name,
         ethYear: editModal.dayInfo.year,

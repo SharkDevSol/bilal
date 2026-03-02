@@ -1,4 +1,4 @@
-// routes/staffRoutes.js - FIXED PHONE NUMBER TYPE
+﻿// routes/staffRoutes.js - FIXED PHONE NUMBER TYPE
 const express = require('express');
 const jwt = require('jsonwebtoken');
 const pool = require('../config/db');
@@ -28,7 +28,7 @@ router.use(express.urlencoded({ extended: true }));
 router.use(sanitizeInputs);
 
 // ---------------------------------------------------------------------
-// 1. Multer – file uploads (dynamic fields for custom uploads)
+// 1. Multer â€“ file uploads (dynamic fields for custom uploads)
 // ---------------------------------------------------------------------
 const uploadDir = path.join(__dirname, '../uploads');
 const storage = multer.diskStorage({
@@ -1989,7 +1989,7 @@ router.get('/profile-by-id/:globalStaffId', authenticateToken, async (req, res) 
 
 // 7.19 GET ALL STAFF (for dropdowns and lists)
 router.get('/', authenticateToken, async (req, res) => {
-  console.log('\n📥 GET /api/staff - Request received');
+  console.log('\nðŸ“¥ GET /api/staff - Request received');
   
   try {
     // Fetch all staff from staff_users table
@@ -2076,7 +2076,7 @@ router.get('/', authenticateToken, async (req, res) => {
       }
     }
 
-    console.log(`✅ Found ${staff.length} staff members`);
+    console.log(`âœ… Found ${staff.length} staff members`);
     
     res.json({ 
       success: true,
@@ -2239,7 +2239,7 @@ router.post('/bulk-import', async (req, res) => {
       throw new Error(`Table ${schema}.${sanitizedClassName} does not exist`);
     }
     
-    // Get columns with their data types
+    // Get columns
     const columnsResult = await client.query(
       'SELECT column_name, data_type FROM information_schema.columns WHERE table_schema = $1 AND table_name = $2',
       [schema, sanitizedClassName]
@@ -2260,54 +2260,34 @@ router.post('/bulk-import', async (req, res) => {
     const results = {
       successCount: 0,
       failedCount: 0,
-      errors: []
+      errors: [],
+      credentials: []
     };
     
-    // Process each staff member
+    // Process each staff member - SIMPLIFIED VERSION
     for (let i = 0; i < staff.length; i++) {
       const staffData = staff[i];
       
-      // Start a new transaction for each staff member
-      const staffClient = await pool.connect();
-      
       try {
-        await staffClient.query('BEGIN');
-        
         // Validate required fields
         if (!staffData.name) {
           results.failedCount++;
-          results.errors.push({
-            row: i + 2,
-            error: 'Missing required field: name'
-          });
-          await staffClient.query('ROLLBACK');
-          staffClient.release();
+          results.errors.push({ row: i + 2, error: 'Missing name' });
           continue;
         }
         
         // Get next global_staff_id
         const globalStaffId = await getNextGlobalStaffId();
-        
-        // Increment staff_id
         currentStaffId++;
-        
-        // Generate credentials
-        const nameParts = staffData.name.toLowerCase().trim().split(/\s+/);
-        const firstName = nameParts[0] || 'staff';
-        const lastName = nameParts[nameParts.length - 1] || '';
-        const username = lastName ? `${firstName}_${lastName}_${globalStaffId}` : `${firstName}_${globalStaffId}`;
-        const password = `staff${globalStaffId}2024`;
         
         // Build insert data
         const insertData = {
           global_staff_id: globalStaffId,
           staff_id: currentStaffId,
-          name: staffData.name,
-          username: username,
-          password: password
+          name: staffData.name
         };
         
-        // Process all other fields based on their data types
+        // Process other fields
         Object.keys(staffData).forEach(key => {
           if (validColumns.includes(key) && !insertData[key]) {
             const value = staffData[key];
@@ -2330,113 +2310,43 @@ router.post('/bulk-import', async (req, res) => {
           }
         });
         
-        // Ensure staff_work_time is properly formatted
-        if (insertData.staff_work_time) {
-          insertData.staff_work_time = insertData.staff_work_time === 'Part time' ? 'Part Time' :
-                                      insertData.staff_work_time === 'Full time' ? 'Full Time' :
-                                      insertData.staff_work_time;
-        } else {
+        // Ensure staff_work_time
+        if (!insertData.staff_work_time) {
           insertData.staff_work_time = 'Full Time';
         }
         
-        // Insert staff member
+        // Insert into main table
         const columns = Object.keys(insertData).filter(key => validColumns.includes(key));
         const values = columns.map(key => insertData[key]);
         const placeholders = columns.map((_, idx) => `$${idx + 1}`).join(', ');
         
-        console.log(`[Row ${i + 2}] Starting insert for ${staffData.name}`);
-        console.log(`[Row ${i + 2}] global_staff_id=${globalStaffId}, staff_id=${currentStaffId}`);
-        
         const insertQuery = `INSERT INTO "${schema}"."${sanitizedClassName}" (${columns.join(', ')}) VALUES (${placeholders})`;
-        console.log(`[Row ${i + 2}] Query: ${insertQuery}`);
-        console.log(`[Row ${i + 2}] Values:`, values);
+        await client.query(insertQuery, values);
         
-        await staffClient.query(insertQuery, values);
-        console.log(`[Row ${i + 2}] Main table insert successful`);
-        
-        // Insert into staff_users table for authentication
+        // Create user account using the proper function (generates username/password and hashes it)
+        let userCredentials = null;
         try {
-          console.log(`[Row ${i + 2}] Inserting into staff_users for ${staffData.name}`);
-          await staffClient.query(`
-            INSERT INTO public.staff_users 
-            (global_staff_id, name, role, staff_work_time, staff_enrollment_type, username, password, staff_type, phone, email, is_active)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
-            ON CONFLICT (global_staff_id) DO NOTHING
-          `, [
+          userCredentials = await createStaffUser(
             globalStaffId,
             staffData.name,
-            staffData.role || 'Staff',
-            insertData.staff_work_time,
-            staffData.staff_enrollment_type || 'Permanent',
-            username,
-            password,
             staffType,
-            staffData.phone || null,
-            staffData.email || null,
-            true
-          ]);
-          console.log(`[Row ${i + 2}] staff_users insert successful`);
+            sanitizedClassName
+          );
         } catch (userErr) {
-          console.error(`[Row ${i + 2}] User creation error for ${staffData.name}:`, userErr.message);
-          // Don't fail the whole import if user creation fails
+          console.error(`User creation error for ${staffData.name}:`, userErr.message);
         }
         
-        // Add to teachers table if role is Teacher
-        if (staffData.role === 'Teacher') {
-          try {
-            await addTeacherToSchoolSchemaPoints(
-              staffClient,
-              globalStaffId,
-              staffData.name,
-              insertData.staff_work_time || 'Full Time',
-              staffData.role,
-              staffData.staff_enrollment_type || 'Permanent'
-            );
-          } catch (teacherErr) {
-            console.error(`Teacher table error for ${staffData.name}:`, teacherErr.message);
-          }
-        }
-        
-        // Add to schedule system if Teachers
-        if (staffType === 'Teachers') {
-          try {
-            const isPart = insertData.staff_work_time === 'Part Time';
-            const sched = isPart
-              ? { work_days: [], preferred_shifts: [], availability: [], max_hours_per_day: 8, max_hours_per_week: 40 }
-              : { work_days: [1, 2, 3, 4, 5], preferred_shifts: ['morning', 'afternoon'], availability: [], max_hours_per_day: 8, max_hours_per_week: 40 };
-            
-            await addTeacherToScheduleSystem(
-              staffClient,
-              globalStaffId,
-              staffData.name,
-              sched,
-              isPart ? 'part_time' : 'full_time'
-            );
-          } catch (schedErr) {
-            console.error(`Schedule error for ${staffData.name}:`, schedErr.message);
-          }
-        }
-        
-        // Initialize attendance profile
-        try {
-          const role = staffData.role || 'Staff';
-          const attendanceRole = role === 'Teacher' ? 'teacher' : 
-                                role === 'Guard' ? 'guard' : 
-                                role === 'Cleaner' ? 'cleaner' : 'other';
-          
-          await initializeStaffAttendanceProfile(staffClient, globalStaffId, staffData.name, attendanceRole);
-        } catch (attErr) {
-          console.error(`Attendance profile error for ${staffData.name}:`, attErr.message);
-        }
-        
-        await staffClient.query('COMMIT');
-        staffClient.release();
         results.successCount++;
+        if (userCredentials) {
+          results.credentials.push({
+            name: staffData.name,
+            username: userCredentials.username,
+            password: userCredentials.password
+          });
+        }
         
       } catch (err) {
-        await staffClient.query('ROLLBACK');
-        staffClient.release();
-        console.error(`Error inserting staff at row ${i + 2}:`, err);
+        console.error(`Error at row ${i + 2}:`, err);
         results.failedCount++;
         results.errors.push({
           row: i + 2,
@@ -2446,27 +2356,24 @@ router.post('/bulk-import', async (req, res) => {
       }
     }
     
-    // Update staff IDs using the main client
-    await updateStaffIds(schema, sanitizedClassName, client);
-    
     await client.query('COMMIT');
     
     res.json({
-      message: `Bulk import completed for ${sanitizedClassName}`,
+      message: `Successfully imported ${results.successCount} staff members`,
       successCount: results.successCount,
       failedCount: results.failedCount,
+      credentials: results.credentials,
       errors: results.errors.length > 0 ? results.errors : undefined
     });
     
   } catch (err) {
     await client.query('ROLLBACK');
-    console.error('Error in bulk import:', err);
+    console.error('Bulk import error:', err);
     res.status(500).json({ error: 'Failed to import staff', details: err.message });
   } finally {
     client.release();
   }
 });
-
 // DEACTIVATE STAFF (HIDE FROM ALL SYSTEM LISTS)
 router.put('/toggle-active/:globalStaffId', async (req, res) => {
   const { globalStaffId } = req.params;

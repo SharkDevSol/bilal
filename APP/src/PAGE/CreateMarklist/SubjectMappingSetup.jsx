@@ -30,8 +30,8 @@ const SubjectConfiguration = ({ onSubjectsConfigured }) => {
 
   const handleSubjectCountChange = (count) => {
     const newCount = parseInt(count) || 1;
-    // Limit to reasonable range (1-50)
-    const validCount = Math.max(1, Math.min(50, newCount));
+    // Limit to reasonable range (1-500)
+    const validCount = Math.max(1, Math.min(500, newCount));
     setSubjectCount(validCount);
     
     const newSubjectNames = [...subjectNames];
@@ -128,11 +128,11 @@ const SubjectConfiguration = ({ onSubjectsConfigured }) => {
             onChange={(e) => handleSubjectCountChange(e.target.value)}
             className={styles.modernInput}
             min="1"
-            max="50"
+            max="500"
             placeholder="Enter number of subjects"
           />
           <small style={{ color: '#666', marginTop: '4px', display: 'block' }}>
-            Enter any number (1-50)
+            Enter any number (1-500)
           </small>
         </div>
 

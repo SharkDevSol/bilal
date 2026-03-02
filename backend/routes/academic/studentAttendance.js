@@ -385,6 +385,116 @@ router.get('/day-of-week', async (req, res) => {
   }
 });
 
+// GET /api/academic/student-attendance/generate-weeks
+// Generate all school weeks for a year (OPTIMIZED - runs on backend)
+router.get('/generate-weeks', async (req, res) => {
+  try {
+    const { year, schoolDays } = req.query;
+    
+    if (!year) {
+      return res.status(400).json({ error: 'Year is required' });
+    }
+
+    const yearNum = parseInt(year);
+    const daysArray = schoolDays ? schoolDays.split(',') : ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
+    
+    console.log(`Generating school weeks for year ${yearNum} with school days:`, daysArray);
+    
+    const weeks = [];
+    let currentMonth = 1;
+    let currentDay = 1;
+    let weekNumber = 1;
+    let daysChecked = 0;
+    const maxDays = 365;
+
+    while (daysChecked < maxDays && weekNumber <= 52) {
+      // Get day of week for current date
+      const dayOfWeek = getEthiopianDayOfWeek(yearNum, currentMonth, currentDay);
+
+      if (dayOfWeek === 'Monday') {
+        // Found a Monday! Build a school week from here
+        const weekDays = [];
+        let tempMonth = currentMonth;
+        let tempDay = currentDay;
+        let schoolDaysCollected = 0;
+        let daysScanned = 0;
+
+        while (schoolDaysCollected < daysArray.length && daysScanned < 14) {
+          const dow = getEthiopianDayOfWeek(yearNum, tempMonth, tempDay);
+          
+          if (daysArray.includes(dow)) {
+            weekDays.push({
+              year: yearNum,
+              month: tempMonth,
+              day: tempDay,
+              dayOfWeek: dow
+            });
+            schoolDaysCollected++;
+          }
+
+          // Move to next day
+          tempDay++;
+          daysScanned++;
+          const daysInMonth = tempMonth === 13 ? 5 : 30;
+          if (tempDay > daysInMonth) {
+            tempDay = 1;
+            tempMonth++;
+            if (tempMonth > 13) {
+              break; // Stop at year boundary
+            }
+          }
+        }
+
+        if (weekDays.length > 0) {
+          const firstDay = weekDays[0];
+          const lastDay = weekDays[weekDays.length - 1];
+          
+          weeks.push({
+            id: `week-${weekNumber}`,
+            weekNumber,
+            label: `${firstDay.day}/${firstDay.month} - ${lastDay.day}/${lastDay.month}`,
+            days: weekDays
+          });
+          
+          weekNumber++;
+        }
+
+        // Jump ahead by approximately 7 days to find next Monday
+        currentDay += 7;
+      } else {
+        currentDay++;
+      }
+
+      // Handle month/year transitions
+      const daysInMonth = currentMonth === 13 ? 5 : 30;
+      if (currentDay > daysInMonth) {
+        currentDay -= daysInMonth;
+        currentMonth++;
+        if (currentMonth > 13) {
+          break; // Stop at year boundary
+        }
+      }
+
+      daysChecked++;
+    }
+
+    console.log(`Generated ${weeks.length} school weeks for year ${yearNum}`);
+
+    res.json({
+      success: true,
+      data: {
+        year: yearNum,
+        weeks,
+        totalWeeks: weeks.length
+      }
+    });
+
+  } catch (error) {
+    console.error('Error generating weeks:', error);
+    res.status(500).json({ error: 'Failed to generate weeks' });
+  }
+});
+
 // POST /api/academic/student-attendance/mark-absent
 // Manually trigger auto-absent marker
 router.post('/mark-absent', async (req, res) => {

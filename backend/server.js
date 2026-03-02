@@ -94,6 +94,7 @@ const academicStudentAttendanceRoutes = require('./routes/academic/studentAttend
 const shiftSettingsRoutes = require('./routes/shiftSettings');
 const taskStatusRoutes = require('./routes/taskStatusRoutes');
 const deviceUserManagementRoutes = require('./routes/deviceUserManagement');
+const studentActivitiesRoutes = require('./routes/studentActivitiesRoutes');
 
 // Service imports for device user persistence
 const syncCoordinator = require('./services/SyncCoordinator');
@@ -300,6 +301,7 @@ app.use('/api/attendance', attendanceRoutes);
 app.use('/api/view-attendance', viewStudentAttendanceRoutes);
 app.use('/api/faults', studentFaultsRoutes);
 app.use('/api/mark-list', markListRoutes);
+app.use('/api/student-activities', studentActivitiesRoutes);
 app.use('/api/evaluations', evaluationRoutes);
 app.use('/api/staff', staffRoutes);
 app.use('/api/posts', postRoutes);

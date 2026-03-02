@@ -1998,7 +1998,7 @@ export const AppProvider = ({ children }) => {
 
       // Then load branding from database (this overrides localStorage)
       try {
-        const response = await axios.get('http://localhost:5000/api/admin/branding');
+        const response = await axios.get(`${import.meta.env.VITE_API_URL}/admin/branding`);
         const data = response.data;
         
         // Update website name from database
@@ -2021,7 +2021,7 @@ export const AppProvider = ({ children }) => {
         
         // Update favicon from database or use default Skoolific icon
         const iconUrl = data.website_icon 
-          ? `http://localhost:5000/uploads/branding/${data.website_icon}`
+          ? `${import.meta.env.VITE_API_URL.replace('/api', '')}/uploads/branding/${data.website_icon}`
           : '/skoolific-icon.png';
         
         // Update all icon links

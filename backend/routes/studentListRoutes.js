@@ -126,7 +126,23 @@ router.get("/student/:className/:schoolId/:classId", async (req, res) => {
 // Update student data with file upload support
 router.put("/student/:className/:schoolId/:classId", upload.single("image_student"), async (req, res) => {
   const { className, schoolId, classId } = req.params;
-  const updates = JSON.parse(req.body.updates || "{}");
+  
+  console.log('=== UPDATE STUDENT REQUEST ===');
+  console.log('Class:', className, 'School ID:', schoolId, 'Class ID:', classId);
+  console.log('Body:', req.body);
+  console.log('File:', req.file);
+  
+  // Handle both JSON string format and direct FormData format
+  let updates = {};
+  if (req.body.updates) {
+    updates = JSON.parse(req.body.updates);
+  } else {
+    // Direct FormData - use all body fields except file
+    updates = { ...req.body };
+  }
+  
+  console.log('Parsed updates:', updates);
+  
   const file = req.file;
 
   try {
@@ -157,8 +173,8 @@ router.put("/student/:className/:schoolId/:classId", upload.single("image_studen
         // Check if machine ID exists and belongs to a different student
         if (globalCheck.rows.length > 0) {
           const existing = globalCheck.rows[0];
-          // Allow if it's the same student being updated
-          if (existing.school_id != schoolId || existing.class_id != classId) {
+          // Allow if it's the same student being updated (convert to strings for comparison)
+          if (String(existing.school_id) !== String(schoolId) || String(existing.class_id) !== String(classId)) {
             return res.status(400).json({ 
               error: `Machine ID ${fields.smachine_id} already added. This ID is used by student "${existing.student_name}" in ${existing.class_name}.`
             });
@@ -183,8 +199,8 @@ router.put("/student/:className/:schoolId/:classId", upload.single("image_studen
         // Check if machine ID exists and belongs to a different student
         if (existingMachineId.rows.length > 0) {
           const existing = existingMachineId.rows[0];
-          // Allow if it's the same student being updated
-          if (existing.school_id != schoolId || existing.class_id != classId) {
+          // Allow if it's the same student being updated (convert to strings for comparison)
+          if (String(existing.school_id) !== String(schoolId) || String(existing.class_id) !== String(classId)) {
             return res.status(400).json({ 
               error: `Machine ID ${fields.smachine_id} already added. This ID is used by student "${existing.student_name}" in ${existing.class}.`
             });
@@ -220,6 +236,13 @@ router.put("/student/:className/:schoolId/:classId", upload.single("image_studen
     // Update global machine ID tracker if smachine_id was changed
     if (fields.smachine_id) {
       try {
+        // First, delete any old machine ID entries for this student
+        await pool.query(`
+          DELETE FROM school_schema_points.global_machine_ids 
+          WHERE school_id = $1 AND class_id = $2
+        `, [schoolId, classId]);
+        
+        // Then insert the new machine ID
         await pool.query(`
           INSERT INTO school_schema_points.global_machine_ids 
           (smachine_id, student_name, class_name, school_id, class_id)

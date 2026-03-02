@@ -1,555 +1,591 @@
-# VPS Deployment Guide - Complete Setup
+# VPS Deployment Guide - bilal.skoolific.com
 
-## Your VPS Information
-- **VPS IP**: 76.13.48.245
-- **New Machine IP**: 192.168.1.2 (local network)
-- **OS**: Ubuntu 24.04 LTS
-- **Root Access**: ssh root@76.13.48.245
+## 📋 Pre-Deployment Checklist
+
+- [ ] VPS server ready (Ubuntu 20.04+ recommended)
+- [ ] Domain: bilal.skoolific.com pointing to VPS IP
+- [ ] SSH access to VPS
+- [ ] Root or sudo access
 
 ---
 
-## STEP 1: Update Machine IP Address (Biometric Device)
+## 🚀 Step-by-Step Deployment (A-Z)
 
-### Files to Update for Machine IP Change
+### Step 1: Prepare Local Files
 
-#### 1. Backend Environment File
-**File**: `backend/.env`
-
-Change line 21:
-```env
-# OLD
-AI06_DEVICE_IP=192.168.1.201
-
-# NEW
-AI06_DEVICE_IP=192.168.1.2
+#### 1.1 Build Frontend
+```bash
+cd app
+npm run build
 ```
+This creates a `dist` folder with production files.
 
-#### 2. Database Configuration (if machine IP is stored)
-Run this SQL query to update any stored machine IPs:
+#### 1.2 Update Backend Environment
+Edit `backend/.env.vps` and set:
+- `DB_PASSWORD` - Your PostgreSQL password
+- `JWT_SECRET` - Generate new: `node -e "console.log(require('crypto').randomBytes(48).toString('base64').replace(/[^a-zA-Z0-9]/g, ''))"`
+- `SMTP_USER` and `SMTP_PASS` - Your email credentials
 
-```sql
--- Update machine_config table
-UPDATE machine_config 
-SET ip_address = '192.168.1.2' 
-WHERE ip_address = '192.168.1.201';
-
--- Update any other tables that might store the IP
-UPDATE user_machine_mapping 
-SET machine_ip = '192.168.1.2' 
-WHERE machine_ip = '192.168.1.201';
+#### 1.3 Create Deployment Package
+```bash
+# Create a zip file with necessary files
+# (Do this from project root)
 ```
 
 ---
 
-## STEP 2: Prepare for VPS Deployment
+### Step 2: Connect to VPS
 
-### A. Create Production Environment File
-
-**File**: `backend/.env.production`
-
-```env
-# Production Database Configuration
-DATABASE_URL="postgresql://postgres:YOUR_SECURE_PASSWORD@localhost:5432/school_management2?schema=school_comms&timezone=Africa/Addis_Ababa"
-
-DB_NAME=school_management2
-DB_USER=postgres
-DB_PASSWORD=YOUR_SECURE_PASSWORD
-DB_HOST=localhost
-DB_PORT=5432
-
-# JWT Configuration - CHANGE THIS TO A NEW SECURE KEY
-JWT_SECRET="GENERATE_NEW_SECURE_KEY_HERE_AT_LEAST_64_CHARACTERS_LONG"
-JWT_EXPIRES_IN=24h
-
-# Security
-NODE_ENV=production
-HTTPS_ENABLED=true
-
-# AI06 Biometric Device Configuration
-AI06_WEBSOCKET_ENABLED=true
-AI06_WEBSOCKET_PORT=7788
-AI06_DEVICE_IP=192.168.1.2
-AI06_DEVICE_PORT=80
-
-# Email Configuration
-SMTP_HOST=smtp.gmail.com
-SMTP_PORT=587
-SMTP_USER=your-school-email@gmail.com
-SMTP_PASS=your-app-specific-password
-
-# Server Configuration
-PORT=5000
-FRONTEND_URL=http://76.13.48.245
-```
-
-### B. Create Frontend Environment File
-
-**File**: `APP/.env.production`
-
-```env
-VITE_API_URL=http://76.13.48.245:5000/api
-VITE_SOCKET_URL=http://76.13.48.245:5000
+```bash
+ssh root@YOUR_VPS_IP
+# or
+ssh your_username@YOUR_VPS_IP
 ```
 
 ---
 
-## STEP 3: VPS Server Setup
+### Step 3: Install Required Software on VPS
 
-### 1. Connect to VPS
+#### 3.1 Update System
 ```bash
-ssh root@76.13.48.245
+sudo apt update
+sudo apt upgrade -y
 ```
 
-### 2. Update System
+#### 3.2 Install Node.js (v18 or higher)
 ```bash
-apt update && apt upgrade -y
-```
-
-### 3. Install Required Software
-
-#### Install Node.js (v20 LTS)
-```bash
-curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
-apt install -y nodejs
-node --version  # Should show v20.x
+curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
+sudo apt install -y nodejs
+node --version  # Should show v18.x or higher
 npm --version
 ```
 
-#### Install PostgreSQL
+#### 3.3 Install PostgreSQL
 ```bash
-apt install -y postgresql postgresql-contrib
-systemctl start postgresql
-systemctl enable postgresql
+sudo apt install -y postgresql postgresql-contrib
+sudo systemctl start postgresql
+sudo systemctl enable postgresql
 ```
 
-#### Install Nginx (Web Server)
+#### 3.4 Install Nginx (Web Server)
 ```bash
-apt install -y nginx
-systemctl start nginx
-systemctl enable nginx
+sudo apt install -y nginx
+sudo systemctl start nginx
+sudo systemctl enable nginx
 ```
 
-#### Install PM2 (Process Manager)
+#### 3.5 Install PM2 (Process Manager)
 ```bash
-npm install -g pm2
+sudo npm install -g pm2
 ```
 
-### 4. Setup PostgreSQL Database
-
+#### 3.6 Install Certbot (SSL Certificates)
 ```bash
-# Switch to postgres user
+sudo apt install -y certbot python3-certbot-nginx
+```
+
+---
+
+### Step 4: Setup PostgreSQL Database
+
+#### 4.1 Create Database and User
+```bash
 sudo -u postgres psql
+```
 
-# In PostgreSQL prompt:
-CREATE DATABASE school_management2;
-CREATE USER postgres WITH PASSWORD 'YOUR_SECURE_PASSWORD';
-GRANT ALL PRIVILEGES ON DATABASE school_management2 TO postgres;
+In PostgreSQL prompt:
+```sql
+-- Create database
+CREATE DATABASE school_management10;
+
+-- Set password for postgres user (use a strong password!)
+ALTER USER postgres WITH PASSWORD 'YOUR_STRONG_PASSWORD';
+
+-- Exit
 \q
 ```
 
-### 5. Configure Firewall
-
+#### 4.2 Configure PostgreSQL for Local Connections
 ```bash
-# Allow SSH
-ufw allow 22/tcp
+sudo nano /etc/postgresql/*/main/pg_hba.conf
+```
 
-# Allow HTTP
-ufw allow 80/tcp
+Find the line:
+```
+local   all             postgres                                peer
+```
 
-# Allow HTTPS
-ufw allow 443/tcp
+Change to:
+```
+local   all             postgres                                md5
+```
 
-# Allow Backend Port
-ufw allow 5000/tcp
-
-# Allow WebSocket Port
-ufw allow 7788/tcp
-
-# Enable firewall
-ufw enable
+Restart PostgreSQL:
+```bash
+sudo systemctl restart postgresql
 ```
 
 ---
 
-## STEP 4: Deploy Application to VPS
+### Step 5: Upload Project Files to VPS
 
-### 1. Upload Files to VPS
-
-**Option A: Using SCP (from your local machine)**
+#### 5.1 Create Project Directory
 ```bash
-# Compress your project
-tar -czf school-system.tar.gz SCHOOLS/
-
-# Upload to VPS
-scp school-system.tar.gz root@76.13.48.245:/root/
-
-# On VPS, extract
-ssh root@76.13.48.245
-cd /root
-tar -xzf school-system.tar.gz
-cd SCHOOLS
+sudo mkdir -p /var/www/bilal-school
+sudo chown -R $USER:$USER /var/www/bilal-school
+cd /var/www/bilal-school
 ```
 
-**Option B: Using Git (recommended)**
+#### 5.2 Upload Files (From Your Local Machine)
+
+**Option A: Using SCP**
+```bash
+# From your local machine (Windows)
+# Upload backend
+scp -r backend root@YOUR_VPS_IP:/var/www/bilal-school/
+
+# Upload frontend build
+scp -r app/dist root@YOUR_VPS_IP:/var/www/bilal-school/frontend
+```
+
+**Option B: Using Git**
 ```bash
 # On VPS
-cd /root
-git clone YOUR_REPOSITORY_URL school-system
-cd school-system
+cd /var/www/bilal-school
+git clone YOUR_REPOSITORY_URL .
 ```
 
-### 2. Setup Backend
+**Option C: Using FileZilla/WinSCP**
+- Connect to VPS using SFTP
+- Upload `backend` folder to `/var/www/bilal-school/backend`
+- Upload `app/dist` folder to `/var/www/bilal-school/frontend`
 
+---
+
+### Step 6: Setup Backend
+
+#### 6.1 Install Dependencies
 ```bash
-cd /root/school-system/backend
+cd /var/www/bilal-school/backend
+npm install --production
+```
 
-# Install dependencies
-npm install
+#### 6.2 Configure Environment
+```bash
+# Copy the VPS environment file
+cp .env.vps .env
 
-# Copy production environment
-cp .env.production .env
-
-# Edit .env with your actual passwords
+# Edit with your actual values
 nano .env
-
-# Run database migrations
-npm run migrate  # or your migration command
-
-# Test backend
-npm start
-# Press Ctrl+C to stop after testing
 ```
 
-### 3. Setup Frontend
+Update these values:
+- `DB_PASSWORD` - Your PostgreSQL password
+- `JWT_SECRET` - Generate new secret
+- `SMTP_USER` and `SMTP_PASS` - Your email credentials
 
+#### 6.3 Initialize Database
 ```bash
-cd /root/school-system/APP
+# Create student_activities table
+node setup-report-card.js
 
-# Install dependencies
-npm install
+# Check database connection
+node check-classes-in-db.js
+```
 
-# Build for production
-npm run build
-
-# This creates a 'dist' folder with optimized files
+#### 6.4 Test Backend
+```bash
+# Test run
+node server.js
+# Press Ctrl+C to stop after verifying it starts
 ```
 
 ---
 
-## STEP 5: Configure Nginx
+### Step 7: Setup SSL Certificate
 
-### Create Nginx Configuration
+```bash
+# Get SSL certificate for bilal.skoolific.com
+sudo certbot --nginx -d bilal.skoolific.com
 
-**File**: `/etc/nginx/sites-available/school-system`
+# Follow the prompts:
+# - Enter email address
+# - Agree to terms
+# - Choose to redirect HTTP to HTTPS (option 2)
+```
 
+---
+
+### Step 8: Configure Nginx
+
+#### 8.1 Create Nginx Configuration
+```bash
+sudo nano /etc/nginx/sites-available/bilal-school
+```
+
+Paste this configuration:
 ```nginx
+# Backend API Server
+upstream backend {
+    server localhost:5011;
+}
+
+# Main Server Block
 server {
     listen 80;
-    server_name 76.13.48.245;
+    server_name bilal.skoolific.com;
+    
+    # Redirect HTTP to HTTPS
+    return 301 https://$server_name$request_uri;
+}
 
-    # Frontend - Serve built React app
+server {
+    listen 443 ssl http2;
+    server_name bilal.skoolific.com;
+
+    # SSL Configuration
+    ssl_certificate /etc/letsencrypt/live/bilal.skoolific.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/bilal.skoolific.com/privkey.pem;
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers HIGH:!aNULL:!MD5;
+
+    # Frontend - Serve React App
+    root /var/www/bilal-school/frontend;
+    index index.html;
+
+    # Gzip Compression
+    gzip on;
+    gzip_types text/plain text/css application/json application/javascript text/xml application/xml application/xml+rss text/javascript;
+
+    # Frontend Routes
     location / {
-        root /root/school-system/APP/dist;
         try_files $uri $uri/ /index.html;
-        
-        # Cache static assets
-        location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$ {
-            expires 1y;
-            add_header Cache-Control "public, immutable";
-        }
     }
 
     # Backend API
-    location /api {
-        proxy_pass http://localhost:5000;
+    location /api/ {
+        proxy_pass http://backend/api/;
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection 'upgrade';
         proxy_set_header Host $host;
-        proxy_cache_bypass $http_upgrade;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_cache_bypass $http_upgrade;
+        proxy_read_timeout 300s;
+        proxy_connect_timeout 75s;
     }
 
-    # WebSocket for real-time features
-    location /socket.io {
-        proxy_pass http://localhost:5000;
+    # WebSocket for AI06 Device (Port 7788)
+    location /ws/ {
+        proxy_pass http://localhost:7788/;
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection "upgrade";
         proxy_set_header Host $host;
-        proxy_cache_bypass $http_upgrade;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_read_timeout 86400;
     }
 
-    # Uploads folder
-    location /uploads {
-        alias /root/school-system/backend/uploads;
-        autoindex off;
+    # Uploads Directory
+    location /uploads/ {
+        alias /var/www/bilal-school/backend/uploads/;
+        expires 30d;
+        add_header Cache-Control "public, immutable";
     }
 
-    location /Uploads {
-        alias /root/school-system/backend/Uploads;
-        autoindex off;
-    }
+    # Security Headers
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header X-XSS-Protection "1; mode=block" always;
+    add_header Referrer-Policy "no-referrer-when-downgrade" always;
 
-    # Increase upload size limit
+    # Max Upload Size
     client_max_body_size 50M;
 }
 ```
 
-### Enable the Site
-
+#### 8.2 Enable Site
 ```bash
 # Create symbolic link
-ln -s /etc/nginx/sites-available/school-system /etc/nginx/sites-enabled/
+sudo ln -s /etc/nginx/sites-available/bilal-school /etc/nginx/sites-enabled/
 
 # Remove default site
-rm /etc/nginx/sites-enabled/default
+sudo rm /etc/nginx/sites-enabled/default
 
 # Test configuration
-nginx -t
+sudo nginx -t
 
 # Reload Nginx
-systemctl reload nginx
+sudo systemctl reload nginx
 ```
 
 ---
 
-## STEP 6: Start Application with PM2
+### Step 9: Start Backend with PM2
 
-### 1. Start Backend
-
+#### 9.1 Start Application
 ```bash
-cd /root/school-system/backend
+cd /var/www/bilal-school/backend
 
 # Start with PM2
-pm2 start npm --name "school-backend" -- start
+pm2 start server.js --name bilal-backend
 
 # Save PM2 configuration
 pm2 save
 
 # Setup PM2 to start on boot
 pm2 startup
-# Follow the command it gives you
+# Follow the command it gives you (copy and run it)
 ```
 
-### 2. Monitor Application
+#### 9.2 Verify Backend is Running
+```bash
+pm2 status
+pm2 logs bilal-backend
+```
 
+---
+
+### Step 10: Configure Firewall
+
+```bash
+# Allow SSH
+sudo ufw allow 22/tcp
+
+# Allow HTTP and HTTPS
+sudo ufw allow 80/tcp
+sudo ufw allow 443/tcp
+
+# Allow backend port (only from localhost)
+sudo ufw allow from 127.0.0.1 to any port 5011
+
+# Allow AI06 WebSocket port (if needed externally)
+sudo ufw allow 7788/tcp
+
+# Enable firewall
+sudo ufw enable
+sudo ufw status
+```
+
+---
+
+### Step 11: Test Deployment
+
+#### 11.1 Check Services
+```bash
+# Check Nginx
+sudo systemctl status nginx
+
+# Check PostgreSQL
+sudo systemctl status postgresql
+
+# Check Backend
+pm2 status
+pm2 logs bilal-backend --lines 50
+```
+
+#### 11.2 Test URLs
+```bash
+# Test backend API
+curl https://bilal.skoolific.com/api/health
+
+# Should return: {"status":"ok"}
+```
+
+#### 11.3 Open in Browser
+```
+https://bilal.skoolific.com
+```
+
+---
+
+### Step 12: Import Existing Data (If Needed)
+
+#### 12.1 Export from Old Server
+```bash
+# On old server
+pg_dump -U postgres school_management2 > backup.sql
+```
+
+#### 12.2 Import to New Server
+```bash
+# Upload backup.sql to VPS
+scp backup.sql root@YOUR_VPS_IP:/tmp/
+
+# On VPS
+psql -U postgres -d school_management10 < /tmp/backup.sql
+```
+
+---
+
+## 🔧 Post-Deployment Tasks
+
+### Monitor Application
 ```bash
 # View logs
-pm2 logs school-backend
+pm2 logs bilal-backend
 
-# View status
-pm2 status
+# Monitor resources
+pm2 monit
 
 # Restart if needed
-pm2 restart school-backend
-
-# Stop
-pm2 stop school-backend
+pm2 restart bilal-backend
 ```
 
----
+### Setup Automatic Backups
+```bash
+# Create backup script
+sudo nano /usr/local/bin/backup-school-db.sh
+```
 
-## STEP 7: Update Code References (Important!)
-
-You need to update all hardcoded localhost references in your code. Here's a script to help:
-
-### Create Update Script
-
-**File**: `update-for-production.sh`
-
+Paste:
 ```bash
 #!/bin/bash
-
-# Update frontend API references
-cd /root/school-system/APP/src
-
-# Replace localhost:5000 with VPS IP
-find . -type f \( -name "*.js" -o -name "*.jsx" \) -exec sed -i 's|http://localhost:5000|http://76.13.48.245:5000|g' {} +
-
-# Update AppContext
-sed -i 's|http://localhost:5000/api/admin/branding|/api/admin/branding|g' context/AppContext.jsx
-sed -i 's|http://localhost:5000/uploads/branding|/uploads/branding|g' context/AppContext.jsx
-
-echo "Updated all references!"
-```
-
-**Better Approach**: Use environment variables everywhere:
-
-Update `APP/src/utils/api.js`:
-```javascript
-const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
-const UPLOADS_BASE_URL = import.meta.env.VITE_UPLOADS_URL || '';
-```
-
----
-
-## STEP 8: SSL Certificate (Optional but Recommended)
-
-### Install Certbot for Free SSL
-
-```bash
-# Install Certbot
-apt install -y certbot python3-certbot-nginx
-
-# Get certificate (requires domain name)
-# If you have a domain pointing to 76.13.48.245:
-certbot --nginx -d yourdomain.com
-
-# Auto-renewal
-certbot renew --dry-run
-```
-
----
-
-## STEP 9: Backup Strategy
-
-### Create Backup Script
-
-**File**: `/root/backup-school-system.sh`
-
-```bash
-#!/bin/bash
-
-BACKUP_DIR="/root/backups"
+BACKUP_DIR="/var/backups/school"
 DATE=$(date +%Y%m%d_%H%M%S)
-
-# Create backup directory
 mkdir -p $BACKUP_DIR
-
-# Backup database
-sudo -u postgres pg_dump school_management2 > $BACKUP_DIR/db_$DATE.sql
-
-# Backup uploads
-tar -czf $BACKUP_DIR/uploads_$DATE.tar.gz /root/school-system/backend/uploads /root/school-system/backend/Uploads
-
-# Keep only last 7 days of backups
-find $BACKUP_DIR -name "*.sql" -mtime +7 -delete
-find $BACKUP_DIR -name "*.tar.gz" -mtime +7 -delete
-
-echo "Backup completed: $DATE"
+pg_dump -U postgres school_management10 > $BACKUP_DIR/backup_$DATE.sql
+# Keep only last 7 days
+find $BACKUP_DIR -name "backup_*.sql" -mtime +7 -delete
 ```
 
-### Setup Automatic Daily Backups
-
+Make executable and schedule:
 ```bash
-# Make script executable
-chmod +x /root/backup-school-system.sh
+sudo chmod +x /usr/local/bin/backup-school-db.sh
+sudo crontab -e
+# Add: 0 2 * * * /usr/local/bin/backup-school-db.sh
+```
 
-# Add to crontab (runs daily at 2 AM)
-crontab -e
+### SSL Certificate Auto-Renewal
+```bash
+# Test renewal
+sudo certbot renew --dry-run
 
-# Add this line:
-0 2 * * * /root/backup-school-system.sh >> /var/log/school-backup.log 2>&1
+# Certbot automatically sets up auto-renewal
+# Verify with:
+sudo systemctl status certbot.timer
 ```
 
 ---
 
-## STEP 10: Testing Checklist
+## 📝 Important Files Locations
 
-After deployment, test these:
-
-- [ ] Access frontend: http://76.13.48.245
-- [ ] Login as admin
-- [ ] Upload a file (test uploads folder)
-- [ ] Check database connection
-- [ ] Test biometric device connection (192.168.1.2)
-- [ ] Test real-time features (WebSocket)
-- [ ] Check all API endpoints
-- [ ] Test mobile app installation
-- [ ] Verify icon upload/display
-- [ ] Check reports generation
-- [ ] Test student/staff management
+```
+/var/www/bilal-school/
+├── backend/
+│   ├── server.js
+│   ├── .env (KEEP SECURE!)
+│   ├── uploads/
+│   └── ...
+├── frontend/
+│   ├── index.html
+│   ├── assets/
+│   └── ...
+└── logs/
+```
 
 ---
 
-## Troubleshooting
+## 🐛 Troubleshooting
 
-### Backend not starting
+### Backend Not Starting
 ```bash
-pm2 logs school-backend
-# Check for errors in logs
+# Check logs
+pm2 logs bilal-backend --lines 100
+
+# Check if port is in use
+sudo netstat -tulpn | grep 5011
+
+# Restart
+pm2 restart bilal-backend
 ```
 
-### Database connection issues
+### Database Connection Error
 ```bash
-# Test PostgreSQL
-sudo -u postgres psql -d school_management2
+# Test connection
+psql -U postgres -d school_management10
 
-# Check if PostgreSQL is running
-systemctl status postgresql
+# Check PostgreSQL is running
+sudo systemctl status postgresql
+
+# Check .env file has correct credentials
+cat /var/www/bilal-school/backend/.env | grep DB_
 ```
 
-### Nginx errors
+### Nginx Errors
 ```bash
-# Check Nginx logs
-tail -f /var/log/nginx/error.log
+# Check error logs
+sudo tail -f /var/log/nginx/error.log
 
 # Test configuration
-nginx -t
+sudo nginx -t
+
+# Restart Nginx
+sudo systemctl restart nginx
 ```
 
-### Port already in use
+### SSL Certificate Issues
 ```bash
-# Find what's using port 5000
-lsof -i :5000
+# Renew certificate
+sudo certbot renew --force-renewal
 
-# Kill the process
-kill -9 PID
+# Check certificate
+sudo certbot certificates
 ```
 
 ---
 
-## Quick Commands Reference
+## 🔐 Security Checklist
+
+- [ ] Strong database password set
+- [ ] JWT_SECRET is unique and strong
+- [ ] Firewall configured (ufw)
+- [ ] SSL certificate installed
+- [ ] .env file permissions: `chmod 600 .env`
+- [ ] Regular backups scheduled
+- [ ] PM2 configured to restart on reboot
+- [ ] Nginx security headers configured
+- [ ] PostgreSQL only accepts local connections
+
+---
+
+## 📞 Quick Commands Reference
 
 ```bash
 # Restart everything
-pm2 restart all
-systemctl restart nginx
+pm2 restart bilal-backend
+sudo systemctl restart nginx
 
 # View logs
-pm2 logs
-tail -f /var/log/nginx/access.log
-tail -f /var/log/nginx/error.log
+pm2 logs bilal-backend
+sudo tail -f /var/log/nginx/error.log
+
+# Check status
+pm2 status
+sudo systemctl status nginx
+sudo systemctl status postgresql
 
 # Update application
-cd /root/school-system
-git pull  # if using git
-cd backend && npm install
-cd ../APP && npm install && npm run build
-pm2 restart school-backend
-systemctl reload nginx
-
-# Check system resources
-htop
-df -h  # disk space
-free -h  # memory
+cd /var/www/bilal-school/backend
+git pull
+npm install
+pm2 restart bilal-backend
 ```
 
 ---
 
-## Security Recommendations
+## ✅ Deployment Complete!
 
-1. **Change default passwords** in .env file
-2. **Setup firewall** properly (ufw)
-3. **Enable SSL** with Let's Encrypt
-4. **Regular backups** (automated)
-5. **Update system** regularly: `apt update && apt upgrade`
-6. **Monitor logs** for suspicious activity
-7. **Disable root SSH** after creating sudo user
-8. **Use strong JWT secret** (64+ characters)
-9. **Limit upload file sizes** in Nginx
-10. **Setup fail2ban** to prevent brute force attacks
+Your application should now be live at:
+- **Frontend:** https://bilal.skoolific.com
+- **Backend API:** https://bilal.skoolific.com/api
+- **Health Check:** https://bilal.skoolific.com/api/health
 
 ---
 
-## Support
-
-If you encounter issues:
-1. Check PM2 logs: `pm2 logs`
-2. Check Nginx logs: `/var/log/nginx/error.log`
-3. Check PostgreSQL logs: `/var/log/postgresql/`
-4. Verify firewall: `ufw status`
-5. Test ports: `netstat -tulpn | grep LISTEN`
+**Last Updated:** March 2026
+**Domain:** bilal.skoolific.com
+**Backend Port:** 5011
+**Database:** school_management10

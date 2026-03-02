@@ -36,13 +36,13 @@ const StaffSpecificTiming = () => {
       for (const staffType of types) {
         try {
           const classesResponse = await axios.get(
-            `${API_URL}/api/staff/classes?staffType=${encodeURIComponent(staffType)}`
+            `${API_URL}/staff/classes?staffType=${encodeURIComponent(staffType)}`
           );
 
           for (const className of classesResponse.data) {
             try {
               const dataResponse = await axios.get(
-                `${API_URL}/api/staff/data/${staffType}/${className}`,
+                `${API_URL}/staff/data/${staffType}/${className}`,
                 { headers: { 'Authorization': `Bearer ${token}` } }
               );
 
@@ -79,7 +79,7 @@ const StaffSpecificTiming = () => {
     try {
       const token = localStorage.getItem('authToken') || localStorage.getItem('token');
       const response = await axios.get(
-        `${API_URL}/api/hr/shift-settings/staff-specific-timing`,
+        `${API_URL}/hr/shift-settings/staff-specific-timing`,
         { headers: { 'Authorization': `Bearer ${token}` } }
       );
 
@@ -118,7 +118,7 @@ const StaffSpecificTiming = () => {
       const token = localStorage.getItem('authToken') || localStorage.getItem('token');
       
       const response = await axios.post(
-        `${API_URL}/api/hr/shift-settings/staff-specific-timing`,
+        `${API_URL}/hr/shift-settings/staff-specific-timing`,
         {
           staff_id: selectedStaff.id,
           staff_name: selectedStaff.name,
@@ -153,7 +153,7 @@ const StaffSpecificTiming = () => {
       const token = localStorage.getItem('authToken') || localStorage.getItem('token');
       
       const response = await axios.delete(
-        `${API_URL}/api/hr/shift-settings/staff-specific-timing/${staffId}/${shiftType}`,
+        `${API_URL}/hr/shift-settings/staff-specific-timing/${staffId}/${shiftType}`,
         { headers: { 'Authorization': `Bearer ${token}` } }
       );
 

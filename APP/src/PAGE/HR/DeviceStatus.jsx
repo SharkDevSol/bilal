@@ -22,7 +22,7 @@ const DeviceStatus = () => {
     try {
       const token = localStorage.getItem('authToken') || localStorage.getItem('token');
       const response = await axios.get(
-        `${API_URL}/api/hr/devices/status`,
+        `${API_URL}/hr/devices/status`,
         { headers: { 'Authorization': `Bearer ${token}` } }
       );
       
@@ -44,7 +44,7 @@ const DeviceStatus = () => {
     try {
       const token = localStorage.getItem('authToken') || localStorage.getItem('token');
       const response = await axios.post(
-        `${API_URL}/api/hr/devices/test-log`,
+        `${API_URL}/hr/devices/test-log`,
         {
           machineId: '999',
           name: 'Test User',

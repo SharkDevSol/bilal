@@ -26,13 +26,13 @@ const StaffShiftAssignment = () => {
       for (const staffType of types) {
         try {
           const classesResponse = await axios.get(
-            `${API_URL}/api/staff/classes?staffType=${encodeURIComponent(staffType)}`
+            `${API_URL}/staff/classes?staffType=${encodeURIComponent(staffType)}`
           );
 
           for (const className of classesResponse.data) {
             try {
               const dataResponse = await axios.get(
-                `${API_URL}/api/staff/data/${staffType}/${className}`,
+                `${API_URL}/staff/data/${staffType}/${className}`,
                 { headers: { 'Authorization': `Bearer ${token}` } }
               );
 
@@ -73,7 +73,7 @@ const StaffShiftAssignment = () => {
       const token = localStorage.getItem('authToken') || localStorage.getItem('token');
       
       const response = await axios.put(
-        `${API_URL}/api/hr/shift-settings/staff/${staffMember.department}/${staffMember.className}/${staffMember.id}/shift`,
+        `${API_URL}/hr/shift-settings/staff/${staffMember.department}/${staffMember.className}/${staffMember.id}/shift`,
         { shift_assignment: newShift },
         { headers: { 'Authorization': `Bearer ${token}` } }
       );

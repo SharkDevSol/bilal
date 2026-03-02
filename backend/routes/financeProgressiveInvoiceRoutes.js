@@ -163,19 +163,58 @@ router.post('/generate-all', authenticateToken, requirePermission(FINANCE_PERMIS
 
     selectedMonths.sort((a, b) => a - b);
 
-    // Get students for this class
-    const studentsResponse = await fetch(`http://localhost:5000/api/finance/classes/${feeStructure.gradeLevel}/students`, {
-      headers: {
-        'Authorization': req.headers.authorization
-      }
-    });
+    // Get students for this class directly from database
+    const pool = require('../config/db');
     
-    if (!studentsResponse.ok) {
-      throw new Error('Failed to fetch students');
+    // Validate className to prevent SQL injection
+    const className = feeStructure.gradeLevel;
+    const validTableName = /^[a-zA-Z0-9_]+$/.test(className);
+    if (!validTableName) {
+      return res.status(400).json({
+        error: 'VALIDATION_ERROR',
+        message: 'Invalid class name in fee structure'
+      });
     }
 
-    const studentsData = await studentsResponse.json();
-    const students = studentsData.data || [];
+    // Check if table exists
+    const tableExists = await pool.query(`
+      SELECT 1 FROM information_schema.tables
+      WHERE table_schema = 'classes_schema' AND table_name = $1
+    `, [className]);
+
+    if (tableExists.rows.length === 0) {
+      return res.status(400).json({
+        error: 'VALIDATION_ERROR',
+        message: `Class table '${className}' does not exist`
+      });
+    }
+
+    // Get students from the class table
+    const studentsResult = await pool.query(`
+      SELECT 
+        school_id,
+        class_id,
+        student_name,
+        age,
+        gender,
+        guardian_name,
+        guardian_phone
+      FROM classes_schema."${className}"
+      WHERE school_id IS NOT NULL AND class_id IS NOT NULL AND student_name IS NOT NULL
+      ORDER BY LOWER(student_name) ASC
+    `);
+
+    const students = studentsResult.rows.map(student => ({
+      id: `${student.school_id}-${student.class_id}`,
+      schoolId: student.school_id,
+      classId: student.class_id,
+      name: student.student_name,
+      age: student.age,
+      gender: student.gender,
+      guardianName: student.guardian_name,
+      guardianPhone: student.guardian_phone,
+      className: className
+    }));
 
     if (students.length === 0) {
       return res.status(400).json({

@@ -145,106 +145,126 @@ async function markAbsentStudents() {
     let totalErrors = 0;
     const daysProcessed = [];
 
-    // Process all days from start of year until today
-    for (let month = 1; month <= currentDate.month; month++) {
-      const daysInMonth = month === 13 ? 5 : 30; // Pagume has 5 days, others have 30
-      const maxDay = month === currentDate.month ? currentDate.day : daysInMonth;
+    // OPTIMIZED: Only process last 7 days to prevent timeouts
+    const daysToProcess = [];
+    
+    // Build list of last 7 school days
+    let checkMonth = currentDate.month;
+    let checkDay = currentDate.day;
+    let daysFound = 0;
+    let daysChecked = 0;
+    const maxDaysToCheck = 30; // Safety limit
+    
+    while (daysFound < 7 && daysChecked < maxDaysToCheck) {
+      const dayOfWeek = getEthiopianDayOfWeek(currentDate.year, checkMonth, checkDay);
+      
+      if (settings.school_days.includes(dayOfWeek)) {
+        daysToProcess.unshift({ month: checkMonth, day: checkDay, dayOfWeek });
+        daysFound++;
+      }
+      
+      // Move to previous day
+      checkDay--;
+      if (checkDay < 1) {
+        checkMonth--;
+        if (checkMonth < 1) break; // Stop at year boundary
+        checkDay = checkMonth === 13 ? 5 : 30;
+      }
+      daysChecked++;
+    }
 
-      for (let day = 1; day <= maxDay; day++) {
-        const dayOfWeek = getEthiopianDayOfWeek(currentDate.year, month, day);
-        
-        // Skip if not a school day
-        if (!settings.school_days.includes(dayOfWeek)) {
-          continue;
-        }
+    console.log(`📅 Processing last ${daysToProcess.length} school days (optimized for performance)`);
 
-        // Check if this is today
-        const isToday = (month === currentDate.month && day === currentDate.day);
+    // Process only the recent school days
+    for (const dayInfo of daysToProcess) {
+      const { month, day, dayOfWeek } = dayInfo;
+      
+      // Check if this is today
+      const isToday = (month === currentDate.month && day === currentDate.day);
 
-        const weekNumber = getWeekNumber(day);
-        let dayMarked = 0;
-        let daySkipped = 0;
-        let dayErrors = 0;
+      const weekNumber = getWeekNumber(day);
+      let dayMarked = 0;
+      let daySkipped = 0;
+      let dayErrors = 0;
 
-        // Process each student for this day
-        for (const student of students) {
-          try {
-            // Check if student already has attendance record for this day
-            const existingRecord = await pool.query(`
-              SELECT * FROM academic_student_attendance
-              WHERE student_id = $1 
-                AND class_name = $2 
-                AND ethiopian_year = $3 
-                AND ethiopian_month = $4 
-                AND ethiopian_day = $5
-            `, [student.student_id, student.class_name, currentDate.year, month, day]);
+      // Process each student for this day
+      for (const student of students) {
+        try {
+          // Check if student already has attendance record for this day
+          const existingRecord = await pool.query(`
+            SELECT * FROM academic_student_attendance
+            WHERE student_id = $1 
+              AND class_name = $2 
+              AND ethiopian_year = $3 
+              AND ethiopian_month = $4 
+              AND ethiopian_day = $5
+          `, [student.student_id, student.class_name, currentDate.year, month, day]);
 
-            if (existingRecord.rows.length > 0) {
-              // Student already has a record
+          if (existingRecord.rows.length > 0) {
+            // Student already has a record
+            daySkipped++;
+            continue;
+          }
+
+          // Get the appropriate absent marking time based on shift
+          const absentMarkingTime = student.shift_number === 2 
+            ? settings.shift2_absent_marking 
+            : settings.shift1_absent_marking;
+
+          // If this is TODAY, only mark absent if current time is past the absent marking time
+          if (isToday) {
+            const absentTimeOnly = absentMarkingTime.substring(0, 5); // HH:MM
+            
+            if (currentTime < absentTimeOnly) {
+              // Too early to mark this student absent
               daySkipped++;
               continue;
             }
-
-            // Get the appropriate absent marking time based on shift
-            const absentMarkingTime = student.shift_number === 2 
-              ? settings.shift2_absent_marking 
-              : settings.shift1_absent_marking;
-
-            // If this is TODAY, only mark absent if current time is past the absent marking time
-            if (isToday) {
-              const absentTimeOnly = absentMarkingTime.substring(0, 5); // HH:MM
-              
-              if (currentTime < absentTimeOnly) {
-                // Too early to mark this student absent
-                daySkipped++;
-                continue;
-              }
-            }
-
-            // Convert Ethiopian date to Gregorian for the date column
-            const gregorianDate = ethiopianToGregorian(currentDate.year, month, day);
-
-            // Mark student as ABSENT
-            await pool.query(`
-              INSERT INTO academic_student_attendance (
-                student_id, student_name, class_name, smachine_id,
-                date, ethiopian_year, ethiopian_month, ethiopian_day,
-                day_of_week, week_number, check_in_time, status, notes, shift_number
-              ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
-            `, [
-              student.student_id,
-              student.student_name,
-              student.class_name,
-              student.smachine_id,
-              gregorianDate,
-              currentDate.year,
-              month,
-              day,
-              dayOfWeek,
-              weekNumber,
-              absentMarkingTime,
-              'ABSENT',
-              'Auto-marked absent by system',
-              student.shift_number
-            ]);
-
-            dayMarked++;
-
-          } catch (error) {
-            dayErrors++;
-            console.error(`❌ Error marking ${student.student_name} for ${month}/${day}:`, error.message);
           }
-        }
 
-        if (dayMarked > 0 || dayErrors > 0) {
-          console.log(`📅 ${currentDate.year}/${month}/${day} (${dayOfWeek}): Marked ${dayMarked}, Skipped ${daySkipped}, Errors ${dayErrors}`);
-          daysProcessed.push({ month, day, dayOfWeek, marked: dayMarked });
-        }
+          // Convert Ethiopian date to Gregorian for the date column
+          const gregorianDate = ethiopianToGregorian(currentDate.year, month, day);
 
-        totalMarked += dayMarked;
-        totalSkipped += daySkipped;
-        totalErrors += dayErrors;
+          // Mark student as ABSENT
+          await pool.query(`
+            INSERT INTO academic_student_attendance (
+              student_id, student_name, class_name, smachine_id,
+              date, ethiopian_year, ethiopian_month, ethiopian_day,
+              day_of_week, week_number, check_in_time, status, notes, shift_number
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+          `, [
+            student.student_id,
+            student.student_name,
+            student.class_name,
+            student.smachine_id,
+            gregorianDate,
+            currentDate.year,
+            month,
+            day,
+            dayOfWeek,
+            weekNumber,
+            absentMarkingTime,
+            'ABSENT',
+            'Auto-marked absent by system',
+            student.shift_number
+          ]);
+
+          dayMarked++;
+
+        } catch (error) {
+          dayErrors++;
+          console.error(`❌ Error marking ${student.student_name} for ${month}/${day}:`, error.message);
+        }
       }
+
+      if (dayMarked > 0 || dayErrors > 0) {
+        console.log(`📅 ${currentDate.year}/${month}/${day} (${dayOfWeek}): Marked ${dayMarked}, Skipped ${daySkipped}, Errors ${dayErrors}`);
+        daysProcessed.push({ month, day, dayOfWeek, marked: dayMarked });
+      }
+
+      totalMarked += dayMarked;
+      totalSkipped += daySkipped;
+      totalErrors += dayErrors;
     }
 
     console.log('\n========================================');

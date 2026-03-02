@@ -49,26 +49,44 @@ router.get('/teachers', async (req, res) => {
   try {
     console.log('📥 GET /api/class-teacher/teachers - Fetching teachers...');
     
-    // Check if teachers table exists
+    // Check if teachers table exists in staff_teachers schema
     const tableExists = await pool.query(`
       SELECT EXISTS (
         SELECT FROM information_schema.tables 
-        WHERE table_schema = 'school_schema_points' 
+        WHERE table_schema = 'staff_teachers' 
         AND table_name = 'teachers'
       )
     `);
     
     if (!tableExists.rows[0].exists) {
-      console.log('⚠️  Teachers table not found');
+      console.log('⚠️  Teachers table not found in staff_teachers schema');
       return res.json([]);
     }
     
-    const result = await pool.query(`
-      SELECT global_staff_id, teacher_name, staff_work_time, role
-      FROM school_schema_points.teachers
-      WHERE role = 'Teacher'
-      ORDER BY teacher_name ASC
+    // Check if is_active column exists
+    const columnCheck = await pool.query(`
+      SELECT column_name 
+      FROM information_schema.columns 
+      WHERE table_schema = 'staff_teachers' 
+        AND table_name = 'teachers' 
+        AND column_name = 'is_active'
     `);
+    
+    const hasIsActive = columnCheck.rows.length > 0;
+    
+    // Build query with optional is_active filter
+    let query = `
+      SELECT global_staff_id, name as teacher_name, staff_work_time, role
+      FROM staff_teachers.teachers
+    `;
+    
+    if (hasIsActive) {
+      query += ' WHERE (is_active = TRUE OR is_active IS NULL)';
+    }
+    
+    query += ' ORDER BY name ASC';
+    
+    const result = await pool.query(query);
     
     console.log(`✅ Found ${result.rows.length} teacher(s)`);
     res.json(result.rows);
@@ -137,7 +155,7 @@ router.get('/assignments', async (req, res) => {
     const result = await pool.query(`
       SELECT ct.*, t.staff_work_time
       FROM school_schema_points.class_teachers ct
-      LEFT JOIN school_schema_points.teachers t ON ct.global_staff_id = t.global_staff_id
+      LEFT JOIN staff_teachers.teachers t ON ct.global_staff_id = t.global_staff_id
       WHERE ct.is_active = true
       ORDER BY ct.assigned_class ASC
     `);

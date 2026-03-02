@@ -70,7 +70,7 @@ const AttendanceSystem = () => {
       });
       
       const response = await axios.get(
-        `${API_URL}/api/hr/attendance/ethiopian-month?ethMonth=${selectedEthMonth}&ethYear=${selectedEthYear}`,
+        `${API_URL}/hr/attendance/ethiopian-month?ethMonth=${selectedEthMonth}&ethYear=${selectedEthYear}`,
         { headers: { 'Authorization': `Bearer ${token}` } }
       );
       
@@ -98,13 +98,13 @@ const AttendanceSystem = () => {
       for (const staffType of types) {
         try {
           const classesResponse = await axios.get(
-            `${API_URL}/api/staff/classes?staffType=${encodeURIComponent(staffType)}`
+            `${API_URL}/staff/classes?staffType=${encodeURIComponent(staffType)}`
           );
           
           for (const className of classesResponse.data) {
             try {
               const dataResponse = await axios.get(
-                `${API_URL}/api/staff/data/${staffType}/${className}`,
+                `${API_URL}/staff/data/${staffType}/${className}`,
                 { headers: { 'Authorization': `Bearer ${token}` } }
               );
               
@@ -157,7 +157,7 @@ const AttendanceSystem = () => {
     try {
       const token = localStorage.getItem('authToken') || localStorage.getItem('token');
       const response = await axios.get(
-        `${API_URL}/api/hr/attendance/time-settings`,
+        `${API_URL}/hr/attendance/time-settings`,
         { headers: { 'Authorization': `Bearer ${token}` } }
       );
       
@@ -177,7 +177,7 @@ const AttendanceSystem = () => {
       const token = localStorage.getItem('authToken') || localStorage.getItem('token');
       
       const response = await axios.post(
-        `${API_URL}/api/hr/attendance/ethiopian`,
+        `${API_URL}/hr/attendance/ethiopian`,
         {
           staffId,
           staffName,
@@ -768,7 +768,7 @@ const TimeModal = ({ cell, ethMonth, ethYear, onClose, onSuccess }) => {
       });
       
       const response = await axios.post(
-        `${API_URL}/api/hr/attendance/ethiopian`,
+        `${API_URL}/hr/attendance/ethiopian`,
         {
           staffId: staffId, // Use machine ID or name
           staffName: cell.staff.name,
@@ -823,7 +823,7 @@ const TimeModal = ({ cell, ethMonth, ethYear, onClose, onSuccess }) => {
       });
       
       const response = await axios.post(
-        `${API_URL}/api/hr/attendance/ethiopian`,
+        `${API_URL}/hr/attendance/ethiopian`,
         {
           staffId: staffId, // Use the staff_id from existing record
           staffName: cell.staff.name,
@@ -866,7 +866,7 @@ const TimeModal = ({ cell, ethMonth, ethYear, onClose, onSuccess }) => {
       const token = localStorage.getItem('authToken') || localStorage.getItem('token');
       
       const response = await axios.delete(
-        `${API_URL}/api/hr/attendance/ethiopian/${cell.attendance.id}`,
+        `${API_URL}/hr/attendance/ethiopian/${cell.attendance.id}`,
         { headers: { 'Authorization': `Bearer ${token}` } }
       );
 
@@ -1078,7 +1078,7 @@ const BulkAttendanceModal = ({ staff, ethMonth, ethYear, onClose, onSuccess }) =
       console.log('Sending bulk attendance:', { records });
 
       const response = await axios.post(
-        `${API_URL}/api/hr/attendance/ethiopian/bulk`,
+        `${API_URL}/hr/attendance/ethiopian/bulk`,
         { records },
         { 
           headers: { 

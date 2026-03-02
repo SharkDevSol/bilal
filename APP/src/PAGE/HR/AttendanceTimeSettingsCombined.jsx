@@ -58,7 +58,7 @@ const AttendanceTimeSettingsCombined = () => {
     try {
       const token = localStorage.getItem('authToken') || localStorage.getItem('token');
       const response = await axios.get(
-        `${API_URL}/api/hr/attendance/time-settings`,
+        `${API_URL}/hr/attendance/time-settings`,
         { headers: { 'Authorization': `Bearer ${token}` } }
       );
 
@@ -92,7 +92,7 @@ const AttendanceTimeSettingsCombined = () => {
       const token = localStorage.getItem('authToken') || localStorage.getItem('token');
       
       const response = await axios.post(
-        `${API_URL}/api/hr/attendance/time-settings`,
+        `${API_URL}/hr/attendance/time-settings`,
         {
           standardCheckIn: formData.standardCheckIn,
           lateThreshold: formData.lateThreshold,
@@ -125,7 +125,7 @@ const AttendanceTimeSettingsCombined = () => {
     try {
       const token = localStorage.getItem('authToken') || localStorage.getItem('token');
       const response = await axios.get(
-        `${API_URL}/api/hr/shift-settings`,
+        `${API_URL}/hr/shift-settings`,
         { headers: { 'Authorization': `Bearer ${token}` } }
       );
 
@@ -156,7 +156,7 @@ const AttendanceTimeSettingsCombined = () => {
       const shift = shifts.find(s => s.shift_name === shiftName);
 
       const response = await axios.put(
-        `${API_URL}/api/hr/shift-settings/${shiftName}`,
+        `${API_URL}/hr/shift-settings/${shiftName}`,
         {
           check_in_time: shift.check_in_time,
           check_out_time: shift.check_out_time,
@@ -190,13 +190,13 @@ const AttendanceTimeSettingsCombined = () => {
       for (const staffType of types) {
         try {
           const classesResponse = await axios.get(
-            `${API_URL}/api/staff/classes?staffType=${encodeURIComponent(staffType)}`
+            `${API_URL}/staff/classes?staffType=${encodeURIComponent(staffType)}`
           );
 
           for (const className of classesResponse.data) {
             try {
               const dataResponse = await axios.get(
-                `${API_URL}/api/staff/data/${staffType}/${className}`,
+                `${API_URL}/staff/data/${staffType}/${className}`,
                 { headers: { 'Authorization': `Bearer ${token}` } }
               );
 
@@ -234,7 +234,7 @@ const AttendanceTimeSettingsCombined = () => {
       const token = localStorage.getItem('authToken') || localStorage.getItem('token');
       
       const response = await axios.put(
-        `${API_URL}/api/hr/shift-settings/staff/${staffMember.department}/${staffMember.className}/${staffMember.id}/shift`,
+        `${API_URL}/hr/shift-settings/staff/${staffMember.department}/${staffMember.className}/${staffMember.id}/shift`,
         { shift_assignment: newShift },
         { headers: { 'Authorization': `Bearer ${token}` } }
       );
@@ -306,7 +306,7 @@ const AttendanceTimeSettingsCombined = () => {
     try {
       const token = localStorage.getItem('authToken') || localStorage.getItem('token');
       const response = await axios.get(
-        `${API_URL}/api/hr/shift-settings/staff-specific-timing`,
+        `${API_URL}/hr/shift-settings/staff-specific-timing`,
         { headers: { 'Authorization': `Bearer ${token}` } }
       );
 
@@ -341,7 +341,7 @@ const AttendanceTimeSettingsCombined = () => {
       const token = localStorage.getItem('authToken') || localStorage.getItem('token');
       
       const response = await axios.post(
-        `${API_URL}/api/hr/shift-settings/staff-specific-timing`,
+        `${API_URL}/hr/shift-settings/staff-specific-timing`,
         {
           staff_id: selectedStaff.id,
           staff_name: selectedStaff.name,
@@ -376,7 +376,7 @@ const AttendanceTimeSettingsCombined = () => {
       const token = localStorage.getItem('authToken') || localStorage.getItem('token');
       
       const response = await axios.delete(
-        `${API_URL}/api/hr/shift-settings/staff-specific-timing/${staffId}/${shiftType}`,
+        `${API_URL}/hr/shift-settings/staff-specific-timing/${staffId}/${shiftType}`,
         { headers: { 'Authorization': `Bearer ${token}` } }
       );
 

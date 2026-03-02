@@ -154,7 +154,7 @@ const Setting = () => {
       
       // Set favicon - use custom icon if uploaded, otherwise use default skoolific-icon.png
       const faviconUrl = data.website_icon 
-        ? `http://localhost:5000/uploads/branding/${data.website_icon}`
+        ? `${import.meta.env.VITE_API_URL.replace('/api', '')}/uploads/branding/${data.website_icon}`
         : '/skoolific-icon.png';
       
       if (data.website_icon) {
@@ -174,7 +174,7 @@ const Setting = () => {
       });
       
       if (data.school_logo) {
-        const logoUrl = `http://localhost:5000/uploads/branding/${data.school_logo}`;
+        const logoUrl = `${import.meta.env.VITE_API_URL.replace('/api', '')}/uploads/branding/${data.school_logo}`;
         setSchoolLogo(data.school_logo);
         setSchoolLogoUrl(logoUrl);
       }

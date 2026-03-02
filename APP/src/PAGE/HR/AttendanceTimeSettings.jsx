@@ -47,7 +47,7 @@ const AttendanceTimeSettings = () => {
     try {
       const token = localStorage.getItem('authToken') || localStorage.getItem('token');
       const response = await axios.get(
-        `${API_URL}/api/hr/attendance/time-settings`,
+        `${API_URL}/hr/attendance/time-settings`,
         { headers: { 'Authorization': `Bearer ${token}` } }
       );
 
@@ -75,7 +75,7 @@ const AttendanceTimeSettings = () => {
     try {
       const token = localStorage.getItem('authToken') || localStorage.getItem('token');
       const response = await axios.get(
-        `${API_URL}/api/hr/attendance/staff-specific-times`,
+        `${API_URL}/hr/attendance/staff-specific-times`,
         { headers: { 'Authorization': `Bearer ${token}` } }
       );
 
@@ -179,7 +179,7 @@ const AttendanceTimeSettings = () => {
       const token = localStorage.getItem('authToken') || localStorage.getItem('token');
       
       const response = await axios.post(
-        `${API_URL}/api/hr/attendance/staff-specific-times`,
+        `${API_URL}/hr/attendance/staff-specific-times`,
         {
           staffId: staffFormData.staffId,
           staffName: staffFormData.staffName,
@@ -231,7 +231,7 @@ const AttendanceTimeSettings = () => {
       const token = localStorage.getItem('authToken') || localStorage.getItem('token');
       
       const response = await axios.delete(
-        `${API_URL}/api/hr/attendance/staff-specific-times/${id}`,
+        `${API_URL}/hr/attendance/staff-specific-times/${id}`,
         { headers: { 'Authorization': `Bearer ${token}` } }
       );
 
@@ -261,7 +261,7 @@ const AttendanceTimeSettings = () => {
       const token = localStorage.getItem('authToken') || localStorage.getItem('token');
       
       const response = await axios.post(
-        `${API_URL}/api/hr/attendance/time-settings`,
+        `${API_URL}/hr/attendance/time-settings`,
         {
           standardCheckIn: formData.standardCheckIn,
           lateThreshold: formData.lateThreshold,

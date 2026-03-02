@@ -43,7 +43,7 @@ const LeaveManagement = () => {
       for (const staffType of types) {
         try {
           const classesResponse = await axios.get(
-            `${API_URL}/api/staff/classes?staffType=${encodeURIComponent(staffType)}`
+            `${API_URL}/staff/classes?staffType=${encodeURIComponent(staffType)}`
           );
           
           console.log(`📚 Classes for ${staffType}:`, classesResponse.data);
@@ -51,7 +51,7 @@ const LeaveManagement = () => {
           for (const className of classesResponse.data) {
             try {
               const dataResponse = await axios.get(
-                `${API_URL}/api/staff/data/${staffType}/${className}`,
+                `${API_URL}/staff/data/${staffType}/${className}`,
                 { headers: { 'Authorization': `Bearer ${token}` } }
               );
               
@@ -99,7 +99,7 @@ const LeaveManagement = () => {
       console.log(`📋 Fetching attendance issues for ${ethiopianMonths[selectedEthMonth - 1]} ${selectedEthYear}, filter: ${filter}`);
       
       const response = await axios.get(
-        `${API_URL}/api/hr/leave/attendance-issues?ethMonth=${selectedEthMonth}&ethYear=${selectedEthYear}&status=${filter}`,
+        `${API_URL}/hr/leave/attendance-issues?ethMonth=${selectedEthMonth}&ethYear=${selectedEthYear}&status=${filter}`,
         { headers: { 'Authorization': `Bearer ${token}` } }
       );
 
@@ -128,7 +128,7 @@ const LeaveManagement = () => {
       console.log(`🏖️ Fetching leave records for ${ethiopianMonths[selectedEthMonth - 1]} ${selectedEthYear}`);
       
       const response = await axios.get(
-        `${API_URL}/api/hr/leave/leave-records?ethMonth=${selectedEthMonth}&ethYear=${selectedEthYear}`,
+        `${API_URL}/hr/leave/leave-records?ethMonth=${selectedEthMonth}&ethYear=${selectedEthYear}`,
         { headers: { 'Authorization': `Bearer ${token}` } }
       );
 
@@ -150,7 +150,7 @@ const LeaveManagement = () => {
       console.log('📊 Fetching approval stats...');
       
       const response = await axios.get(
-        `${API_URL}/api/hr/leave/approval-stats`,
+        `${API_URL}/hr/leave/approval-stats`,
         { headers: { 'Authorization': `Bearer ${token}` } }
       );
 
@@ -186,7 +186,7 @@ const LeaveManagement = () => {
       const endpoint = type === 'approve' ? 'approve-permission' : 'reject-permission';
       
       const response = await axios.post(
-        `${API_URL}/api/hr/leave/${endpoint}`,
+        `${API_URL}/hr/leave/${endpoint}`,
         {
           attendanceId: selectedIssue.attendance_id,
           reason
@@ -919,7 +919,7 @@ const LeaveRequestModal = ({ staffList, onClose, onSuccess }) => {
       console.log('✅ Found staff:', staff);
 
       const response = await axios.post(
-        `${API_URL}/api/hr/leave/grant-leave`,
+        `${API_URL}/hr/leave/grant-leave`,
         {
           staffId: staff.id,
           staffName: staff.name,
