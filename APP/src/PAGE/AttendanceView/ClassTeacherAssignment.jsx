@@ -8,6 +8,8 @@ import {
 import { useApp } from '../../context/AppContext';
 import styles from './ClassTeacherAssignment.module.css';
 
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+
 const ClassTeacherAssignment = () => {
   const { t } = useApp();
   const [teachers, setTeachers] = useState([]);
@@ -26,9 +28,9 @@ const ClassTeacherAssignment = () => {
     setLoading(true);
     try {
       const [teachersRes, classesRes, assignmentsRes] = await Promise.all([
-        axios.get('http://localhost:5000/api/class-teacher/teachers'),
-        axios.get('http://localhost:5000/api/class-teacher/classes'),
-        axios.get('http://localhost:5000/api/class-teacher/assignments')
+        axios.get(`${API_BASE_URL}/class-teacher/teachers`),
+        axios.get(`${API_BASE_URL}/class-teacher/classes`),
+        axios.get(`${API_BASE_URL}/class-teacher/assignments`)
       ]);
       setTeachers(teachersRes.data);
       setClasses(classesRes.data);
@@ -54,7 +56,7 @@ const ClassTeacherAssignment = () => {
     }
 
     try {
-      await axios.post('http://localhost:5000/api/class-teacher/assign', {
+      await axios.post(`${API_BASE_URL}/class-teacher/assign`, {
         global_staff_id: parseInt(selectedTeacher),
         teacher_name: teacher.teacher_name,
         assigned_class: selectedClass
@@ -74,7 +76,7 @@ const ClassTeacherAssignment = () => {
     if (!window.confirm(`Remove class teacher from ${className}?`)) return;
 
     try {
-      await axios.delete(`http://localhost:5000/api/class-teacher/unassign/${className}`);
+      await axios.delete(`${API_BASE_URL}/class-teacher/unassign/${className}`);
       setMessage({ type: 'success', text: `Teacher unassigned from ${className}` });
       fetchData();
     } catch (error) {
