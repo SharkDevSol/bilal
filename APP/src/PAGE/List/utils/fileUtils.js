@@ -127,6 +127,9 @@ export const getFileUrl = (filename, type = 'staff') => {
   // Convert to string if it's not already
   const fileStr = String(filename);
   
+  // API base URL from environment variable
+  const API_BASE = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5000';
+  
   // If already a full URL
   if (fileStr.startsWith('http')) {
     return fileStr;
@@ -134,11 +137,11 @@ export const getFileUrl = (filename, type = 'staff') => {
   
   // If already a full path starting with /uploads or /Uploads (case-insensitive)
   if (fileStr.toLowerCase().startsWith('/uploads')) {
-    return `http://localhost:5000${fileStr}`;
+    return `${API_BASE}${fileStr}`;
   }
   
   // Default to Uploads folder (matching backend storage)
-  return `http://localhost:5000/Uploads/${fileStr}`;
+  return `${API_BASE}/Uploads/${fileStr}`;
 };
 
 /**

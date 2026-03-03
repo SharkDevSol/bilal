@@ -13,6 +13,9 @@ import { getFileType, getFileIcon, isFileField, getFileUrl, formatLabel, getFile
 import { useApp } from '../../../context/AppContext';
 import styles from './ListStudent.module.css';
 
+// API base URL - use environment variable or fallback to localhost
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+
 const ListStudent = () => {
   const { t } = useApp();
   const [students, setStudents] = useState([]);
@@ -49,10 +52,10 @@ const ListStudent = () => {
 
   const fetchClasses = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/student-list/classes');
+      const response = await axios.get(`${API_BASE_URL}/student-list/classes`);
       setClasses(response.data);
       if (response.data.length > 0) setSelectedClass(response.data[0]);
-      const formRes = await axios.get('http://localhost:5000/api/students/form-structure');
+      const formRes = await axios.get(`${API_BASE_URL}/students/form-structure`);
       setCustomFields(formRes.data?.customFields || []);
     } catch (error) { console.error('Error:', error); }
   };
@@ -62,7 +65,7 @@ const ListStudent = () => {
     try {
       // Add query parameter to fetch inactive students if showInactive is true
       const includeInactiveParam = showInactive ? '?includeInactive=only' : '';
-      const response = await axios.get(`http://localhost:5000/api/student-list/students/${className}${includeInactiveParam}`);
+      const response = await axios.get(`${API_BASE_URL}/student-list/students/${className}${includeInactiveParam}`);
       const studentsWithIds = response.data.map((student, index) => ({
         ...student, uniqueId: `${student.student_name}-${index}-${Date.now()}`, displayId: index + 1
       }));
@@ -123,7 +126,7 @@ const ListStudent = () => {
       
       try {
         await axios.put(
-          `http://localhost:5000/api/student-list/toggle-active/${selectedClass}/${student.school_id}/${student.class_id}`,
+          `${API_BASE_URL}/student-list/toggle-active/${selectedClass}/${student.school_id}/${student.class_id}`,
           { is_active: true }
         );
         alert('Student activated successfully! They are now visible in all system lists.');
@@ -138,7 +141,7 @@ const ListStudent = () => {
       
       try {
         await axios.put(
-          `http://localhost:5000/api/student-list/toggle-active/${selectedClass}/${student.school_id}/${student.class_id}`,
+          `${API_BASE_URL}/student-list/toggle-active/${selectedClass}/${student.school_id}/${student.class_id}`,
           { is_active: false }
         );
         alert('Student deactivated successfully! They are now hidden from all system lists.');
@@ -153,7 +156,7 @@ const ListStudent = () => {
     if (!window.confirm(`Delete ${student.student_name}?`)) return;
     try {
       if (student.school_id && student.class_id) {
-        await axios.delete(`http://localhost:5000/api/student-list/student/${selectedClass}/${student.school_id}/${student.class_id}`);
+        await axios.delete(`${API_BASE_URL}/student-list/student/${selectedClass}/${student.school_id}/${student.class_id}`);
       }
       setStudents(prev => prev.filter(s => s.uniqueId !== student.uniqueId));
     } catch (error) { alert('Failed to delete'); }
@@ -200,7 +203,7 @@ const ListStudent = () => {
           if (!['uniqueId', 'displayId', 'id'].includes(key) && value != null) formData.append(key, value.toString());
         });
         if (editFile) formData.append('image_student', editFile);
-        await axios.put(`http://localhost:5000/api/student-list/student/${selectedClass}/${selectedStudent.school_id}/${selectedStudent.class_id}`, formData, { headers: { 'Content-Type': 'multipart/form-data' } });
+        await axios.put(`${API_BASE_URL}/student-list/student/${selectedClass}/${selectedStudent.school_id}/${selectedStudent.class_id}`, formData, { headers: { 'Content-Type': 'multipart/form-data' } });
       }
       setStudents(prev => prev.map(s => s.uniqueId === selectedStudent.uniqueId ? { ...editFormData, uniqueId: s.uniqueId, displayId: s.displayId } : s));
       setShowEditModal(false);
