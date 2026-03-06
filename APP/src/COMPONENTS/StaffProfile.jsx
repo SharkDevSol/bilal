@@ -18,6 +18,9 @@ import {
 } from './mobile';
 import styles from './StaffProfile.module.css';
 
+// API base URL - use environment variable or fallback to localhost
+const API_BASE_URL = import.meta.env.VITE_API_URL || '${API_BASE_URL}';
+
 const StaffProfile = () => {
   const [user, setUser] = useState(null);
   const [profile, setProfile] = useState(null);
@@ -237,7 +240,7 @@ const StaffProfile = () => {
     
     try {
       // First, check if teacher has a class teacher assignment
-      const url = `http://localhost:5000/api/class-teacher/teacher-assignment/${encodeURIComponent(profileName)}`;
+      const url = `${API_BASE_URL}/class-teacher/teacher-assignment/${encodeURIComponent(profileName)}`;
       console.log(`📡 Calling API: ${url}`);
       
       const assignmentResponse = await axios.get(url);
@@ -272,7 +275,7 @@ const StaffProfile = () => {
         console.log(`ℹ️ No class teacher assignments found for ${profileName}`);
         
         // No class teacher assignment - check if they have subject assignments
-        const response = await axios.get(`http://localhost:5000/api/mark-list/teacher-mark-lists/${encodeURIComponent(profileName)}`);
+        const response = await axios.get(`${API_BASE_URL}/mark-list/teacher-mark-lists/${encodeURIComponent(profileName)}`);
         
         if (response.data.assignments && response.data.assignments.length > 0) {
           // Has subject assignments but not a class teacher
@@ -309,7 +312,7 @@ const StaffProfile = () => {
     if (!teacherName) return;
     setScheduleLoading(true);
     try {
-      const response = await axios.get('http://localhost:5000/api/schedule/schedule-by-teacher');
+      const response = await axios.get('${API_BASE_URL}/schedule/schedule-by-teacher');
       const allSchedules = response.data;
       
       // Find this teacher's schedule
@@ -339,7 +342,7 @@ const StaffProfile = () => {
     
     setMarkListLoading(true);
     try {
-      const url = `http://localhost:5000/api/mark-list/teacher-mark-lists/${encodeURIComponent(teacherName)}`;
+      const url = `${API_BASE_URL}/mark-list/teacher-mark-lists/${encodeURIComponent(teacherName)}`;
       console.log(`API URL: ${url}`);
       
       const response = await axios.get(url);
@@ -363,7 +366,7 @@ const StaffProfile = () => {
     if (!globalStaffId) return;
     setEvalBookLoading(true);
     try {
-      const response = await axios.get(`http://localhost:5000/api/evaluation-book/assignments/teacher/${globalStaffId}`);
+      const response = await axios.get(`${API_BASE_URL}/evaluation-book/assignments/teacher/${globalStaffId}`);
       const assignments = response.data || [];
       setEvalBookAssignments(assignments);
       setHasEvalBookAccess(assignments.length > 0);
@@ -388,14 +391,14 @@ const StaffProfile = () => {
     try {
       // Fetch class data with students and template
       const response = await axios.get(
-        `http://localhost:5000/api/evaluation-book/teacher/${profile.global_staff_id}/class/${encodeURIComponent(className)}`
+        `${API_BASE_URL}/evaluation-book/teacher/${profile.global_staff_id}/class/${encodeURIComponent(className)}`
       );
       const data = response.data;
       setEvalStudents(data.students || []);
       
       if (data.template) {
         // Fetch full template with fields
-        const templateRes = await axios.get(`http://localhost:5000/api/evaluation-book/templates/${data.template.id}`);
+        const templateRes = await axios.get(`${API_BASE_URL}/evaluation-book/templates/${data.template.id}`);
         setEvalTemplate(templateRes.data);
       }
       
@@ -441,7 +444,7 @@ const StaffProfile = () => {
         field_values: evalEntries[student.student_name]?.field_values || {}
       }));
       
-      const response = await axios.post('http://localhost:5000/api/evaluation-book/daily', {
+      const response = await axios.post('${API_BASE_URL}/evaluation-book/daily', {
         template_id: evalTemplate.id,
         teacher_global_id: profile.global_staff_id,
         class_name: selectedEvalClass,
@@ -451,7 +454,7 @@ const StaffProfile = () => {
       
       if (sendToGuardians && response.data?.length > 0) {
         const evalIds = response.data.map(e => e.id);
-        await axios.post('http://localhost:5000/api/evaluation-book/daily/send', {
+        await axios.post('${API_BASE_URL}/evaluation-book/daily/send', {
           evaluation_ids: evalIds
         });
         setEvalFormSuccess('Evaluations saved and sent to guardians!');
@@ -486,7 +489,7 @@ const StaffProfile = () => {
     setEvalReportsLoading(true);
     try {
       const response = await axios.get(
-        `http://localhost:5000/api/evaluation-book/reports/teacher/${profile.global_staff_id}`
+        `${API_BASE_URL}/evaluation-book/reports/teacher/${profile.global_staff_id}`
       );
       setEvalReports(response.data?.entries || []);
     } catch (error) {
@@ -536,7 +539,7 @@ const StaffProfile = () => {
     setMarkListMessage('');
     try {
       const response = await axios.get(
-        `http://localhost:5000/api/mark-list/mark-list/${encodeURIComponent(selectedMarkListSubject)}/${encodeURIComponent(selectedMarkListClass)}/${selectedMarkListTerm}`
+        `${API_BASE_URL}/mark-list/mark-list/${encodeURIComponent(selectedMarkListSubject)}/${encodeURIComponent(selectedMarkListClass)}/${selectedMarkListTerm}`
       );
       setMarkListData(response.data.markList || []);
       setMarkListConfig(response.data.config || null);
@@ -573,7 +576,7 @@ const StaffProfile = () => {
         marks[componentKey] = student[componentKey] || 0;
       });
 
-      const response = await axios.put('http://localhost:5000/api/mark-list/update-marks', {
+      const response = await axios.put('${API_BASE_URL}/mark-list/update-marks', {
         subjectName: selectedMarkListSubject,
         className: selectedMarkListClass,
         termNumber: selectedMarkListTerm,
@@ -613,7 +616,7 @@ const StaffProfile = () => {
   // Fetch school days from schedule config
   const fetchSchoolDays = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/class-teacher/school-days');
+      const response = await axios.get('${API_BASE_URL}/class-teacher/school-days');
       if (response.data.schoolDays && response.data.schoolDays.length > 0) {
         setSchoolDays(response.data.schoolDays);
         setSelectedDay(response.data.schoolDays[0]); // Set first school day as default
@@ -629,7 +632,7 @@ const StaffProfile = () => {
   const fetchStudentsForAttendance = async (className) => {
     setAttendanceLoading(true);
     try {
-      const response = await axios.get(`http://localhost:5000/api/class-teacher/students/${className}`);
+      const response = await axios.get(`${API_BASE_URL}/class-teacher/students/${className}`);
       setStudents(response.data);
       
       // Fetch weekly tables
@@ -644,7 +647,7 @@ const StaffProfile = () => {
   // Fetch weekly attendance tables
   const fetchWeeklyTables = async (className) => {
     try {
-      const response = await axios.get(`http://localhost:5000/api/class-teacher/weekly-tables/${className}`);
+      const response = await axios.get(`${API_BASE_URL}/class-teacher/weekly-tables/${className}`);
       setWeeklyTables(response.data);
       
       // Auto-select current week if exists, otherwise latest
@@ -666,7 +669,7 @@ const StaffProfile = () => {
   const fetchWeeklyAttendance = async (className, weekStart) => {
     if (!className || !weekStart) return;
     try {
-      const response = await axios.get(`http://localhost:5000/api/class-teacher/weekly-attendance/${className}/${weekStart}`);
+      const response = await axios.get(`${API_BASE_URL}/class-teacher/weekly-attendance/${className}/${weekStart}`);
       setWeeklyAttendanceExists(response.data.exists);
       
       if (response.data.exists && response.data.data.length > 0) {
@@ -749,7 +752,7 @@ const StaffProfile = () => {
     
     setCreatingAttendance(true);
     try {
-      await axios.post('http://localhost:5000/api/class-teacher/create-weekly-attendance', {
+      await axios.post('${API_BASE_URL}/class-teacher/create-weekly-attendance', {
         className: assignedClass,
         weekStart: mondayOfWeek,
         globalStaffId: profile.global_staff_id
@@ -796,7 +799,7 @@ const StaffProfile = () => {
           };
         });
       
-      await axios.put(`http://localhost:5000/api/class-teacher/weekly-attendance/${assignedClass}/${selectedWeek}`, {
+      await axios.put(`${API_BASE_URL}/class-teacher/weekly-attendance/${assignedClass}/${selectedWeek}`, {
         records,
         globalStaffId: profile.global_staff_id
       });
@@ -817,7 +820,7 @@ const StaffProfile = () => {
     if (!staffId) return;
     setEvaluationsLoading(true);
     try {
-      const response = await fetch(`http://localhost:5000/api/evaluations/staff-evaluations/${staffId}`);
+      const response = await fetch(`${API_BASE_URL}/evaluations/staff-evaluations/${staffId}`);
       if (response.ok) {
         const data = await response.json();
         setEvaluations(data);
@@ -835,7 +838,7 @@ const StaffProfile = () => {
     setFormLoading(true);
     setFormError('');
     try {
-      const response = await fetch(`http://localhost:5000/api/evaluations/${evaluationId}/form`);
+      const response = await fetch(`${API_BASE_URL}/evaluations/${evaluationId}/form`);
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.error || 'Failed to fetch evaluation form');
@@ -877,7 +880,7 @@ const StaffProfile = () => {
     setReportError('');
     setEvaluationView('report'); // Set view immediately so back button is visible
     try {
-      const response = await fetch(`http://localhost:5000/api/evaluations/${evaluationId}/form`);
+      const response = await fetch(`${API_BASE_URL}/evaluations/${evaluationId}/form`);
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.error || 'Failed to fetch evaluation report');
@@ -953,7 +956,7 @@ const StaffProfile = () => {
     });
     
     try {
-      const response = await fetch(`http://localhost:5000/api/evaluations/${selectedEvaluationId}/responses`, {
+      const response = await fetch(`${API_BASE_URL}/evaluations/${selectedEvaluationId}/responses`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ responses: responsesPayload })
@@ -996,7 +999,7 @@ const StaffProfile = () => {
 
   const fetchProfilePosts = async (staffId) => {
     try {
-      const response = await axios.get(`http://localhost:5000/api/posts/profile/staff/${staffId}`);
+      const response = await axios.get(`${API_BASE_URL}/posts/profile/staff/${staffId}`);
       setProfilePosts(response.data.map(post => ({ ...post, localLikes: post.likes || 0 })));
     } catch (error) {
       console.error('Error fetching profile posts:', error);
@@ -1019,7 +1022,7 @@ const StaffProfile = () => {
 
   const handleLike = async (postId) => {
     try {
-      await axios.put(`http://localhost:5000/api/posts/${postId}/like`);
+      await axios.put(`${API_BASE_URL}/posts/${postId}/like`);
       setProfilePosts(prev =>
         prev.map(post =>
           post.id === postId ? { ...post, localLikes: (post.localLikes || 0) + 1 } : post
@@ -1049,7 +1052,7 @@ const StaffProfile = () => {
 
   const fetchFaultClasses = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/faults/classes', getAuthConfig());
+      const response = await axios.get('${API_BASE_URL}/faults/classes', getAuthConfig());
       setFaultClasses(response.data);
       if (response.data.length > 0) {
         setSelectedFaultClass(response.data[0]);
@@ -1064,7 +1067,7 @@ const StaffProfile = () => {
     if (!className) return;
     try {
       setFaultsLoading(true);
-      const response = await axios.get(`http://localhost:5000/api/faults/students/${className}`, getAuthConfig());
+      const response = await axios.get(`${API_BASE_URL}/faults/students/${className}`, getAuthConfig());
       setFaultStudents(response.data);
     } catch (error) {
       console.error('Error fetching students:', error);
@@ -1078,7 +1081,7 @@ const StaffProfile = () => {
     if (!className) return;
     try {
       setFaultsLoading(true);
-      const response = await axios.get(`http://localhost:5000/api/faults/faults/${className}`, getAuthConfig());
+      const response = await axios.get(`${API_BASE_URL}/faults/faults/${className}`, getAuthConfig());
       setFaultHistory(response.data);
     } catch (error) {
       console.error('Error fetching fault history:', error);
@@ -1121,7 +1124,7 @@ const StaffProfile = () => {
       formData.append('reported_by', profile?.name || 'Staff');
 
       const config = getAuthConfig();
-      await axios.post('http://localhost:5000/api/faults/add-fault', formData, config);
+      await axios.post('${API_BASE_URL}/faults/add-fault', formData, config);
       
       toast.success('Fault reported successfully');
       setFaultForm({
