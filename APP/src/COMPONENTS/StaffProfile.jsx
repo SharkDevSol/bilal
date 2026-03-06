@@ -19,7 +19,7 @@ import {
 import styles from './StaffProfile.module.css';
 
 // API base URL - use environment variable or fallback to localhost
-const API_BASE_URL = import.meta.env.VITE_API_URL || '${API_BASE_URL}';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
 const StaffProfile = () => {
   const [user, setUser] = useState(null);
@@ -312,7 +312,7 @@ const StaffProfile = () => {
     if (!teacherName) return;
     setScheduleLoading(true);
     try {
-      const response = await axios.get('${API_BASE_URL}/schedule/schedule-by-teacher');
+      const response = await axios.get(`${API_BASE_URL}/schedule/schedule-by-teacher`);
       const allSchedules = response.data;
       
       // Find this teacher's schedule
@@ -444,7 +444,7 @@ const StaffProfile = () => {
         field_values: evalEntries[student.student_name]?.field_values || {}
       }));
       
-      const response = await axios.post('${API_BASE_URL}/evaluation-book/daily', {
+      const response = await axios.post(`${API_BASE_URL}/evaluation-book/daily`, {
         template_id: evalTemplate.id,
         teacher_global_id: profile.global_staff_id,
         class_name: selectedEvalClass,
@@ -454,7 +454,7 @@ const StaffProfile = () => {
       
       if (sendToGuardians && response.data?.length > 0) {
         const evalIds = response.data.map(e => e.id);
-        await axios.post('${API_BASE_URL}/evaluation-book/daily/send', {
+        await axios.post(`${API_BASE_URL}/evaluation-book/daily/send`, {
           evaluation_ids: evalIds
         });
         setEvalFormSuccess('Evaluations saved and sent to guardians!');
@@ -576,7 +576,7 @@ const StaffProfile = () => {
         marks[componentKey] = student[componentKey] || 0;
       });
 
-      const response = await axios.put('${API_BASE_URL}/mark-list/update-marks', {
+      const response = await axios.put(`${API_BASE_URL}/mark-list/update-marks`, {
         subjectName: selectedMarkListSubject,
         className: selectedMarkListClass,
         termNumber: selectedMarkListTerm,
@@ -616,7 +616,7 @@ const StaffProfile = () => {
   // Fetch school days from schedule config
   const fetchSchoolDays = async () => {
     try {
-      const response = await axios.get('${API_BASE_URL}/class-teacher/school-days');
+      const response = await axios.get(`${API_BASE_URL}/class-teacher/school-days`);
       if (response.data.schoolDays && response.data.schoolDays.length > 0) {
         setSchoolDays(response.data.schoolDays);
         setSelectedDay(response.data.schoolDays[0]); // Set first school day as default
@@ -752,7 +752,7 @@ const StaffProfile = () => {
     
     setCreatingAttendance(true);
     try {
-      await axios.post('${API_BASE_URL}/class-teacher/create-weekly-attendance', {
+      await axios.post(`${API_BASE_URL}/class-teacher/create-weekly-attendance`, {
         className: assignedClass,
         weekStart: mondayOfWeek,
         globalStaffId: profile.global_staff_id
@@ -1052,13 +1052,15 @@ const StaffProfile = () => {
 
   const fetchFaultClasses = async () => {
     try {
-      const response = await axios.get('${API_BASE_URL}/faults/classes', getAuthConfig());
-      setFaultClasses(response.data);
-      if (response.data.length > 0) {
-        setSelectedFaultClass(response.data[0]);
+      const response = await axios.get(`${API_BASE_URL}/faults/classes`, getAuthConfig());
+      const classes = Array.isArray(response.data) ? response.data : [];
+      setFaultClasses(classes);
+      if (classes.length > 0) {
+        setSelectedFaultClass(classes[0]);
       }
     } catch (error) {
       console.error('Error fetching fault classes:', error);
+      setFaultClasses([]); // Set empty array on error
       toast.error('Failed to load classes');
     }
   };
@@ -1068,9 +1070,10 @@ const StaffProfile = () => {
     try {
       setFaultsLoading(true);
       const response = await axios.get(`${API_BASE_URL}/faults/students/${className}`, getAuthConfig());
-      setFaultStudents(response.data);
+      setFaultStudents(Array.isArray(response.data) ? response.data : []);
     } catch (error) {
       console.error('Error fetching students:', error);
+      setFaultStudents([]); // Set empty array on error
       toast.error('Failed to load students');
     } finally {
       setFaultsLoading(false);
@@ -1082,9 +1085,10 @@ const StaffProfile = () => {
     try {
       setFaultsLoading(true);
       const response = await axios.get(`${API_BASE_URL}/faults/faults/${className}`, getAuthConfig());
-      setFaultHistory(response.data);
+      setFaultHistory(Array.isArray(response.data) ? response.data : []);
     } catch (error) {
       console.error('Error fetching fault history:', error);
+      setFaultHistory([]); // Set empty array on error
       toast.error('Failed to load fault history');
     } finally {
       setFaultsLoading(false);
@@ -1124,7 +1128,7 @@ const StaffProfile = () => {
       formData.append('reported_by', profile?.name || 'Staff');
 
       const config = getAuthConfig();
-      await axios.post('${API_BASE_URL}/faults/add-fault', formData, config);
+      await axios.post(`${API_BASE_URL}/faults/add-fault`, formData, config);
       
       toast.success('Fault reported successfully');
       setFaultForm({
