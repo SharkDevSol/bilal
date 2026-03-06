@@ -1055,13 +1055,11 @@ const StaffProfile = () => {
       const response = await axios.get(`${API_BASE_URL}/faults/classes`, getAuthConfig());
       const classes = Array.isArray(response.data) ? response.data : [];
       setFaultClasses(classes);
-      if (classes.length > 0) {
-        setSelectedFaultClass(classes[0]);
-      }
+      // Don't auto-select first class - let user choose
     } catch (error) {
       console.error('Error fetching fault classes:', error);
       setFaultClasses([]); // Set empty array on error
-      toast.error('Failed to load classes');
+      // Don't show error toast on initial load - it's not critical
     }
   };
 
@@ -1097,11 +1095,20 @@ const StaffProfile = () => {
 
   const handleFaultClassChange = (className) => {
     setSelectedFaultClass(className);
-    fetchFaultStudents(className);
-    if (faultView === 'list') {
-      fetchFaultHistory(className);
+    if (className) {
+      fetchFaultStudents(className);
+      if (faultView === 'list') {
+        fetchFaultHistory(className);
+      }
     }
   };
+
+  // Auto-fetch students when fault class changes
+  useEffect(() => {
+    if (selectedFaultClass && faultView === 'form') {
+      fetchFaultStudents(selectedFaultClass);
+    }
+  }, [selectedFaultClass, faultView]);
 
   const handleSubmitFault = async (e) => {
     e.preventDefault();
