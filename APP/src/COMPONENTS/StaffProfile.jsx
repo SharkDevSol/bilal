@@ -2101,8 +2101,189 @@ const StaffProfile = () => {
   };
 
   const renderAttendanceTab = () => {
-    // Return the new Student Attendance System with pre-selected class
-    return <StudentAttendanceSystem preSelectedClass={assignedClass} />;
+    return (
+      <div className={styles.modernAttendanceContainer}>
+        {/* Header Card */}
+        <div className={styles.attendanceHeader}>
+          <div className={styles.headerContent}>
+            <div className={styles.headerIcon}>
+              <FiUserCheck size={24} />
+            </div>
+            <div className={styles.headerText}>
+              <h2>Student Attendance</h2>
+              <p>{assignedClass || 'No class assigned'}</p>
+            </div>
+          </div>
+          <div className={styles.headerDate}>
+            <FiCalendar size={18} />
+            <span>{new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}</span>
+          </div>
+        </div>
+
+        {/* Quick Stats Cards */}
+        <div className={styles.statsGrid}>
+          <div className={styles.statCard}>
+            <div className={styles.statIcon} style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}>
+              <FiUsers size={20} />
+            </div>
+            <div className={styles.statContent}>
+              <span className={styles.statLabel}>Total Students</span>
+              <span className={styles.statValue}>{students.length}</span>
+            </div>
+          </div>
+          
+          <div className={styles.statCard}>
+            <div className={styles.statIcon} style={{ background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)' }}>
+              <FiCheckCircle size={20} />
+            </div>
+            <div className={styles.statContent}>
+              <span className={styles.statLabel}>Present</span>
+              <span className={styles.statValue}>
+                {Object.values(attendanceRecords).filter(r => r === 'present').length}
+              </span>
+            </div>
+          </div>
+          
+          <div className={styles.statCard}>
+            <div className={styles.statIcon} style={{ background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)' }}>
+              <FiClock size={20} />
+            </div>
+            <div className={styles.statContent}>
+              <span className={styles.statLabel}>Late</span>
+              <span className={styles.statValue}>
+                {Object.values(attendanceRecords).filter(r => r === 'late').length}
+              </span>
+            </div>
+          </div>
+          
+          <div className={styles.statCard}>
+            <div className={styles.statIcon} style={{ background: 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)' }}>
+              <FiXCircle size={20} />
+            </div>
+            <div className={styles.statContent}>
+              <span className={styles.statLabel}>Absent</span>
+              <span className={styles.statValue}>
+                {Object.values(attendanceRecords).filter(r => r === 'absent').length}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Action Button */}
+        <div className={styles.attendanceActions}>
+          <button 
+            className={styles.primaryActionBtn}
+            onClick={() => navigate('/app/academic/student-attendance')}
+          >
+            <FiEdit2 size={18} />
+            <span>Manage Attendance</span>
+          </button>
+        </div>
+
+        {/* Students List */}
+        <div className={styles.studentsSection}>
+          <div className={styles.sectionHeader}>
+            <h3>
+              <FiUsers size={18} />
+              Students List
+            </h3>
+            <span className={styles.badge}>{students.length} students</span>
+          </div>
+
+          {students.length === 0 ? (
+            <div className={styles.emptyState}>
+              <FiUsers size={48} />
+              <h3>No Students Found</h3>
+              <p>There are no students in {assignedClass || 'this class'}</p>
+            </div>
+          ) : (
+            <div className={styles.studentsList}>
+              {students.map((student, index) => (
+                <div key={student.student_id || index} className={styles.studentCard}>
+                  <div className={styles.studentInfo}>
+                    <div className={styles.studentAvatar}>
+                      {student.image_student ? (
+                        <img 
+                          src={`${API_BASE_URL.replace('/api', '')}/uploads/${student.image_student}`} 
+                          alt={student.student_name}
+                          onError={(e) => {
+                            e.target.style.display = 'none';
+                            e.target.nextSibling.style.display = 'flex';
+                          }}
+                        />
+                      ) : null}
+                      <div className={styles.avatarFallback} style={{ display: student.image_student ? 'none' : 'flex' }}>
+                        {student.student_name?.charAt(0) || 'S'}
+                      </div>
+                    </div>
+                    <div className={styles.studentDetails}>
+                      <h4>{student.student_name}</h4>
+                      <div className={styles.studentMeta}>
+                        <span className={styles.metaItem}>
+                          <FiUser size={12} />
+                          ID: {student.class_id || student.student_id}
+                        </span>
+                        {student.machine_id && (
+                          <span className={styles.metaItem}>
+                            <FiBriefcase size={12} />
+                            {student.machine_id}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className={styles.attendanceStatus}>
+                    {attendanceRecords[student.student_id] === 'present' && (
+                      <span className={`${styles.statusBadge} ${styles.statusPresent}`}>
+                        <FiCheckCircle size={14} />
+                        Present
+                      </span>
+                    )}
+                    {attendanceRecords[student.student_id] === 'late' && (
+                      <span className={`${styles.statusBadge} ${styles.statusLate}`}>
+                        <FiClock size={14} />
+                        Late
+                      </span>
+                    )}
+                    {attendanceRecords[student.student_id] === 'absent' && (
+                      <span className={`${styles.statusBadge} ${styles.statusAbsent}`}>
+                        <FiXCircle size={14} />
+                        Absent
+                      </span>
+                    )}
+                    {!attendanceRecords[student.student_id] && (
+                      <span className={`${styles.statusBadge} ${styles.statusUnmarked}`}>
+                        <FiClock size={14} />
+                        Not Marked
+                      </span>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* School Days Info */}
+        <div className={styles.schoolDaysCard}>
+          <div className={styles.schoolDaysHeader}>
+            <FiCalendar size={18} />
+            <h4>School Days</h4>
+          </div>
+          <div className={styles.schoolDaysList}>
+            {schoolDays.map(day => (
+              <span key={day} className={styles.dayBadge}>
+                {day.charAt(0).toUpperCase() + day.slice(1)}
+              </span>
+            ))}
+          </div>
+          <p className={styles.schoolDaysNote}>
+            Weeks start from Monday and show only these days
+          </p>
+        </div>
+      </div>
+    );
   };
 
   const renderEvalBookTab = () => {
