@@ -40,7 +40,8 @@ const FaultsPage = () => {
 
   const fetchClasses = async () => {
     try {
-      const response = await axios.get(`${API_BASE_URL}/faults/classes`, getAuthConfig());
+      // Use the same endpoint as student list to get proper class names
+      const response = await axios.get(`${API_BASE_URL}/student-list/classes`);
       setClasses(response.data);
     } catch (error) {
       console.error('Error fetching classes:', error);
@@ -50,7 +51,8 @@ const FaultsPage = () => {
   const fetchAllFaults = async () => {
     try {
       setLoading(true);
-      const response = await axios.get(`${API_BASE_URL}/faults/classes`, getAuthConfig());
+      // Use the same endpoint as student list to get proper class names
+      const response = await axios.get(`${API_BASE_URL}/student-list/classes`);
       const allClasses = response.data;
       const allFaults = [];
 
