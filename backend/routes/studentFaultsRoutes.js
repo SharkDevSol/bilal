@@ -98,9 +98,11 @@ router.get('/students/:className', async (req, res) => {
   }
   try {
     console.log(`Fetching students for class: ${className}`);
+    // Use classes_schema like student list does
     const result = await pool.query(`
       SELECT school_id, class_id, student_name
-      FROM public."${className}"
+      FROM classes_schema."${className}"
+      WHERE is_active = TRUE OR is_active IS NULL
       ORDER BY LOWER(student_name) ASC
     `);
     console.log(`Fetched ${result.rows.length} students for ${className}`);
