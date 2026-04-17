@@ -120,8 +120,8 @@ if (process.env.NODE_ENV === 'production' && process.env.HTTPS_ENABLED === 'true
 const io = new Server(server, {
   cors: {
     origin: process.env.NODE_ENV === 'production'
-      ? [process.env.FRONTEND_URL || 'https://darululum.skoolific.com']
-      : ['http://localhost:3000', 'http://localhost:5173', 'http://localhost:5050'],
+      ? [process.env.FRONTEND_URL || 'https://almarkaz.skoolific.com']
+      : ['http://localhost:3000', 'http://localhost:5173', 'http://localhost:5052'],
     methods: ['GET', 'POST'],
     allowedHeaders: ['Authorization'],
     credentials: true
@@ -203,8 +203,8 @@ app.use(securityHeaders);
 
 // 3. CORS configuration
 const allowedOrigins = process.env.NODE_ENV === 'production' 
-  ? [process.env.FRONTEND_URL || 'https://darululum.skoolific.com']  // Production domain
-  : ['http://localhost:3000', 'http://localhost:5173', 'http://localhost:5050'];
+  ? [process.env.FRONTEND_URL || 'https://almarkaz.skoolific.com']  // Production domain
+  : ['http://localhost:3000', 'http://localhost:5173', 'http://localhost:5052'];
 
 app.use(cors({
   origin: (origin, callback) => {
