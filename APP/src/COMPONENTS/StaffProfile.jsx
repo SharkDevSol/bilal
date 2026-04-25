@@ -703,7 +703,7 @@ const StaffProfile = () => {
     if (!selectedMarkListSubject || !selectedMarkListClass || !selectedMarkListTerm) return;
     setMarkListLoading(true);
     setMarkListMessage('');
-    setSavedMarkStudents(new Set()); // reset locks on new load
+    // setSavedMarkStudents(new Set()); // REMOVED: Lock state should persist based on database values
     setCurrentStudentIndex(0);
     try {
       const response = await axios.get(
@@ -712,18 +712,24 @@ const StaffProfile = () => {
       const list = response.data.markList || [];
       setMarkListData(list);
       setMarkListConfig(response.data.config || null);
-      // Pre-lock students that already have marks saved (all components > 0)
+      
+      // Lock students who have ANY mark component with value > 0
       const config = response.data.config;
-      if (config) {
-        const alreadySaved = new Set(
+      if (config && config.mark_components) {
+        const studentsWithMarks = new Set(
           list
-            .filter(s => config.mark_components.every(c => {
-              const key = c.name.toLowerCase().replace(/\s+/g, '_');
-              return s[key] > 0;
-            }))
+            .filter(student => {
+              // Check if ANY mark component has a value > 0
+              return config.mark_components.some(component => {
+                const componentKey = component.name.toLowerCase().replace(/[\s\-\.]+/g, '_');
+                const value = student[componentKey];
+                return value && parseFloat(value) > 0;
+              });
+            })
             .map(s => s.id)
         );
-        setSavedMarkStudents(alreadySaved);
+        setSavedMarkStudents(studentsWithMarks);
+        console.log('📊 Students with existing marks:', Array.from(studentsWithMarks));
       }
     } catch (error) {
       console.error('Error loading mark list:', error);
@@ -2315,7 +2321,7 @@ const StaffProfile = () => {
                       const componentKey = component.name.toLowerCase().replace(/\s+/g, '_');
                       return student[componentKey] && parseFloat(student[componentKey]) > 0;
                     });
-                    const isLocked = hasAnyMarks && savedMarkStudents.has(student.id) && !isAdmin;
+                    const isLocked = hasAnyMarks && !isAdmin;
                     
                     // Filter components based on selection
                     const componentsToShow = selectedMarkComponent 
@@ -2334,7 +2340,7 @@ const StaffProfile = () => {
                       {componentsToShow.map(component => {
                         const componentKey = component.name.toLowerCase().replace(/\s+/g, '_');
                         const hasValue = student[componentKey] && parseFloat(student[componentKey]) > 0;
-                        const inputIsLocked = hasValue && savedMarkStudents.has(student.id) && !isAdmin;
+                        const inputIsLocked = hasValue && !isAdmin;
                         
                         return (
                           <div key={component.name} style={{display:'flex',alignItems:'center',gap:'0.2rem',flexShrink:0}}>
