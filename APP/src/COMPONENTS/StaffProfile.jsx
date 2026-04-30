@@ -804,7 +804,7 @@ const StaffProfile = () => {
       }));
       
       setSavedMarkStudents(newLockedStudents);
-      toast.success(`Marks saved for ${studentsToSave.length} student(s)`);
+      toast.success(`✅ Successfully saved marks for ${studentsToSave.length} student(s)!`);
     } catch (error) {
       console.error('Error saving marks:', error);
       toast.error('Failed to save marks');
@@ -2339,8 +2339,8 @@ const StaffProfile = () => {
                       {/* Mark inputs - compact horizontal */}
                       {componentsToShow.map(component => {
                         const componentKey = component.name.toLowerCase().replace(/\s+/g, '_');
-                        const hasValue = student[componentKey] && parseFloat(student[componentKey]) > 0;
-                        const inputIsLocked = hasValue && !isAdmin;
+                        // Only lock if this student has been saved before (is in savedMarkStudents Set)
+                        const inputIsLocked = savedMarkStudents.has(student.id) && !isAdmin;
                         
                         return (
                           <div key={component.name} style={{display:'flex',alignItems:'center',gap:'0.2rem',flexShrink:0}}>
