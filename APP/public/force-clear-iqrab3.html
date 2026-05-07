@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Force Clear Cache - iqrab3</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-align: center;
+        }
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 30px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+        }
+        .btn {
+            background: #4CAF50;
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px;
+            transition: all 0.3s ease;
+        }
+        .btn:hover {
+            background: #45a049;
+            transform: translateY(-2px);
+        }
+        .status {
+            margin: 20px 0;
+            padding: 15px;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.2);
+        }
+        .success { background: rgba(76, 175, 80, 0.3); }
+        .error { background: rgba(244, 67, 54, 0.3); }
+        .warning { background: rgba(255, 193, 7, 0.3); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔄 Force Clear Cache - iqrab3</h1>
+        <p>If you're seeing old files or 404 errors, use this tool to force clear your browser cache.</p>
+        
+        <div id="status" class="status">
+            <strong>Current Build:</strong> 1778135621007<br>
+            <strong>Server:</strong> iqrab3.skoolific.com
+        </div>
+
+        <button class="btn" onclick="clearAllCaches()">🗑️ Clear All Caches</button>
+        <button class="btn" onclick="forceReload()">🔄 Force Reload</button>
+        <button class="btn" onclick="checkAssets()">✅ Check Assets</button>
+        <button class="btn" onclick="goToApp()">🏠 Go to App</button>
+
+        <div id="results"></div>
+    </div>
+
+    <script>
+        const BUILD_TIMESTAMP = '1778135621007';
+        const EXPECTED_ASSETS = [
+            `/assets/index-b40a42a4-${BUILD_TIMESTAMP}.js`,
+            `/assets/vendor-react-1960947a-${BUILD_TIMESTAMP}.js`,
+            `/assets/vendor-axios-edfcd65b-${BUILD_TIMESTAMP}.js`,
+            `/assets/index-999a6040-${BUILD_TIMESTAMP}.css`
+        ];
+
+        function showStatus(message, type = 'status') {
+            const results = document.getElementById('results');
+            results.innerHTML = `<div class="status ${type}">${message}</div>`;
+        }
+
+        async function clearAllCaches() {
+            showStatus('🔄 Clearing all caches...', 'warning');
+            
+            try {
+                // Clear service workers
+                if ('serviceWorker' in navigator) {
+                    const registrations = await navigator.serviceWorker.getRegistrations();
+                    for (let registration of registrations) {
+                        await registration.unregister();
+                        console.log('🗑️ Service worker unregistered');
+                    }
+                }
+
+                // Clear cache storage
+                if ('caches' in window) {
+                    const cacheNames = await caches.keys();
+                    await Promise.all(
+                        cacheNames.map(cacheName => caches.delete(cacheName))
+                    );
+                    console.log('🗑️ Cache storage cleared');
+                }
+
+                // Clear local storage
+                localStorage.clear();
+                sessionStorage.clear();
+                
+                showStatus('✅ All caches cleared! The page will reload in 2 seconds...', 'success');
+                
+                setTimeout(() => {
+                    window.location.reload(true);
+                }, 2000);
+                
+            } catch (error) {
+                showStatus(`❌ Error clearing caches: ${error.message}`, 'error');
+            }
+        }
+
+        function forceReload() {
+            showStatus('🔄 Force reloading...', 'warning');
+            // Add timestamp to force reload
+            window.location.href = window.location.href + '?t=' + Date.now();
+        }
+
+        async function checkAssets() {
+            showStatus('🔍 Checking assets...', 'warning');
+            
+            const results = [];
+            for (const asset of EXPECTED_ASSETS) {
+                try {
+                    const response = await fetch(asset, { cache: 'no-cache' });
+                    if (response.ok) {
+                        results.push(`✅ ${asset} - OK`);
+                    } else {
+                        results.push(`❌ ${asset} - ${response.status}`);
+                    }
+                } catch (error) {
+                    results.push(`❌ ${asset} - Error: ${error.message}`);
+                }
+            }
+            
+            showStatus(results.join('<br>'), results.some(r => r.includes('❌')) ? 'error' : 'success');
+        }
+
+        function goToApp() {
+            window.location.href = '/';
+        }
+
+        // Auto-check assets on load
+        window.addEventListener('load', () => {
+            setTimeout(checkAssets, 1000);
+        });
+    </script>
+</body>
+</html>
