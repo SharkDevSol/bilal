@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import styles from './CreateMarklist/CreateMarklist.module.css';
 
-const API_BASE_URL = 'https://iqrab3.skoolific.com/api';
+const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
 
 const SubjectConfiguration = ({ onSubjectsConfigured }) => {
   const [subjects, setSubjects] = useState([]);

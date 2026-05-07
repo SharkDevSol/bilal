@@ -8,6 +8,7 @@ const GuardianWards = () => {
   const [wards, setWards] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedWard, setSelectedWard] = useState(null);
+  const API_BASE = import.meta.env.VITE_API_URL?.replace('/api', '') || '';
 
   useEffect(() => {
     fetchWards();
@@ -16,7 +17,8 @@ const GuardianWards = () => {
   const fetchWards = async () => {
     try {
       const guardianInfo = JSON.parse(localStorage.getItem('guardianInfo') || '{}');
-      const guardiansResponse = await axios.get('https://iqrab3.skoolific.com/api/guardian-list/guardians');
+      const API_BASE = import.meta.env.VITE_API_URL?.replace('/api', '') || '';
+      const guardiansResponse = await axios.get(`${import.meta.env.VITE_API_URL || '/api'}/guardian-list/guardians`);
       const currentGuardian = guardiansResponse.data.find(
         guardian => guardian.guardian_username === guardianInfo.guardian_username ||
                    guardian.guardian_phone === guardianInfo.guardian_phone
@@ -72,7 +74,7 @@ const GuardianWards = () => {
                 <div className={styles.wardHeader}>
                   <div className={styles.avatar}>
                     {ward.image_student ? (
-                      <img src={`https://iqrab3.skoolific.com/uploads/${ward.image_student}`} alt={ward.student_name} />
+                      <img src={`${API_BASE}/uploads/${ward.image_student}`} alt={ward.student_name} />
                     ) : (
                       <FiUser size={32} />
                     )}
@@ -130,7 +132,7 @@ const GuardianWards = () => {
             <div className={styles.modalBody}>
               <div className={styles.modalAvatar}>
                 {selectedWard.image_student ? (
-                  <img src={`https://iqrab3.skoolific.com/uploads/${selectedWard.image_student}`} alt={selectedWard.student_name} />
+                  <img src={`${API_BASE}/uploads/${selectedWard.image_student}`} alt={selectedWard.student_name} />
                 ) : (
                   <FiUser size={64} />
                 )}

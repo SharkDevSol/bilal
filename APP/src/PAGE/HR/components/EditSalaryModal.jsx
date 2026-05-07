@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 
-const API_URL = import.meta.env.VITE_API_URL || 'https://iqrab3.skoolific.com';
+const API_URL = import.meta.env.VITE_API_URL || 'https://iqrab3.skoolific.com/api';
 
 const EditSalaryModal = ({ onClose, staff, existingSalary, onSuccess }) => {
   console.log('✏️ EditSalaryModal opened');
@@ -37,7 +37,7 @@ const EditSalaryModal = ({ onClose, staff, existingSalary, onSuccess }) => {
       console.log('✏️ Updating salary with payload:', payload);
 
       const response = await axios.put(
-        `${API_URL}/api/hr/salary/update-complete/${existingSalary.id}`,
+        `${API_URL}/hr/salary/update-complete/${existingSalary.id}`,
         payload,
         { headers: { Authorization: `Bearer ${token}` } }
       );

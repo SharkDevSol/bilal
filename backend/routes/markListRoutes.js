@@ -321,16 +321,19 @@ router.post('/map-subjects-classes', async (req, res) => {
         continue;
       }
       
-      // Validate class exists in classes_schema
+      // Validate class exists in classes_schema (case-insensitive check)
       const classResult = await client.query(
         `SELECT table_name FROM information_schema.tables 
-         WHERE table_schema = 'classes_schema' AND table_name = $1`,
-        [mapping.className?.toLowerCase()]
+         WHERE table_schema = 'classes_schema' AND LOWER(table_name) = LOWER($1)`,
+        [mapping.className]
       );
       if (classResult.rows.length === 0) {
         console.warn(`Class ${mapping.className} not found in classes_schema, skipping`);
         continue; // Skip instead of throwing error
       }
+      
+      // Get the actual table name (with correct case)
+      const actualClassName = classResult.rows[0].table_name;
       
       // Validate subject exists
       const subjectResult = await client.query(
@@ -342,10 +345,10 @@ router.post('/map-subjects-classes', async (req, res) => {
         continue; // Skip instead of throwing error
       }
       
-      // Insert mapping
+      // Insert mapping using the actual class name from database
       await client.query(
         'INSERT INTO subjects_of_school_schema.subject_class_mappings (class_name, subject_name) VALUES ($1, $2) ON CONFLICT (subject_name, class_name) DO NOTHING',
-        [mapping.className?.toLowerCase(), mapping.subjectName]
+        [actualClassName, mapping.subjectName]
       );
     }
     
