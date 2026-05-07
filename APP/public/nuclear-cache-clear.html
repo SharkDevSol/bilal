@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🚀 Nuclear Cache Clear - iqrab3</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #ff6b6b, #ee5a24, #ff9ff3, #54a0ff);
+            background-size: 400% 400%;
+            animation: gradientShift 15s ease infinite;
+            color: white;
+            min-height: 100vh;
+        }
+        
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 40px;
+            border-radius: 20px;
+            backdrop-filter: blur(20px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+        
+        h1 {
+            text-align: center;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+        
+        .subtitle {
+            text-align: center;
+            font-size: 1.2em;
+            margin-bottom: 30px;
+            opacity: 0.9;
+        }
+        
+        .problem-box {
+            background: rgba(255, 0, 0, 0.2);
+            border: 2px solid #ff4757;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        
+        .solution-box {
+            background: rgba(0, 255, 0, 0.2);
+            border: 2px solid #2ed573;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        
+        .btn {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            margin: 10px;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+        }
+        
+        .btn.nuclear {
+            background: linear-gradient(45deg, #ff4757, #c44569);
+            font-size: 18px;
+            padding: 20px 40px;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        .status {
+            margin: 20px 0;
+            padding: 20px;
+            border-radius: 10px;
+            font-weight: bold;
+            text-align: center;
+        }
+        
+        .success { background: rgba(46, 213, 115, 0.3); border: 2px solid #2ed573; }
+        .error { background: rgba(255, 71, 87, 0.3); border: 2px solid #ff4757; }
+        .warning { background: rgba(255, 165, 2, 0.3); border: 2px solid #ffa502; }
+        .info { background: rgba(84, 160, 255, 0.3); border: 2px solid #54a0ff; }
+        
+        .progress {
+            width: 100%;
+            height: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(45deg, #2ed573, #1dd1a1);
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+        
+        .code {
+            background: rgba(0, 0, 0, 0.5);
+            padding: 10px;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            margin: 10px 0;
+            font-size: 14px;
+        }
+        
+        .button-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 NUCLEAR CACHE CLEAR</h1>
+        <p class="subtitle">Ultimate solution for persistent caching issues on iqrab3.skoolific.com</p>
+        
+        <div class="problem-box">
+            <h3>🚨 DETECTED PROBLEMS:</h3>
+            <div class="code">
+                ❌ Loading OLD files: vendor-axios-edfcd65b-1777972218928.js<br>
+                ✅ Should load NEW: vendor-axios-edfcd65b-1778136496242.js<br>
+                ❌ API calls: /api/api/admin/sub-accounts (double prefix)<br>
+                ❌ Missing icon: icon-1776491769945.png
+            </div>
+        </div>
+        
+        <div class="solution-box">
+            <h3>💡 SOLUTION:</h3>
+            <p>Your browser is aggressively caching old files. This tool will perform a nuclear-level cache clear.</p>
+        </div>
+        
+        <div class="button-grid">
+            <button class="btn nuclear" onclick="nuclearCacheClear()">🚀 NUCLEAR CLEAR</button>
+            <button class="btn" onclick="checkCurrentState()">🔍 Check Status</button>
+            <button class="btn" onclick="manualSteps()">📋 Manual Steps</button>
+            <button class="btn" onclick="goToApp()">🏠 Go to App</button>
+        </div>
+        
+        <div id="progress-container" style="display: none;">
+            <div class="progress">
+                <div class="progress-bar" id="progress-bar"></div>
+            </div>
+            <p id="progress-text">Starting...</p>
+        </div>
+        
+        <div id="results"></div>
+    </div>
+
+    <script>
+        const CURRENT_BUILD = '1778136496242';
+        const OLD_BUILD = '1777972218928';
+        
+        function showStatus(message, type = 'info') {
+            const results = document.getElementById('results');
+            results.innerHTML = `<div class="status ${type}">${message}</div>`;
+        }
+        
+        function updateProgress(percent, text) {
+            const progressContainer = document.getElementById('progress-container');
+            const progressBar = document.getElementById('progress-bar');
+            const progressText = document.getElementById('progress-text');
+            
+            progressContainer.style.display = 'block';
+            progressBar.style.width = percent + '%';
+            progressText.textContent = text;
+        }
+        
+        async function nuclearCacheClear() {
+            showStatus('🚀 INITIATING NUCLEAR CACHE CLEAR...', 'warning');
+            
+            try {
+                // Step 1: Clear Service Workers
+                updateProgress(10, 'Clearing Service Workers...');
+                if ('serviceWorker' in navigator) {
+                    const registrations = await navigator.serviceWorker.getRegistrations();
+                    for (let registration of registrations) {
+                        await registration.unregister();
+                    }
+                }
+                
+                // Step 2: Clear Cache Storage
+                updateProgress(25, 'Clearing Cache Storage...');
+                if ('caches' in window) {
+                    const cacheNames = await caches.keys();
+                    await Promise.all(cacheNames.map(name => caches.delete(name)));
+                }
+                
+                // Step 3: Clear Local Storage
+                updateProgress(40, 'Clearing Local Storage...');
+                localStorage.clear();
+                sessionStorage.clear();
+                
+                // Step 4: Clear IndexedDB
+                updateProgress(55, 'Clearing IndexedDB...');
+                if ('indexedDB' in window) {
+                    try {
+                        const databases = await indexedDB.databases();
+                        await Promise.all(databases.map(db => {
+                            return new Promise((resolve) => {
+                                const deleteReq = indexedDB.deleteDatabase(db.name);
+                                deleteReq.onsuccess = () => resolve();
+                                deleteReq.onerror = () => resolve();
+                            });
+                        }));
+                    } catch (e) {
+                        console.log('IndexedDB clear failed:', e);
+                    }
+                }
+                
+                // Step 5: Clear Cookies
+                updateProgress(70, 'Clearing Cookies...');
+                document.cookie.split(";").forEach(function(c) { 
+                    document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/"); 
+                });
+                
+                // Step 6: Force reload with cache busting
+                updateProgress(85, 'Preparing Force Reload...');
+                
+                // Step 7: Multiple reload strategies
+                updateProgress(100, 'NUCLEAR CLEAR COMPLETE! Reloading...');
+                
+                showStatus('✅ NUCLEAR CLEAR SUCCESSFUL!<br>🔄 Reloading in 3 seconds with cache busting...', 'success');
+                
+                setTimeout(() => {
+                    // Try multiple reload strategies
+                    const timestamp = Date.now();
+                    const url = new URL(window.location);
+                    url.searchParams.set('_t', timestamp);
+                    url.searchParams.set('_nuclear', '1');
+                    url.searchParams.set('_clear', 'true');
+                    
+                    // Force reload with cache busting
+                    window.location.replace(url.toString());
+                }, 3000);
+                
+            } catch (error) {
+                showStatus(`❌ Error during nuclear clear: ${error.message}`, 'error');
+            }
+        }
+        
+        async function checkCurrentState() {
+            showStatus('🔍 Checking current state...', 'info');
+            
+            const checks = [
+                { name: 'Current JS File', url: `/assets/vendor-axios-edfcd65b-${CURRENT_BUILD}.js` },
+                { name: 'Old JS File (should 404)', url: `/assets/vendor-axios-edfcd65b-${OLD_BUILD}.js` },
+                { name: 'Main CSS', url: `/assets/index-999a6040-${CURRENT_BUILD}.css` },
+                { name: 'Main JS', url: `/assets/index-46ec6215-${CURRENT_BUILD}.js` }
+            ];
+            
+            let results = '<h3>🔍 ASSET CHECK RESULTS:</h3>';
+            
+            for (const check of checks) {
+                try {
+                    const response = await fetch(check.url, { cache: 'no-cache' });
+                    if (response.ok) {
+                        results += `✅ ${check.name}: OK<br>`;
+                    } else {
+                        results += `❌ ${check.name}: ${response.status}<br>`;
+                    }
+                } catch (error) {
+                    results += `❌ ${check.name}: Error<br>`;
+                }
+            }
+            
+            showStatus(results, 'info');
+        }
+        
+        function manualSteps() {
+            const steps = `
+                <h3>📋 MANUAL CACHE CLEARING STEPS:</h3>
+                <div class="code">
+                <strong>Chrome/Edge:</strong><br>
+                1. Press Ctrl+Shift+Delete<br>
+                2. Select "All time"<br>
+                3. Check ALL boxes<br>
+                4. Click "Clear data"<br>
+                5. Close and reopen browser<br><br>
+                
+                <strong>Firefox:</strong><br>
+                1. Press Ctrl+Shift+Delete<br>
+                2. Select "Everything"<br>
+                3. Check ALL boxes<br>
+                4. Click "Clear Now"<br>
+                5. Close and reopen browser<br><br>
+                
+                <strong>Alternative:</strong><br>
+                1. Open Developer Tools (F12)<br>
+                2. Right-click refresh button<br>
+                3. Select "Empty Cache and Hard Reload"<br>
+                4. Or try Incognito/Private mode
+                </div>
+            `;
+            showStatus(steps, 'info');
+        }
+        
+        function goToApp() {
+            const timestamp = Date.now();
+            window.location.href = `/?_t=${timestamp}&_cleared=true`;
+        }
+        
+        // Auto-check on load
+        window.addEventListener('load', () => {
+            setTimeout(checkCurrentState, 1000);
+        });
+    </script>
+</body>
+</html>
