@@ -3,10 +3,11 @@ const router = express.Router();
 const machineSyncService = require('../services/machineSyncService');
 const aasImportService = require('../services/aasImportService');
 const aasRealtimeSync = require('../services/aasRealtimeSync');
-const { authenticateToken } = require('../middleware/auth');
+const { authenticateWithBranch, validateBranchCode } = require('../middleware/branchAuth');
 const pool = require('../config/db');
 const multer = require('multer');
 const path = require('path');
+const { getEndpointPath, API_ENDPOINTS } = require('../config/api.config');
 
 // Configure multer for CSV file uploads
 const storage = multer.diskStorage({
@@ -33,7 +34,7 @@ const upload = multer({
 });
 
 // Test machine connection
-router.post('/test-connection', authenticateToken, async (req, res) => {
+router.post('/test-connection', authenticateWithBranch, async (req, res) => {
   try {
     const { machineId } = req.body;
 
@@ -51,7 +52,7 @@ router.post('/test-connection', authenticateToken, async (req, res) => {
 });
 
 // Sync attendance from machine
-router.post('/sync', authenticateToken, async (req, res) => {
+router.post('/sync', authenticateWithBranch, async (req, res) => {
   try {
     const { machineId } = req.body;
 
@@ -69,7 +70,7 @@ router.post('/sync', authenticateToken, async (req, res) => {
 });
 
 // Get machine configurations
-router.get('/machines', authenticateToken, async (req, res) => {
+router.get('/machines', authenticateWithBranch, async (req, res) => {
   try {
     const result = await pool.query(
       'SELECT id, name, ip_address, port, enabled, last_sync_at FROM machine_config ORDER BY name'
@@ -83,7 +84,7 @@ router.get('/machines', authenticateToken, async (req, res) => {
 });
 
 // Get sync logs
-router.get('/sync-logs', authenticateToken, async (req, res) => {
+router.get('/sync-logs', authenticateWithBranch, async (req, res) => {
   try {
     const { machineId, limit = 50 } = req.query;
 
@@ -112,7 +113,7 @@ router.get('/sync-logs', authenticateToken, async (req, res) => {
 });
 
 // Get unmapped user IDs
-router.get('/unmapped-users', authenticateToken, async (req, res) => {
+router.get('/unmapped-users', authenticateWithBranch, async (req, res) => {
   try {
     const result = await machineSyncService.getUnmappedUserIds();
     res.json(result);
@@ -124,7 +125,7 @@ router.get('/unmapped-users', authenticateToken, async (req, res) => {
 });
 
 // Create or update user mapping
-router.post('/user-mapping', authenticateToken, async (req, res) => {
+router.post('/user-mapping', authenticateWithBranch, async (req, res) => {
   try {
     const { personId, personType, machineUserId } = req.body;
 
@@ -167,7 +168,7 @@ router.post('/user-mapping', authenticateToken, async (req, res) => {
 });
 
 // Get user mappings
-router.get('/user-mappings', authenticateToken, async (req, res) => {
+router.get('/user-mappings', authenticateWithBranch, async (req, res) => {
   try {
     const { personType } = req.query;
 
@@ -191,7 +192,7 @@ router.get('/user-mappings', authenticateToken, async (req, res) => {
 });
 
 // Import attendance from AAS 6.0 CSV export
-router.post('/import-csv', authenticateToken, upload.single('csvFile'), async (req, res) => {
+router.post('/import-csv', authenticateWithBranch, upload.single('csvFile'), async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ error: 'No CSV file uploaded' });
@@ -228,7 +229,7 @@ router.post('/import-csv', authenticateToken, upload.single('csvFile'), async (r
 });
 
 // Get unmapped staff codes from recent imports
-router.get('/unmapped-staff-codes', authenticateToken, async (req, res) => {
+router.get('/unmapped-staff-codes', authenticateWithBranch, async (req, res) => {
   try {
     const unmappedCodes = await aasImportService.getUnmappedStaffCodes();
     res.json({ unmappedStaffCodes: unmappedCodes });
@@ -244,7 +245,7 @@ router.get('/unmapped-staff-codes', authenticateToken, async (req, res) => {
 // ============================================
 
 // Start automatic real-time sync
-router.post('/realtime-sync/start', authenticateToken, async (req, res) => {
+router.post('/realtime-sync/start', authenticateWithBranch, async (req, res) => {
   try {
     const { intervalMinutes = 2 } = req.body;
 
@@ -272,7 +273,7 @@ router.post('/realtime-sync/start', authenticateToken, async (req, res) => {
 });
 
 // Stop automatic real-time sync
-router.post('/realtime-sync/stop', authenticateToken, async (req, res) => {
+router.post('/realtime-sync/stop', authenticateWithBranch, async (req, res) => {
   try {
     aasRealtimeSync.stopAutoSync();
 
@@ -289,7 +290,7 @@ router.post('/realtime-sync/stop', authenticateToken, async (req, res) => {
 });
 
 // Get real-time sync status
-router.get('/realtime-sync/status', authenticateToken, async (req, res) => {
+router.get('/realtime-sync/status', authenticateWithBranch, async (req, res) => {
   try {
     const status = aasRealtimeSync.getStatus();
     res.json({ status });
@@ -301,7 +302,7 @@ router.get('/realtime-sync/status', authenticateToken, async (req, res) => {
 });
 
 // Trigger manual sync now
-router.post('/realtime-sync/sync-now', authenticateToken, async (req, res) => {
+router.post('/realtime-sync/sync-now', authenticateWithBranch, async (req, res) => {
   try {
     const result = await aasRealtimeSync.syncNow();
     res.json(result);
@@ -313,7 +314,7 @@ router.post('/realtime-sync/sync-now', authenticateToken, async (req, res) => {
 });
 
 // Inspect AAS database structure (for debugging)
-router.get('/realtime-sync/inspect-database', authenticateToken, async (req, res) => {
+router.get('/realtime-sync/inspect-database', authenticateWithBranch, async (req, res) => {
   try {
     const structure = await aasRealtimeSync.inspectDatabase();
     res.json({ structure });

@@ -1,0 +1,20 @@
+{
+    "keep": {
+        "days": true,
+        "amount": 30
+    },
+    "auditLog": "C:\\Users\\hp\\Desktop\\v.2\\SCHOOLS\\SCHOOLS\\backend\\logs\\.21d4520f24d7aaea4c35c8ba238ffb25209b690d-audit.json",
+    "files": [
+        {
+            "date": 1778596006072,
+            "name": "C:\\Users\\hp\\Desktop\\v.2\\SCHOOLS\\SCHOOLS\\backend\\logs\\error-2026-05-12.log",
+            "hash": "14886eff4766591bb53c4d5aa2cf85e8a7791df0a5c95c13352ab1fd3973ad5f"
+        },
+        {
+            "date": 1778665867401,
+            "name": "C:\\Users\\hp\\Desktop\\v.2\\SCHOOLS\\SCHOOLS\\backend\\logs\\error-2026-05-13.log",
+            "hash": "cc5dd2b4909cefa5eb0f4a0da9cd23a62b7d1f12f254f046a65d2d10aa96b75c"
+        }
+    ],
+    "hashType": "sha256"
+}

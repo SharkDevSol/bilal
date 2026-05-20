@@ -2,10 +2,11 @@ const express = require('express');
 const router = express.Router();
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
-const { authenticateToken } = require('../../middleware/auth');
+const { authenticateWithBranch } = require('../../middleware/branchAuth');
+const { getEndpointPath, API_ENDPOINTS } = require('../../config/api.config');
 
 // Get all fee structures
-router.get('/', authenticateToken, async (req, res) => {
+router.get('/', authenticateWithBranch, async (req, res) => {
   try {
     const { academicYearId, gradeLevel, campusId, isActive } = req.query;
     
@@ -31,7 +32,7 @@ router.get('/', authenticateToken, async (req, res) => {
 });
 
 // Get single fee structure
-router.get('/:id', authenticateToken, async (req, res) => {
+router.get('/:id', authenticateWithBranch, async (req, res) => {
   try {
     const feeStructure = await prisma.feeStructure.findUnique({
       where: { id: req.params.id },
@@ -52,7 +53,7 @@ router.get('/:id', authenticateToken, async (req, res) => {
 });
 
 // Create fee structure
-router.post('/', authenticateToken, async (req, res) => {
+router.post('/', authenticateWithBranch, async (req, res) => {
   try {
     const { name, academicYearId, termId, gradeLevel, campusId, studentCategory, items } = req.body;
     
@@ -87,7 +88,7 @@ router.post('/', authenticateToken, async (req, res) => {
 });
 
 // Update fee structure
-router.put('/:id', authenticateToken, async (req, res) => {
+router.put('/:id', authenticateWithBranch, async (req, res) => {
   try {
     const { name, isActive } = req.body;
     
@@ -104,7 +105,7 @@ router.put('/:id', authenticateToken, async (req, res) => {
 });
 
 // Delete fee structure
-router.delete('/:id', authenticateToken, async (req, res) => {
+router.delete('/:id', authenticateWithBranch, async (req, res) => {
   try {
     const feeStructure = await prisma.feeStructure.update({
       where: { id: req.params.id },

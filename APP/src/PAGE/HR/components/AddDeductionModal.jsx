@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { getCurrentEthiopianMonthRange } from '../../../utils/ethiopianCalendar';
 
-const API_URL = import.meta.env.VITE_API_URL || 'https://iqrab3.skoolific.com';
+const API_URL = import.meta.env.VITE_API_URL || 'https://iqrab3.skoolific.com/api';
 
 const AddDeductionModal = ({ onClose, preSelectedStaff }) => {
   const [staffTypes, setStaffTypes] = useState([]);
@@ -50,7 +50,7 @@ const AddDeductionModal = ({ onClose, preSelectedStaff }) => {
   const fetchStaffTypes = async () => {
     try {
       const token = localStorage.getItem('authToken') || localStorage.getItem('token');
-      const response = await axios.get(`${API_URL}/api/hr/salary/staff-types`, {
+      const response = await axios.get(`${API_URL}/hr/salary/staff-types`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (response.data.success) {
@@ -64,7 +64,7 @@ const AddDeductionModal = ({ onClose, preSelectedStaff }) => {
   const fetchStaffByType = async (type) => {
     try {
       const token = localStorage.getItem('authToken') || localStorage.getItem('token');
-      const response = await axios.get(`${API_URL}/api/hr/salary/staff?staffType=${type}`, {
+      const response = await axios.get(`${API_URL}/hr/salary/staff?staffType=${type}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (response.data.success) {
@@ -115,7 +115,7 @@ const AddDeductionModal = ({ onClose, preSelectedStaff }) => {
       };
 
       const response = await axios.post(
-        `${API_URL}/api/hr/salary/deductions`,
+        `${API_URL}/hr/salary/deductions`,
         payload,
         { headers: { Authorization: `Bearer ${token}` } }
       );

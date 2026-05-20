@@ -13,6 +13,7 @@ const Task7 = ({ onComplete, onScheduleGenerated }) => {
     teaching_days_per_week: 5,
     school_days: [1, 2, 3, 4, 5]
   });
+  const [task1Config, setTask1Config] = useState(null);
   const [teachersPeriod, setTeachersPeriod] = useState([]);
   const [classSubjects, setClassSubjects] = useState([]);
   const [shiftPeriodMatrix, setShiftPeriodMatrix] = useState({});
@@ -44,7 +45,7 @@ const Task7 = ({ onComplete, onScheduleGenerated }) => {
   // Check system status on component mount
   useEffect(() => {
     checkSystemStatus();
-    fetchBasicConfig();
+    fetchTask1Config(); // Fetch Task1 configuration first
     fetchTeachersPeriod();
     fetchClassSubjects();
     fetchTeacherWorkTimes();
@@ -225,6 +226,28 @@ const Task7 = ({ onComplete, onScheduleGenerated }) => {
     }
   };
 
+  const fetchTask1Config = async () => {
+    try {
+      const response = await axios.get('/api/schedule/config');
+      if (response.data) {
+        setTask1Config(response.data);
+        // Update basicConfig with Task1 data
+        setBasicConfig({
+          periods_per_shift: response.data.periods_per_shift || 7,
+          period_duration: response.data.period_duration || 45,
+          short_break_duration: response.data.short_break_duration || 10,
+          total_shifts: response.data.total_shifts || 2,
+          teaching_days_per_week: response.data.teaching_days_per_week || 5,
+          school_days: response.data.school_days || [1, 2, 3, 4, 5]
+        });
+      }
+    } catch (error) {
+      console.error('Error fetching Task1 config:', error);
+      // If Task1 config not found, show error
+      setError('Task1 configuration not found. Please complete Task1 first.');
+    }
+  };
+
   const fetchBasicConfig = async () => {
     try {
       const response = await axios.get('/api/schedule/config');
@@ -382,30 +405,11 @@ const Task7 = ({ onComplete, onScheduleGenerated }) => {
     setSuccess('Shifts automatically rebalanced!');
   };
 
-  const handleBasicChange = (e) => {
-    const { name, value, type } = e.target;
-    
-    if (type === 'number' || type === 'select-one') {
-      setBasicConfig(prev => ({ ...prev, [name]: parseInt(value) || value }));
-    } else {
-      setBasicConfig(prev => ({ ...prev, [name]: value }));
-    }
-  };
-
   const handleOptimizationChange = (setting, value) => {
     setOptimizationSettings(prev => ({
       ...prev,
       [setting]: value
     }));
-  };
-
-  const handleDayToggle = (dayId) => {
-    setBasicConfig(prev => {
-      const school_days = prev.school_days.includes(dayId)
-        ? prev.school_days.filter(d => d !== dayId)
-        : [...prev.school_days, dayId];
-      return { ...prev, school_days, teaching_days_per_week: school_days.length };
-    });
   };
 
   const handleShiftChange = (subjectClass, shiftId) => {
@@ -472,22 +476,6 @@ const Task7 = ({ onComplete, onScheduleGenerated }) => {
     });
   };
 
-  const handleBasicSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setError('');
-    setSuccess('');
-    try {
-      await axios.put('/api/schedule/config', basicConfig);
-      setSuccess('✓ Basic configuration saved successfully!');
-      setTimeout(() => setStep(2), 1500);
-    } catch (error) {
-      setError('Failed to save basic configuration: ' + error.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const handleShiftPeriodSubmit = async (e) => {
     e.preventDefault();
     
@@ -526,7 +514,7 @@ const Task7 = ({ onComplete, onScheduleGenerated }) => {
       await axios.post('/api/schedule/set-comprehensive-config', { assignments });
       setSuccess(`✓ Shift and period configuration saved successfully! (Shift 1: ${shift1Count}, Shift 2: ${shift2Count})`);
       setTimeout(() => {
-        setStep(3);
+        setStep(2);
         checkSystemStatus();
       }, 1500);
     } catch (error) {
@@ -658,7 +646,7 @@ const Task7 = ({ onComplete, onScheduleGenerated }) => {
           <p className={styles.subtitle}>Task 7: Configure shifts, periods, and generate timetable</p>
         </div>
         <div className={styles.progressIndicator}>
-          <span className={styles.progressText}>Progress: {Math.round((step / 3) * 100)}%</span>
+          <span className={styles.progressText}>Progress: {Math.round((step / 2) * 100)}%</span>
         </div>
       </div>
 
@@ -752,17 +740,16 @@ const Task7 = ({ onComplete, onScheduleGenerated }) => {
       )}
 
       <div className={styles.progressStepper}>
-        {[1, 2, 3].map((stepNum) => (
+        {[1, 2].map((stepNum) => (
           <div key={stepNum} className={`${styles.step} ${styles[getStepStatus(stepNum)]}`}>
             <div className={styles.stepCircle}>
               {getStepStatus(stepNum) === 'completed' ? '✓' : stepNum}
             </div>
             <div className={styles.stepLabel}>
-              {stepNum === 1 && 'Basic Settings'}
-              {stepNum === 2 && 'Shift & Period Setup'}
-              {stepNum === 3 && 'Generate Schedule'}
+              {stepNum === 1 && 'Shift & Period Setup'}
+              {stepNum === 2 && 'Generate Schedule'}
             </div>
-            {stepNum < 3 && <div className={styles.stepConnector}></div>}
+            {stepNum < 2 && <div className={styles.stepConnector}></div>}
           </div>
         ))}
       </div>
@@ -772,123 +759,54 @@ const Task7 = ({ onComplete, onScheduleGenerated }) => {
           <div className={styles.stepHeader}>
             <div className={styles.stepTitle}>
               <span className={styles.stepNumber}>01</span>
-              <h2>Basic Schedule Settings</h2>
-            </div>
-            <p className={styles.stepDescription}>
-              Configure the fundamental parameters for your school schedule.
-            </p>
-          </div>
-
-          <form onSubmit={handleBasicSubmit} className={styles.configForm}>
-            <div className={styles.formSection}>
-              <h3 className={styles.sectionTitle}>Academic Structure</h3>
-              <div className={styles.formGrid}>
-                <div className={styles.formGroup}>
-                  <label className={styles.formLabel}>
-                    Periods per Shift
-                  </label>
-                  <input
-                    type="number"
-                    name="periods_per_shift"
-                    value={basicConfig.periods_per_shift}
-                    onChange={handleBasicChange}
-                    min="1"
-                    max="12"
-                    className={styles.formInput}
-                    required
-                  />
-                </div>
-
-                <div className={styles.formGroup}>
-                  <label className={styles.formLabel}>
-                    Period Duration (minutes)
-                  </label>
-                  <input
-                    type="number"
-                    name="period_duration"
-                    value={basicConfig.period_duration}
-                    onChange={handleBasicChange}
-                    min="1"
-                    max="120"
-                    className={styles.formInput}
-                    required
-                  />
-                </div>
-
-                <div className={styles.formGroup}>
-                  <label className={styles.formLabel}>
-                    Total Shifts
-                  </label>
-                  <select 
-                    name="total_shifts" 
-                    value={basicConfig.total_shifts} 
-                    onChange={handleBasicChange}
-                    className={styles.formSelect}
-                  >
-                    <option value="1">1 Shift</option>
-                    <option value="2">2 Shifts</option>
-                  </select>
-                </div>
-              </div>
-            </div>
-
-            <div className={styles.formSection}>
-              <h3 className={styles.sectionTitle}>Operational Days</h3>
-              <div className={styles.daysContainer}>
-                <div className={styles.daysGrid}>
-                  {daysOfWeek.map(day => (
-                    <div key={day.id} className={styles.dayItem}>
-                      <input
-                        type="checkbox"
-                        id={`day-${day.id}`}
-                        checked={basicConfig.school_days.includes(day.id)}
-                        onChange={() => handleDayToggle(day.id)}
-                        className={styles.dayCheckbox}
-                      />
-                      <label 
-                        htmlFor={`day-${day.id}`} 
-                        className={`${styles.dayLabel} ${
-                          basicConfig.school_days.includes(day.id) ? styles.dayActive : ''
-                        }`}
-                      >
-                        <span className={styles.dayShort}>{day.short}</span>
-                        <span className={styles.dayFull}>{day.name}</span>
-                      </label>
-                    </div>
-                  ))}
-                </div>
-                <div className={styles.daysSummary}>
-                  {basicConfig.school_days.length} days selected: {daysOfWeek.filter(day => basicConfig.school_days.includes(day.id)).map(day => day.short).join(', ')}
-                </div>
-              </div>
-            </div>
-
-            <div className={styles.formActions}>
-              <button 
-                type="submit" 
-                disabled={loading}
-                className={styles.primaryButton}
-              >
-                {loading ? 'Saving...' : 'Save & Continue →'}
-              </button>
-            </div>
-          </form>
-        </div>
-      )}
-
-      {step === 2 && (
-        <div className={styles.stepCard}>
-          <div className={styles.stepHeader}>
-            <div className={styles.stepTitle}>
-              <span className={styles.stepNumber}>02</span>
               <h2>Shift & Period Configuration</h2>
             </div>
             <p className={styles.stepDescription}>
               Configure shifts, periods, and teaching days for each class-subject combination.
               <br />
               <strong>Full-Time teachers are automatically assigned to all school days.</strong>
+              <br />
+              <em>Note: Basic schedule settings (periods, shifts, school days) are retrieved from Task1.</em>
             </p>
           </div>
+
+          {!task1Config && (
+            <div className={styles.alertError}>
+              <div className={styles.alertIcon}>⚠️</div>
+              <div className={styles.alertContent}>
+                Task1 configuration not found. Please complete Task1 first to set up basic schedule settings.
+              </div>
+            </div>
+          )}
+
+          {task1Config && (
+            <div className={styles.task1ConfigDisplay}>
+              <h4>📋 Task1 Configuration (Read-Only)</h4>
+              <div className={styles.configGrid}>
+                <div className={styles.configItem}>
+                  <span className={styles.configLabel}>Periods per Shift:</span>
+                  <span className={styles.configValue}>{task1Config.periods_per_shift || basicConfig.periods_per_shift}</span>
+                </div>
+                <div className={styles.configItem}>
+                  <span className={styles.configLabel}>Period Duration:</span>
+                  <span className={styles.configValue}>{task1Config.period_duration || basicConfig.period_duration} min</span>
+                </div>
+                <div className={styles.configItem}>
+                  <span className={styles.configLabel}>Total Shifts:</span>
+                  <span className={styles.configValue}>{task1Config.total_shifts || basicConfig.total_shifts}</span>
+                </div>
+                <div className={styles.configItem}>
+                  <span className={styles.configLabel}>School Days:</span>
+                  <span className={styles.configValue}>
+                    {daysOfWeek
+                      .filter(day => (task1Config.school_days || basicConfig.school_days).includes(day.id))
+                      .map(day => day.short)
+                      .join(', ')}
+                  </span>
+                </div>
+              </div>
+            </div>
+          )}
 
           <div className={styles.rebalanceSection}>
             <button 
@@ -1068,24 +986,14 @@ const Task7 = ({ onComplete, onScheduleGenerated }) => {
               </div>
             </form>
           )}
-
-          <div className={styles.navigation}>
-            <button 
-              type="button" 
-              onClick={() => setStep(1)} 
-              className={styles.secondaryButton}
-            >
-              ← Back to Basic Settings
-            </button>
-          </div>
         </div>
       )}
 
-      {step === 3 && (
+      {step === 2 && (
         <div className={styles.stepCard}>
           <div className={styles.stepHeader}>
             <div className={styles.stepTitle}>
-              <span className={styles.stepNumber}>03</span>
+              <span className={styles.stepNumber}>02</span>
               <h2>Generate Schedule</h2>
             </div>
             <p className={styles.stepDescription}>
@@ -1311,10 +1219,10 @@ const Task7 = ({ onComplete, onScheduleGenerated }) => {
             <div className={styles.navigation}>
               <button 
                 type="button" 
-                onClick={() => setStep(2)} 
+                onClick={() => setStep(1)} 
                 className={styles.secondaryButton}
               >
-                ← Back to Configuration
+                ← Back to Shift & Period Setup
               </button>
             </div>
           </div>

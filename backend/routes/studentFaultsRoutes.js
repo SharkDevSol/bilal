@@ -4,10 +4,11 @@ const { Pool } = require('pg');
 const path = require('path');
 const multer = require('multer');
 const fs = require('fs').promises;
+const { getEndpointPath, API_ENDPOINTS } = require('../config/api.config');
 require('dotenv').config();
 
 // Security middleware
-const { authenticateToken } = require('../middleware/auth');
+const { authenticateWithBranch, validateBranchCode } = require('../middleware/branchAuth');
 const { sanitizeInputs } = require('../middleware/inputValidation');
 const { multerFileFilter } = require('../middleware/fileValidation');
 
@@ -23,7 +24,7 @@ const pool = new Pool({
 router.use(sanitizeInputs);
 
 // All faults routes require authentication
-router.use(authenticateToken);
+router.use(authenticateWithBranch);
 
 const uploadDir = path.join(__dirname, 'Uploads');
 const storage = multer.diskStorage({

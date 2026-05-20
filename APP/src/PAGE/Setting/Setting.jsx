@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import api from '../../utils/api';
 import styles from './Setting.module.css';
+import yearRolloverStyles from './YearRollover.module.css';
 import { useApp } from '../../context/AppContext';
 import { FiUser, FiLock, FiGlobe, FiSun, FiImage, FiSave, FiCheck, FiX, FiCamera, FiUpload, FiHome, FiSmartphone, FiDownload, FiShare2, FiCopy } from 'react-icons/fi';
 
@@ -56,6 +57,13 @@ const Setting = () => {
   // Messages
   const [message, setMessage] = useState({ type: '', text: '' });
   const [loading, setLoading] = useState(false);
+  
+  // Year Rollover state
+  const [yearRolloverStatus, setYearRolloverStatus] = useState(null);
+  const [archives, setArchives] = useState([]);
+  const [selectedArchive, setSelectedArchive] = useState(null);
+  const [showRolloverConfirm, setShowRolloverConfirm] = useState(false);
+  const [rolloverLoading, setRolloverLoading] = useState(false);
   
   // Load branding settings from database on mount
   useEffect(() => {
@@ -497,6 +505,121 @@ const Setting = () => {
       console.error('Failed to save theme to database:', error);
     }
   };
+  
+  // Year Rollover functions
+  const loadYearRolloverStatus = async () => {
+    try {
+      const response = await api.get('/year-rollover/status');
+      setYearRolloverStatus(response.data);
+    } catch (error) {
+      console.error('Failed to load year rollover status:', error);
+    }
+  };
+  
+  const loadArchives = async () => {
+    try {
+      const response = await api.get('/year-rollover/archives');
+      setArchives(response.data.archives || []);
+    } catch (error) {
+      console.error('Failed to load archives:', error);
+    }
+  };
+  
+  const viewArchiveDetails = async (archiveId) => {
+    try {
+      const response = await api.get(`/year-rollover/archives/${archiveId}`);
+      setSelectedArchive(response.data);
+    } catch (error) {
+      console.error('Failed to load archive details:', error);
+      showMessage('error', 'Failed to load archive details');
+    }
+  };
+  
+  const exportArchiveData = async (archiveId) => {
+    try {
+      const response = await api.get(`/year-rollover/archives/${archiveId}/export`);
+      
+      // Convert to Excel-friendly format
+      const data = response.data.data;
+      const archive = response.data.archive;
+      
+      // Create CSV content
+      let csvContent = `Academic Year: ${archive.academic_year}\n`;
+      csvContent += `Ethiopian Year: ${archive.ethiopian_year}\n`;
+      csvContent += `Archive Date: ${new Date(archive.archive_date).toLocaleDateString()}\n\n`;
+      
+      // Students
+      csvContent += `STUDENTS (${data.students.length})\n`;
+      csvContent += `ID,Student ID,Class Name,Final Status,Created At\n`;
+      data.students.forEach(s => {
+        csvContent += `${s.id},${s.student_id},${s.class_name || 'N/A'},${s.final_status},${new Date(s.created_at).toLocaleDateString()}\n`;
+      });
+      
+      csvContent += `\n\nATTENDANCE RECORDS (${data.attendance.length})\n`;
+      csvContent += `ID,Student ID,Total Records,Total Present,Total Absent,Attendance %\n`;
+      data.attendance.forEach(a => {
+        csvContent += `${a.id},${a.student_id},${a.total_records || 0},${a.total_present || 0},${a.total_absent || 0},${a.attendance_percentage || 0}%\n`;
+      });
+      
+      csvContent += `\n\nMARKS (${data.marks.length})\n`;
+      csvContent += `ID,Student ID,Total Records,Overall %,Overall Grade\n`;
+      data.marks.forEach(m => {
+        csvContent += `${m.id},${m.student_id},${m.total_records || 0},${m.overall_percentage || 0}%,${m.overall_grade || 'N/A'}\n`;
+      });
+      
+      csvContent += `\n\nPAYMENTS (${data.payments.length})\n`;
+      csvContent += `ID,Student ID,Total Records,Total Fees,Total Paid,Outstanding\n`;
+      data.payments.forEach(p => {
+        csvContent += `${p.id},${p.student_id},${p.total_records || 0},${p.total_fees || 0},${p.total_paid || 0},${p.total_outstanding || 0}\n`;
+      });
+      
+      // Download CSV
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = `archive_${archive.academic_year.replace('/', '-')}_${Date.now()}.csv`;
+      link.click();
+      
+      showMessage('success', 'Archive data exported successfully!');
+    } catch (error) {
+      console.error('Failed to export archive:', error);
+      showMessage('error', 'Failed to export archive data');
+    }
+  };
+  
+  const executeYearRollover = async () => {
+    setRolloverLoading(true);
+    try {
+      const adminUser = JSON.parse(localStorage.getItem('adminUser') || '{}');
+      const response = await api.post('/year-rollover/execute', {
+        archivedBy: adminUser.id || 1
+      });
+      
+      if (response.data.success) {
+        showMessage('success', `Year rollover completed! ${response.data.data.oldYear} → ${response.data.data.newYear}`);
+        setShowRolloverConfirm(false);
+        
+        // Reload status and archives
+        await loadYearRolloverStatus();
+        await loadArchives();
+      } else {
+        showMessage('error', response.data.error || 'Year rollover failed');
+      }
+    } catch (error) {
+      console.error('Year rollover failed:', error);
+      showMessage('error', error.response?.data?.error || 'Year rollover failed');
+    } finally {
+      setRolloverLoading(false);
+    }
+  };
+  
+  // Load year rollover data when tab is active
+  useEffect(() => {
+    if (activeTab === 'yearRollover') {
+      loadYearRolloverStatus();
+      loadArchives();
+    }
+  }, [activeTab]);
 
   const tabs = [
     { id: 'profile', label: t('profile'), icon: <FiUser /> },
@@ -505,6 +628,7 @@ const Setting = () => {
     { id: 'language', label: t('language'), icon: <FiGlobe /> },
     { id: 'branding', label: t('branding'), icon: <FiImage /> },
     { id: 'schoolInfo', label: t('schoolInfo') || 'School Info', icon: <FiHome /> },
+    { id: 'yearRollover', label: 'Year Rollover', icon: <FiDownload /> },
     { id: 'apps', label: 'Apps', icon: <FiSmartphone /> }
   ];
 
@@ -929,6 +1053,213 @@ const Setting = () => {
                   <FiSave /> {loading ? 'Saving...' : t('saveSchoolInfo') || 'Save School Information'}
                 </button>
               </div>
+            </div>
+          )}
+
+          {/* Year Rollover Tab */}
+          {activeTab === 'yearRollover' && (
+            <div className={styles.section}>
+              <h2 className={styles.sectionTitle}>📅 Academic Year Rollover</h2>
+              <p className={styles.subtitle}>Archive current year data and transition to the next academic year</p>
+              
+              {/* Current Year Status */}
+              {yearRolloverStatus && (
+                <div className={yearRolloverStyles.yearStatusCard}>
+                  <h3>Current Academic Year</h3>
+                  <div className={yearRolloverStyles.yearInfo}>
+                    <div className={yearRolloverStyles.yearBadge} style={{ background: `linear-gradient(135deg, ${theme.primaryColor}, ${theme.secondaryColor})` }}>
+                      {yearRolloverStatus.currentYear.academicYear}
+                    </div>
+                    <span className={yearRolloverStyles.ethiopianYear}>
+                      Ethiopian Year: {yearRolloverStatus.currentYear.ethiopianYear}
+                    </span>
+                  </div>
+                  
+                  <div className={yearRolloverStyles.dataStats}>
+                    <div className={yearRolloverStyles.statCard}>
+                      <FiUser size={24} />
+                      <div>
+                        <span className={yearRolloverStyles.statValue}>{yearRolloverStatus.currentData.students}</span>
+                        <span className={yearRolloverStyles.statLabel}>Students</span>
+                      </div>
+                    </div>
+                    <div className={yearRolloverStyles.statCard}>
+                      <FiCheck size={24} />
+                      <div>
+                        <span className={yearRolloverStyles.statValue}>{yearRolloverStatus.currentData.attendance}</span>
+                        <span className={yearRolloverStyles.statLabel}>Attendance Records</span>
+                      </div>
+                    </div>
+                    <div className={yearRolloverStyles.statCard}>
+                      <FiSave size={24} />
+                      <div>
+                        <span className={yearRolloverStyles.statValue}>{yearRolloverStatus.currentData.marks}</span>
+                        <span className={yearRolloverStyles.statLabel}>Marks</span>
+                      </div>
+                    </div>
+                    <div className={yearRolloverStyles.statCard}>
+                      <FiDownload size={24} />
+                      <div>
+                        <span className={yearRolloverStyles.statValue}>{yearRolloverStatus.currentData.payments}</span>
+                        <span className={yearRolloverStyles.statLabel}>Payments</span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className={yearRolloverStyles.warningBox}>
+                    <strong>⚠️ Important:</strong> Year rollover will:
+                    <ul>
+                      <li>Archive all current year data (students, attendance, marks, payments)</li>
+                      <li>Clear year-specific data (attendance, marks, payments, invoices)</li>
+                      <li>Increment academic year to {yearRolloverStatus.currentYear.ethiopianYear + 1}/{yearRolloverStatus.currentYear.ethiopianYear + 2}</li>
+                      <li>Students and staff records will be preserved</li>
+                    </ul>
+                  </div>
+                  
+                  <button 
+                    className={yearRolloverStyles.rolloverBtn}
+                    onClick={() => setShowRolloverConfirm(true)}
+                    disabled={rolloverLoading}
+                    style={{ background: 'linear-gradient(135deg, #f44336, #d32f2f)' }}
+                  >
+                    <FiDownload /> {rolloverLoading ? 'Processing...' : 'Start Year Rollover'}
+                  </button>
+                </div>
+              )}
+              
+              {/* Confirmation Dialog */}
+              {showRolloverConfirm && (
+                <div className={yearRolloverStyles.confirmOverlay}>
+                  <div className={yearRolloverStyles.confirmDialog}>
+                    <h3>⚠️ Confirm Year Rollover</h3>
+                    <p>
+                      Are you sure you want to rollover to the next academic year?
+                    </p>
+                    <p style={{ color: '#f44336', fontWeight: 'bold' }}>
+                      This action cannot be undone!
+                    </p>
+                    <div className={yearRolloverStyles.confirmButtons}>
+                      <button 
+                        className={yearRolloverStyles.cancelBtn}
+                        onClick={() => setShowRolloverConfirm(false)}
+                        disabled={rolloverLoading}
+                      >
+                        Cancel
+                      </button>
+                      <button 
+                        className={yearRolloverStyles.confirmBtn}
+                        onClick={executeYearRollover}
+                        disabled={rolloverLoading}
+                        style={{ background: 'linear-gradient(135deg, #f44336, #d32f2f)' }}
+                      >
+                        {rolloverLoading ? 'Processing...' : 'Yes, Rollover Now'}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+              
+              {/* Archived Years */}
+              <div className={yearRolloverStyles.archivesSection}>
+                <h3>📦 Archived Academic Years ({archives.length})</h3>
+                
+                {archives.length === 0 ? (
+                  <p className={yearRolloverStyles.noArchives}>No archived years yet</p>
+                ) : (
+                  <div className={yearRolloverStyles.archivesGrid}>
+                    {archives.map(archive => (
+                      <div key={archive.id} className={yearRolloverStyles.archiveCard}>
+                        <div className={yearRolloverStyles.archiveHeader}>
+                          <h4>{archive.academic_year}</h4>
+                          <span className={yearRolloverStyles.archiveDate}>
+                            {new Date(archive.archive_date).toLocaleDateString()}
+                          </span>
+                        </div>
+                        <div className={yearRolloverStyles.archiveStats}>
+                          <span>👥 {archive.total_students} Students</span>
+                          <span>👨‍🏫 {archive.total_staff} Staff</span>
+                        </div>
+                        <div className={yearRolloverStyles.archiveActions}>
+                          <button 
+                            className={yearRolloverStyles.viewBtn}
+                            onClick={() => viewArchiveDetails(archive.id)}
+                            style={{ borderColor: theme.primaryColor, color: theme.primaryColor }}
+                          >
+                            View Details
+                          </button>
+                          <button 
+                            className={yearRolloverStyles.exportBtn}
+                            onClick={() => exportArchiveData(archive.id)}
+                            style={{ background: `linear-gradient(135deg, ${theme.primaryColor}, ${theme.secondaryColor})` }}
+                          >
+                            <FiDownload /> Export
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+              
+              {/* Archive Details Modal */}
+              {selectedArchive && (
+                <div className={yearRolloverStyles.confirmOverlay} onClick={() => setSelectedArchive(null)}>
+                  <div className={yearRolloverStyles.archiveDetailsDialog} onClick={(e) => e.stopPropagation()}>
+                    <h3>Archive Details: {selectedArchive.archive.academic_year}</h3>
+                    <div className={yearRolloverStyles.detailsGrid}>
+                      <div className={yearRolloverStyles.detailItem}>
+                        <span className={yearRolloverStyles.detailLabel}>Ethiopian Year:</span>
+                        <span className={yearRolloverStyles.detailValue}>{selectedArchive.archive.ethiopian_year}</span>
+                      </div>
+                      <div className={yearRolloverStyles.detailItem}>
+                        <span className={yearRolloverStyles.detailLabel}>Archive Date:</span>
+                        <span className={yearRolloverStyles.detailValue}>
+                          {new Date(selectedArchive.archive.archive_date).toLocaleString()}
+                        </span>
+                      </div>
+                      <div className={yearRolloverStyles.detailItem}>
+                        <span className={yearRolloverStyles.detailLabel}>Total Students:</span>
+                        <span className={yearRolloverStyles.detailValue}>{selectedArchive.archive.total_students}</span>
+                      </div>
+                      <div className={yearRolloverStyles.detailItem}>
+                        <span className={yearRolloverStyles.detailLabel}>Total Staff:</span>
+                        <span className={yearRolloverStyles.detailValue}>{selectedArchive.archive.total_staff}</span>
+                      </div>
+                    </div>
+                    
+                    <h4>Archived Records</h4>
+                    <div className={yearRolloverStyles.recordsGrid}>
+                      <div className={yearRolloverStyles.recordCard}>
+                        <FiUser size={32} />
+                        <span className={yearRolloverStyles.recordValue}>{selectedArchive.archivedRecords.students}</span>
+                        <span className={yearRolloverStyles.recordLabel}>Students</span>
+                      </div>
+                      <div className={yearRolloverStyles.recordCard}>
+                        <FiCheck size={32} />
+                        <span className={yearRolloverStyles.recordValue}>{selectedArchive.archivedRecords.attendance}</span>
+                        <span className={yearRolloverStyles.recordLabel}>Attendance</span>
+                      </div>
+                      <div className={yearRolloverStyles.recordCard}>
+                        <FiSave size={32} />
+                        <span className={yearRolloverStyles.recordValue}>{selectedArchive.archivedRecords.marks}</span>
+                        <span className={yearRolloverStyles.recordLabel}>Marks</span>
+                      </div>
+                      <div className={yearRolloverStyles.recordCard}>
+                        <FiDownload size={32} />
+                        <span className={yearRolloverStyles.recordValue}>{selectedArchive.archivedRecords.payments}</span>
+                        <span className={yearRolloverStyles.recordLabel}>Payments</span>
+                      </div>
+                    </div>
+                    
+                    <button 
+                      className={yearRolloverStyles.closeBtn}
+                      onClick={() => setSelectedArchive(null)}
+                    >
+                      Close
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 

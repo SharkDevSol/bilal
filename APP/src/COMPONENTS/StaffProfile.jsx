@@ -1500,40 +1500,152 @@ const StaffProfile = () => {
     : [];
 
   const renderProfileTab = () => (
-    <>
+    <div className={styles.profileTabContainer}>
       <ProfileHeader
         imageUrl={profile?.image_staff ? getImageUrl(profile.image_staff) : null}
         name={profile?.name || 'Staff Member'}
-        subtitle={user?.staffType || 'Staff'}
+        subtitle={`${user?.staffType || 'Staff'} • ID: ${profile?.global_staff_id || 'N/A'}`}
         fallbackInitial={profile?.name?.charAt(0) || 'S'}
       />
-      <CollapsibleCard title={t('profileInformation')} icon={<FiUser />} defaultExpanded={true}>
-        <div className={styles.fieldsStack}>
-          {profileFields.map(([key, value], index) => (
-            <div key={`profile-${key}-${index}`} className={styles.fieldItem}>
-              <span className={styles.fieldLabel}>{formatFieldName(key)}</span>
-              <span className={styles.fieldValue}>{formatFieldValue(value)}</span>
-            </div>
-          ))}
+
+      <CollapsibleCard 
+        title={t('personalInfo') || 'Personal Information'} 
+        icon={<FiUser />} 
+        defaultExpanded={true}
+      >
+        <div className="fieldItem">
+          <span className="fieldLabel">{t('name') || 'Name'}</span>
+          <span className="fieldValue">{profile?.name || 'N/A'}</span>
+        </div>
+        <div className="fieldItem">
+          <span className="fieldLabel">{t('username') || 'Username'}</span>
+          <span className="fieldValue">{user?.username || 'N/A'}</span>
+        </div>
+        <div className="fieldItem">
+          <span className="fieldLabel">{t('email') || 'Email'}</span>
+          <span className="fieldValue">{profile?.email || 'N/A'}</span>
+        </div>
+        <div className="fieldItem">
+          <span className="fieldLabel">{t('phone') || 'Phone'}</span>
+          <span className="fieldValue">{profile?.phone || 'N/A'}</span>
+        </div>
+        <div className="fieldItem">
+          <span className="fieldLabel">{t('gender') || 'Gender'}</span>
+          <span className="fieldValue">{profile?.gender || 'N/A'}</span>
+        </div>
+        <div className="fieldItem">
+          <span className="fieldLabel">{t('dateOfBirth') || 'Date of Birth'}</span>
+          <span className="fieldValue">{profile?.date_of_birth || 'N/A'}</span>
         </div>
       </CollapsibleCard>
-      <CollapsibleCard title={t('accountInformation')} icon={<FiBriefcase />} defaultExpanded={true}>
-        <div className={styles.fieldsStack}>
-          <div className={styles.fieldItem}>
-            <span className={styles.fieldLabel}>{t('username')}</span>
-            <span className={styles.fieldValue}>{user?.username}</span>
+
+      <CollapsibleCard 
+        title={t('employmentInfo') || 'Employment Information'} 
+        icon={<FiBriefcase />} 
+        defaultExpanded={false}
+      >
+        <div className="fieldItem">
+          <span className="fieldLabel">{t('staffType') || 'Staff Type'}</span>
+          <span className="fieldValue">{user?.staffType || 'N/A'}</span>
+        </div>
+        <div className="fieldItem">
+          <span className="fieldLabel">{t('department') || 'Department'}</span>
+          <span className="fieldValue">{user?.className || profile?.department || 'N/A'}</span>
+        </div>
+        <div className="fieldItem">
+          <span className="fieldLabel">{t('position') || 'Position'}</span>
+          <span className="fieldValue">{profile?.position || user?.staffType || 'N/A'}</span>
+        </div>
+        <div className="fieldItem">
+          <span className="fieldLabel">{t('hireDate') || 'Hire Date'}</span>
+          <span className="fieldValue">{profile?.hire_date || 'N/A'}</span>
+        </div>
+        <div className="fieldItem">
+          <span className="fieldLabel">{t('employmentStatus') || 'Employment Status'}</span>
+          <span className="fieldValue">{profile?.employment_status || 'Active'}</span>
+        </div>
+        {isClassTeacher && assignedClass && (
+          <div className="fieldItem">
+            <span className="fieldLabel">{t('assignedClass') || 'Assigned Class'}</span>
+            <span className="fieldValue">{assignedClass}</span>
           </div>
-          <div className={styles.fieldItem}>
-            <span className={styles.fieldLabel}>{t('role')}</span>
-            <span className={styles.fieldValue}>{user?.staffType}</span>
-          </div>
-          <div className={styles.fieldItem}>
-            <span className={styles.fieldLabel}>{t('department')}</span>
-            <span className={styles.fieldValue}>{user?.className}</span>
-          </div>
+        )}
+        <div className="fieldItem">
+          <span className="fieldLabel">{t('globalStaffId') || 'Global Staff ID'}</span>
+          <span className="fieldValue">{profile?.global_staff_id || 'N/A'}</span>
         </div>
       </CollapsibleCard>
-    </>
+
+      <CollapsibleCard 
+        title={t('salaryInfo') || 'Salary Information'} 
+        icon={<FiBarChart2 />} 
+        defaultExpanded={false}
+      >
+        <div className="fieldItem">
+          <span className="fieldLabel">{t('baseSalary') || 'Base Salary'}</span>
+          <span className="fieldValue">{profile?.base_salary ? `${profile.base_salary} ETB` : 'N/A'}</span>
+        </div>
+        <div className="fieldItem">
+          <span className="fieldLabel">{t('allowances') || 'Allowances'}</span>
+          <span className="fieldValue">{profile?.allowances ? `${profile.allowances} ETB` : 'N/A'}</span>
+        </div>
+        <div className="fieldItem">
+          <span className="fieldLabel">{t('deductions') || 'Deductions'}</span>
+          <span className="fieldValue">{profile?.deductions ? `${profile.deductions} ETB` : 'N/A'}</span>
+        </div>
+        <div className="fieldItem">
+          <span className="fieldLabel">{t('netSalary') || 'Net Salary'}</span>
+          <span className="fieldValue">
+            {profile?.base_salary 
+              ? `${(parseFloat(profile.base_salary) + parseFloat(profile.allowances || 0) - parseFloat(profile.deductions || 0)).toFixed(2)} ETB`
+              : 'N/A'}
+          </span>
+        </div>
+        <div className="fieldItem">
+          <span className="fieldLabel">{t('paymentMethod') || 'Payment Method'}</span>
+          <span className="fieldValue">{profile?.payment_method || 'N/A'}</span>
+        </div>
+        <div className="fieldItem">
+          <span className="fieldLabel">{t('bankAccount') || 'Bank Account'}</span>
+          <span className="fieldValue">{profile?.bank_account || 'N/A'}</span>
+        </div>
+      </CollapsibleCard>
+
+      <CollapsibleCard 
+        title={t('attendanceSummary') || 'Attendance Summary'} 
+        icon={<FiUserCheck />} 
+        defaultExpanded={false}
+      >
+        <div className="fieldItem">
+          <span className="fieldLabel">{t('totalWorkingDays') || 'Total Working Days'}</span>
+          <span className="fieldValue">{profile?.total_working_days || '0'}</span>
+        </div>
+        <div className="fieldItem">
+          <span className="fieldLabel">{t('presentDays') || 'Present Days'}</span>
+          <span className="fieldValue">{profile?.present_days || '0'}</span>
+        </div>
+        <div className="fieldItem">
+          <span className="fieldLabel">{t('absentDays') || 'Absent Days'}</span>
+          <span className="fieldValue">{profile?.absent_days || '0'}</span>
+        </div>
+        <div className="fieldItem">
+          <span className="fieldLabel">{t('lateDays') || 'Late Days'}</span>
+          <span className="fieldValue">{profile?.late_days || '0'}</span>
+        </div>
+        <div className="fieldItem">
+          <span className="fieldLabel">{t('attendanceRate') || 'Attendance Rate'}</span>
+          <span className="fieldValue">
+            {profile?.total_working_days && profile?.present_days
+              ? `${((profile.present_days / profile.total_working_days) * 100).toFixed(1)}%`
+              : 'N/A'}
+          </span>
+        </div>
+        <div className="fieldItem">
+          <span className="fieldLabel">{t('leaveBalance') || 'Leave Balance'}</span>
+          <span className="fieldValue">{profile?.leave_balance || '0'} {t('days') || 'days'}</span>
+        </div>
+      </CollapsibleCard>
+    </div>
   );
 
   // Render evaluation list view

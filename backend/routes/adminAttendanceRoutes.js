@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const pool = require('../config/db');
+const { getEndpointPath, API_ENDPOINTS } = require('../config/api.config');
 
 // Admin: Create weekly attendance for any class (no teacher assignment check)
 router.post('/create-weekly', async (req, res) => {

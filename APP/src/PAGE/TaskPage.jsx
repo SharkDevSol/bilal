@@ -10,7 +10,7 @@ import styles from './TaskPage.module.css';
 import { useApp } from '../context/AppContext';
 import api from '../utils/api';
 
-const TOTAL_TASKS = 7;
+const TOTAL_TASKS = 6;
 
 function TaskPage() {
   const { t } = useApp();
@@ -63,27 +63,20 @@ function TaskPage() {
     },
     { 
       id: 4, 
-      title: "Add Staff Members", 
-      description: "Register staff members using the forms you've created.",
-      icon: FiUserPlus,
-      time: "15-20 min"
-    },
-    { 
-      id: 5, 
       title: "Configure Subjects & Classes", 
       description: "Set up subjects and map them to appropriate classes.",
       icon: FiBook,
       time: "10-15 min"
     },
     { 
-      id: 6, 
+      id: 5, 
       title: "Teacher-Class-Subject Mapping", 
       description: "Assign teachers to their classes and subjects for scheduling.",
       icon: FiGrid,
       time: "15-20 min"
     },
     { 
-      id: 7, 
+      id: 6, 
       title: "Schedule Configuration", 
       description: "Configure schedule settings and generate timetables automatically.",
       icon: FiCpu,
@@ -134,7 +127,7 @@ function TaskPage() {
               <span className={styles.progressStatLabel}>{t('completed')}</span>
             </div>
             <div className={styles.progressStat}>
-              <span className={styles.progressStatNum}>{7 - completed.length}</span>
+              <span className={styles.progressStatNum}>{6 - completed.length}</span>
               <span className={styles.progressStatLabel}>{t('pending')}</span>
             </div>
           </div>

@@ -13,6 +13,11 @@ import { getFileType, getFileIcon, isFileField, getFileUrl, formatLabel, getFile
 import { useApp } from '../../../context/AppContext';
 import styles from './ListStudent.module.css';
 
+import Table from '../../../components/Table/Table';
+import Input from '../../../components/Input/Input';
+import Select from '../../../components/Select/Select';
+import Button from '../../../components/Button/Button';
+
 // API base URL - use environment variable or fallback to localhost
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://iqrab3.skoolific.com/api';
 
@@ -23,6 +28,7 @@ const ListStudent = () => {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterGender, setFilterGender] = useState('all');
+  const [filterStudentType, setFilterStudentType] = useState('all'); // Filter by student type (KG, evening, regular)
   const [showInactive, setShowInactive] = useState(false); // Toggle to show inactive students
   const [viewMode, setViewMode] = useState('grid');
   const [selectedStudent, setSelectedStudent] = useState(null);
@@ -47,7 +53,7 @@ const ListStudent = () => {
   };
 
   useEffect(() => { fetchClasses(); }, []);
-  useEffect(() => { if (selectedClass) fetchStudents(selectedClass); }, [selectedClass, showInactive]);
+  useEffect(() => { if (selectedClass) fetchStudents(selectedClass); }, [selectedClass, showInactive, filterStudentType]);
   useEffect(() => { filterStudentData(); }, [students, searchTerm, filterGender]);
 
   const fetchClasses = async () => {
@@ -63,9 +69,15 @@ const ListStudent = () => {
   const fetchStudents = async (className) => {
     setLoading(true);
     try {
-      // Add query parameter to fetch inactive students if showInactive is true
-      const includeInactiveParam = showInactive ? '?includeInactive=only' : '';
-      const response = await axios.get(`${API_BASE_URL}/student-list/students/${className}${includeInactiveParam}`);
+      // Build query parameters
+      const params = new URLSearchParams();
+      if (showInactive) params.append('includeInactive', 'only');
+      if (filterStudentType !== 'all') params.append('studentType', filterStudentType);
+      
+      const queryString = params.toString();
+      const url = `${API_BASE_URL}/student-list/students/${className}${queryString ? `?${queryString}` : ''}`;
+      
+      const response = await axios.get(url);
       const studentsWithIds = response.data.map((student, index) => ({
         ...student, uniqueId: `${student.student_name}-${index}-${Date.now()}`, displayId: index + 1
       }));
@@ -214,6 +226,96 @@ const ListStudent = () => {
   const totalPages = Math.ceil(filteredStudents.length / itemsPerPage);
   const currentStudents = filteredStudents.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
+  const tableColumns = [
+    {
+      key: 'photo', header: 'Photo', width: '80px', sortable: false,
+      render: (_, student) => {
+        const isInactive = student.is_active === false || student.is_active === 'false';
+        return (
+          <div className={styles.tableImageWrapper}>
+            {student.image_student ? (
+              <img src={getFileUrl(student.image_student, 'student')} alt="" className={styles.tableImage} />
+            ) : (
+              <div className={styles.tableAvatar}><FiUser /></div>
+            )}
+            {isInactive && <div className={styles.inactiveOverlay}><FiUserX /></div>}
+          </div>
+        );
+      }
+    },
+    {
+      key: 'student_name', header: 'Name', sortable: true,
+      render: (name, student) => {
+        const isInactive = student.is_active === false || student.is_active === 'false';
+        return (
+          <div>
+            <strong>{name}</strong>
+            {isInactive && <span className={styles.inactiveLabel}> (Deactivated)</span>}
+          </div>
+        );
+      }
+    },
+    {
+      key: 'class', header: 'Class', sortable: true,
+      render: (_, student) => student.class || selectedClass
+    },
+    {
+      key: 'gender', header: 'Gender', sortable: true,
+      render: (gender) => (
+        <span className={`${styles.tableBadge} ${gender === 'Male' ? styles.badgeMale : styles.badgeFemale}`}>
+          {gender || '-'}
+        </span>
+      )
+    },
+    { key: 'age', header: 'Age', sortable: true, render: (age) => age || '-' },
+    { key: 'guardian_name', header: 'Guardian', sortable: true, render: (name) => name || '-' },
+    {
+      key: 'documents', header: 'Documents', sortable: false,
+      render: (_, student) => {
+        const fileFields = getStudentFiles(student);
+        return fileFields.length > 0 ? (
+          <div className={styles.tableFiles}>
+            {fileFields.slice(0, 2).map(([key, value]) => (
+              <span 
+                key={key} 
+                className={styles.tableFileChip}
+                onClick={(e) => { e.stopPropagation(); openFilePreview(value, formatLabel(key)); }}
+              >
+                {renderFileIcon(getFileType(value))}
+              </span>
+            ))}
+            {fileFields.length > 2 && (
+              <span className={styles.moreCount}>+{fileFields.length - 2}</span>
+            )}
+          </div>
+        ) : '-';
+      }
+    },
+    {
+      key: 'actions', header: 'Actions', sortable: false, align: 'right',
+      render: (_, student) => {
+        const isInactive = student.is_active === false || student.is_active === 'false';
+        return (
+          <div className={styles.tableActions}>
+            <button onClick={(e) => { e.stopPropagation(); setSelectedStudent(student); setShowModal(true); }}>
+              <FiEye />
+            </button>
+            <button onClick={(e) => { e.stopPropagation(); openEditModal(student); }}>
+              <FiEdit2 />
+            </button>
+            <button 
+              onClick={(e) => { e.stopPropagation(); handleToggleActive(student); }}
+              title={isInactive ? 'Activate student' : 'Deactivate student'}
+              className={isInactive ? styles.activateBtn : styles.deactivateBtn}
+            >
+              {isInactive ? <FiUserCheck /> : <FiUserX />}
+            </button>
+          </div>
+        );
+      }
+    }
+  ];
+
   if (loading && students.length === 0) {
     return (
       <div className={styles.loadingContainer}>
@@ -262,47 +364,61 @@ const ListStudent = () => {
       {/* Controls */}
       <motion.div className={styles.controls} initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
         <div className={styles.searchBox}>
-          <FiSearch />
-          <input 
-            type="text" 
-            placeholder={t('searchStudents')} 
+          <Input 
+            prefixIcon={<FiSearch />}
+            placeholder={t('searchStudents') || 'Search students...'} 
             value={searchTerm} 
-            onChange={(e) => setSearchTerm(e.target.value)} 
+            onChange={setSearchTerm} 
           />
         </div>
         <div className={styles.filters}>
-          <div className={styles.filterGroup}>
-            <FiFilter />
-            <select value={filterGender} onChange={(e) => setFilterGender(e.target.value)}>
-              <option value="all">{t('allGenders')}</option>
-              <option value="Male">{t('male')}</option>
-              <option value="Female">{t('female')}</option>
-            </select>
-          </div>
+          <Select 
+            value={filterGender} 
+            onChange={setFilterGender}
+            options={[
+              { value: 'all', label: t('allGenders') || 'All Genders' },
+              { value: 'Male', label: t('male') || 'Male' },
+              { value: 'Female', label: t('female') || 'Female' }
+            ]}
+          />
+          <Select 
+            value={filterStudentType} 
+            onChange={setFilterStudentType}
+            options={[
+              { value: 'all', label: 'All Student Types' },
+              { value: 'regular', label: 'Regular Students' },
+              { value: 'kg', label: 'KG Students' },
+              { value: 'evening', label: 'Evening Class Students' },
+              { value: 'kg_evening', label: 'KG + Evening Students' }
+            ]}
+          />
         </div>
         <div className={styles.viewToggle}>
-          <button 
-            className={`${styles.viewBtn} ${viewMode === 'grid' ? styles.active : ''}`} 
+          <Button 
+            variant={viewMode === 'grid' ? 'primary' : 'ghost'} 
             onClick={() => setViewMode('grid')}
-          >
-            <FiGrid />
-          </button>
-          <button 
-            className={`${styles.viewBtn} ${viewMode === 'list' ? styles.active : ''}`} 
+            icon={<FiGrid />}
+          />
+          <Button 
+            variant={viewMode === 'list' ? 'primary' : 'ghost'} 
             onClick={() => setViewMode('list')}
-          >
-            <FiList />
-          </button>
+            icon={<FiList />}
+          />
         </div>
-        <button className={styles.refreshBtn} onClick={() => fetchStudents(selectedClass)}>
-          <FiRefreshCw /> {t('refresh')}
-        </button>
-        <button 
-          className={`${styles.toggleInactiveBtn} ${showInactive ? styles.active : ''}`}
-          onClick={() => setShowInactive(!showInactive)}
+        <Button 
+          variant="secondary" 
+          onClick={() => fetchStudents(selectedClass)}
+          icon={<FiRefreshCw />}
         >
-          <FiUserX /> {showInactive ? 'Show Active Students' : 'Show Deactivated Students'}
-        </button>
+          {t('refresh') || 'Refresh'}
+        </Button>
+        <Button 
+          variant={showInactive ? "primary" : "secondary"}
+          onClick={() => setShowInactive(!showInactive)}
+          icon={showInactive ? <FiUserCheck /> : <FiUserX />}
+        >
+          {showInactive ? 'Show Active Students' : 'Show Deactivated Students'}
+        </Button>
       </motion.div>
 
       {/* Student Grid */}
@@ -354,6 +470,26 @@ const ListStudent = () => {
                         <span className={`${styles.badge} ${styles.badgeFree}`} title={`${student.exemption_type || 'Exempted'}: ${student.exemption_reason || 'No reason provided'}`}>
                           🎓 {student.exemption_type || 'FREE'}
                         </span>
+                      )}
+                      {(student.student_type === 'kg' || student.is_kg) && (
+                        <span className={`${styles.badge} ${styles.badgeKG}`} title="Kindergarten Student">
+                          🎨 KG
+                        </span>
+                      )}
+                      {(student.student_type === 'evening' || student.is_evening_class) && (
+                        <span className={`${styles.badge} ${styles.badgeEvening}`} title="Evening Class Student">
+                          🌙 Evening
+                        </span>
+                      )}
+                      {student.student_type === 'kg_evening' && (
+                        <>
+                          <span className={`${styles.badge} ${styles.badgeKG}`} title="Kindergarten Student">
+                            🎨 KG
+                          </span>
+                          <span className={`${styles.badge} ${styles.badgeEvening}`} title="Evening Class Student">
+                            🌙 Evening
+                          </span>
+                        </>
                       )}
                     </div>
                   </div>
@@ -423,101 +559,15 @@ const ListStudent = () => {
       ) : (
         /* List View */
         <motion.div className={styles.tableWrapper} initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-          <table className={styles.studentTable}>
-            <thead>
-              <tr>
-                <th>Photo</th>
-                <th>Name</th>
-                <th>Class</th>
-                <th>Gender</th>
-                <th>Age</th>
-                <th>Guardian</th>
-                <th>Documents</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {currentStudents.map((student) => {
-                const fileFields = getStudentFiles(student);
-                const isInactive = student.is_active === false || student.is_active === 'false';
-                return (
-                  <tr key={student.uniqueId} className={isInactive ? styles.inactiveRow : ''} onClick={() => { setSelectedStudent(student); setShowModal(true); }}>
-                    <td>
-                      <div className={styles.tableImageWrapper}>
-                        {student.image_student ? (
-                          <img src={getFileUrl(student.image_student, 'student')} alt="" className={styles.tableImage} />
-                        ) : (
-                          <div className={styles.tableAvatar}><FiUser /></div>
-                        )}
-                        {isInactive && <div className={styles.inactiveOverlay}><FiUserX /></div>}
-                      </div>
-                    </td>
-                    <td>
-                      <strong>{student.student_name}</strong>
-                      {isInactive && <span className={styles.inactiveLabel}> (Deactivated)</span>}
-                    </td>
-                    <td>{student.class || selectedClass}</td>
-                    <td>
-                      <span className={`${styles.tableBadge} ${student.gender === 'Male' ? styles.badgeMale : styles.badgeFemale}`}>
-                        {student.gender || '-'}
-                      </span>
-                    </td>
-                    <td>{student.age || '-'}</td>
-                    <td>{student.guardian_name || '-'}</td>
-                    <td>
-                      {fileFields.length > 0 ? (
-                        <div className={styles.tableFiles}>
-                          {fileFields.slice(0, 2).map(([key, value]) => (
-                            <span 
-                              key={key} 
-                              className={styles.tableFileChip}
-                              onClick={(e) => { e.stopPropagation(); openFilePreview(value, formatLabel(key)); }}
-                            >
-                              {renderFileIcon(getFileType(value))}
-                            </span>
-                          ))}
-                          {fileFields.length > 2 && (
-                            <span className={styles.moreCount}>+{fileFields.length - 2}</span>
-                          )}
-                        </div>
-                      ) : '-'}
-                    </td>
-                    <td>
-                      <div className={styles.tableActions}>
-                        <button onClick={(e) => { e.stopPropagation(); setSelectedStudent(student); setShowModal(true); }}>
-                          <FiEye />
-                        </button>
-                        <button onClick={(e) => { e.stopPropagation(); openEditModal(student); }}>
-                          <FiEdit2 />
-                        </button>
-                        <button 
-                          onClick={(e) => { e.stopPropagation(); handleToggleActive(student); }}
-                          title={isInactive ? 'Activate student' : 'Deactivate student'}
-                          className={isInactive ? styles.activateBtn : styles.deactivateBtn}
-                        >
-                          {isInactive ? <FiUserCheck /> : <FiUserX />}
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+          <Table 
+            columns={tableColumns}
+            data={filteredStudents}
+            paginated={true}
+            pageSize={itemsPerPage}
+            onRowClick={(student) => { setSelectedStudent(student); setShowModal(true); }}
+            emptyMessage={t('noStudentsFound') || 'No students found matching your criteria.'}
+          />
         </motion.div>
-      )}
-
-      {/* Pagination */}
-      {totalPages > 1 && (
-        <div className={styles.pagination}>
-          <button disabled={currentPage === 1} onClick={() => setCurrentPage(p => p - 1)}>
-            <FiChevronLeft /> {t('previous')}
-          </button>
-          <span>{t('page')} {currentPage} {t('of')} {totalPages}</span>
-          <button disabled={currentPage === totalPages} onClick={() => setCurrentPage(p => p + 1)}>
-            {t('next')} <FiChevronRight />
-          </button>
-        </div>
       )}
 
 

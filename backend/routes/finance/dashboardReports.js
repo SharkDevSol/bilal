@@ -1,4 +1,5 @@
 const express = require('express');
+const { getEndpointPath, API_ENDPOINTS } = require('../../config/api.config');
 const router = express.Router();
 // Temporarily disabled until Prisma is generated
 // const { PrismaClient } = require('@prisma/client');

@@ -7,6 +7,7 @@
 const express = require('express');
 const router = express.Router();
 const { PrismaClient } = require('@prisma/client');
+const { getEndpointPath, API_ENDPOINTS } = require('../config/api.config');
 const prisma = new PrismaClient();
 
 // Get all staff with their machine IDs

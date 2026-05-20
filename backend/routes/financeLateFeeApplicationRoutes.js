@@ -1,10 +1,11 @@
 const express = require('express');
 const router = express.Router();
 const { PrismaClient } = require('@prisma/client');
+const { getEndpointPath, API_ENDPOINTS } = require('../config/api.config');
 const prisma = new PrismaClient();
 
 // Security middleware
-const { authenticateToken } = require('../middleware/auth');
+const { authenticateWithBranch, validateBranchCode } = require('../middleware/branchAuth');
 const { requirePermission, FINANCE_PERMISSIONS } = require('../middleware/financeAuth');
 
 /**
@@ -15,7 +16,7 @@ const { requirePermission, FINANCE_PERMISSIONS } = require('../middleware/financ
  * Example: Due date = Month start + 15 days grace period
  *          Late fee applies immediately after this due date
  */
-router.post('/apply-late-fees', authenticateToken, async (req, res) => {
+router.post('/apply-late-fees', authenticateWithBranch, async (req, res) => {
   try {
     const today = new Date();
     
@@ -141,7 +142,7 @@ router.post('/apply-late-fees', authenticateToken, async (req, res) => {
  * GET /api/finance/late-fees/preview
  * Preview which invoices will get late fees
  */
-router.get('/late-fees/preview', authenticateToken, async (req, res) => {
+router.get('/late-fees/preview', authenticateWithBranch, async (req, res) => {
   try {
     const today = new Date();
     
@@ -225,7 +226,7 @@ router.get('/late-fees/preview', authenticateToken, async (req, res) => {
  * Remove late fees from all invoices
  * This is useful when deactivating a late fee rule
  */
-router.post('/remove-late-fees', authenticateToken, async (req, res) => {
+router.post('/remove-late-fees', authenticateWithBranch, async (req, res) => {
   try {
     // Get all invoices with late fees
     const invoices = await prisma.invoice.findMany({

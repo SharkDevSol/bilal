@@ -3,16 +3,17 @@ const router = express.Router();
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 const { applyLateFeesAutomatically } = require('../services/autoLateFeeService');
+const { getEndpointPath, API_ENDPOINTS } = require('../config/api.config');
 
 // Security middleware
-const { authenticateToken } = require('../middleware/auth');
+const { authenticateWithBranch, validateBranchCode } = require('../middleware/branchAuth');
 const { requirePermission, FINANCE_PERMISSIONS } = require('../middleware/financeAuth');
 
 /**
  * GET /api/finance/monthly-payments-view/receipts/last-number
  * Get the last receipt number used
  */
-router.get('/receipts/last-number', authenticateToken, requirePermission(FINANCE_PERMISSIONS.INVOICES_VIEW), async (req, res) => {
+router.get('/receipts/last-number', authenticateWithBranch, requirePermission(FINANCE_PERMISSIONS.INVOICES_VIEW), async (req, res) => {
   try {
     // Use a simple file-based counter
     const fs = require('fs');
@@ -38,7 +39,7 @@ router.get('/receipts/last-number', authenticateToken, requirePermission(FINANCE
  * POST /api/finance/monthly-payments-view/receipts/save-number
  * Save a receipt number after printing
  */
-router.post('/receipts/save-number', authenticateToken, requirePermission(FINANCE_PERMISSIONS.INVOICES_VIEW), async (req, res) => {
+router.post('/receipts/save-number', authenticateWithBranch, requirePermission(FINANCE_PERMISSIONS.INVOICES_VIEW), async (req, res) => {
   try {
     const { receiptNumber } = req.body;
 
@@ -74,7 +75,7 @@ router.post('/receipts/save-number', authenticateToken, requirePermission(FINANC
  * GET /api/finance/monthly-payments-view/invoice/:invoiceId/receipt-number
  * Get the receipt number for a specific invoice
  */
-router.get('/invoice/:invoiceId/receipt-number', authenticateToken, requirePermission(FINANCE_PERMISSIONS.INVOICES_VIEW), async (req, res) => {
+router.get('/invoice/:invoiceId/receipt-number', authenticateWithBranch, requirePermission(FINANCE_PERMISSIONS.INVOICES_VIEW), async (req, res) => {
   try {
     const { invoiceId } = req.params;
     
@@ -107,7 +108,7 @@ router.get('/invoice/:invoiceId/receipt-number', authenticateToken, requirePermi
  * POST /api/finance/monthly-payments-view/invoice/:invoiceId/receipt-number
  * Save the receipt number for a specific invoice
  */
-router.post('/invoice/:invoiceId/receipt-number', authenticateToken, requirePermission(FINANCE_PERMISSIONS.INVOICES_VIEW), async (req, res) => {
+router.post('/invoice/:invoiceId/receipt-number', authenticateWithBranch, requirePermission(FINANCE_PERMISSIONS.INVOICES_VIEW), async (req, res) => {
   try {
     const { invoiceId } = req.params;
     const { receiptNumber } = req.body;
@@ -152,7 +153,7 @@ router.post('/invoice/:invoiceId/receipt-number', authenticateToken, requirePerm
  * GET /api/finance/monthly-payments-view/overview
  * NEW CLEAN IMPLEMENTATION - Get overview with ACTIVE STUDENTS ONLY
  */
-router.get('/overview', authenticateToken, requirePermission(FINANCE_PERMISSIONS.INVOICES_VIEW), async (req, res) => {
+router.get('/overview', authenticateWithBranch, requirePermission(FINANCE_PERMISSIONS.INVOICES_VIEW), async (req, res) => {
   try {
     await applyLateFeesAutomatically();
     
@@ -181,25 +182,51 @@ router.get('/overview', authenticateToken, requirePermission(FINANCE_PERMISSIONS
       let freeStudentsCount = 0;
       
       try {
-        // Check if is_active column exists
+        // Check if is_active, is_free, student_type, is_kg, is_evening_class columns exist
         const columnCheck = await prisma.$queryRawUnsafe(`
           SELECT column_name 
           FROM information_schema.columns 
           WHERE table_schema = 'classes_schema' 
             AND table_name = '${className}'
-            AND column_name IN ('is_active', 'is_free')
+            AND column_name IN ('is_active', 'is_free', 'student_type', 'is_kg', 'is_evening_class')
         `);
         
         const columnNames = columnCheck.map(c => c.column_name);
         const hasIsActive = columnNames.includes('is_active');
         const hasIsFree = columnNames.includes('is_free');
+        const hasStudentType = columnNames.includes('student_type');
+        const hasIsKg = columnNames.includes('is_kg');
+        const hasIsEvening = columnNames.includes('is_evening_class');
         
         // Build query with conditional columns and filters
-        const whereClause = hasIsActive ? 'WHERE is_active = TRUE OR is_active IS NULL' : '';
+        let whereClause = hasIsActive ? 'WHERE is_active = TRUE OR is_active IS NULL' : 'WHERE 1=1';
+        
+        // V2 Enhancement: Add student type filter support
+        const studentTypeFilter = req.query.studentType; // 'kg', 'evening', 'kg_evening', 'regular', or 'all'
+        if (studentTypeFilter && studentTypeFilter !== 'all') {
+          if (hasStudentType) {
+            whereClause += ` AND student_type = '${studentTypeFilter}'`;
+          } else if (hasIsKg && hasIsEvening) {
+            // Fallback to individual columns
+            if (studentTypeFilter === 'kg') {
+              whereClause += ` AND is_kg = TRUE AND is_evening_class = FALSE`;
+            } else if (studentTypeFilter === 'evening') {
+              whereClause += ` AND is_evening_class = TRUE AND is_kg = FALSE`;
+            } else if (studentTypeFilter === 'kg_evening') {
+              whereClause += ` AND is_kg = TRUE AND is_evening_class = TRUE`;
+            } else if (studentTypeFilter === 'regular') {
+              whereClause += ` AND (is_kg = FALSE OR is_kg IS NULL) AND (is_evening_class = FALSE OR is_evening_class IS NULL)`;
+            }
+          }
+        }
+        
         const selectIsFree = hasIsFree ? ', is_free' : '';
+        const selectStudentType = hasStudentType ? ', student_type' : '';
+        const selectIsKg = hasIsKg ? ', is_kg' : '';
+        const selectIsEvening = hasIsEvening ? ', is_evening_class' : '';
         
         const activeStudents = await prisma.$queryRawUnsafe(`
-          SELECT school_id, class_id, student_name${selectIsFree}
+          SELECT school_id, class_id, student_name${selectIsFree}${selectStudentType}${selectIsKg}${selectIsEvening}
           FROM classes_schema."${className}"
           ${whereClause}
         `);
@@ -425,7 +452,7 @@ router.get('/overview', authenticateToken, requirePermission(FINANCE_PERMISSIONS
  * GET /api/finance/monthly-payments-view/class/:className
  * Get detailed student list with balances for a specific class
  */
-router.get('/class/:className', authenticateToken, requirePermission(FINANCE_PERMISSIONS.INVOICES_VIEW), async (req, res) => {
+router.get('/class/:className', authenticateWithBranch, requirePermission(FINANCE_PERMISSIONS.INVOICES_VIEW), async (req, res) => {
   try {
     // Auto-apply late fees before fetching data
     await applyLateFeesAutomatically();
@@ -544,19 +571,43 @@ router.get('/class/:className', authenticateToken, requirePermission(FINANCE_PER
       // Get the class name from fee structure
       const className = feeStructure.gradeLevel;
       
-      // OPTIMIZED: Check for is_active column ONCE, not in the loop
+      // OPTIMIZED: Check for is_active, student_type, is_kg, is_evening_class columns ONCE, not in the loop
       const columnCheck = await prisma.$queryRawUnsafe(`
         SELECT column_name 
         FROM information_schema.columns 
         WHERE table_schema = 'classes_schema' 
           AND table_name = '${className}'
-          AND column_name = 'is_active'
+          AND column_name IN ('is_active', 'student_type', 'is_kg', 'is_evening_class')
       `);
       
-      const hasIsActive = columnCheck.length > 0;
-      const whereClause = hasIsActive 
+      const columnNames = columnCheck.map(c => c.column_name);
+      const hasIsActive = columnNames.includes('is_active');
+      const hasStudentType = columnNames.includes('student_type');
+      const hasIsKg = columnNames.includes('is_kg');
+      const hasIsEvening = columnNames.includes('is_evening_class');
+      
+      let whereClause = hasIsActive 
         ? 'WHERE (is_active = TRUE OR is_active IS NULL)'
-        : '';
+        : 'WHERE 1=1';
+      
+      // V2 Enhancement: Add student type filter support
+      const studentTypeFilter = req.query.studentType; // 'kg', 'evening', 'kg_evening', 'regular', or 'all'
+      if (studentTypeFilter && studentTypeFilter !== 'all') {
+        if (hasStudentType) {
+          whereClause += ` AND student_type = '${studentTypeFilter}'`;
+        } else if (hasIsKg && hasIsEvening) {
+          // Fallback to individual columns
+          if (studentTypeFilter === 'kg') {
+            whereClause += ` AND is_kg = TRUE AND is_evening_class = FALSE`;
+          } else if (studentTypeFilter === 'evening') {
+            whereClause += ` AND is_evening_class = TRUE AND is_kg = FALSE`;
+          } else if (studentTypeFilter === 'kg_evening') {
+            whereClause += ` AND is_kg = TRUE AND is_evening_class = TRUE`;
+          } else if (studentTypeFilter === 'regular') {
+            whereClause += ` AND (is_kg = FALSE OR is_kg IS NULL) AND (is_evening_class = FALSE OR is_evening_class IS NULL)`;
+          }
+        }
+      }
       
       // OPTIMIZED: Fetch ALL students in a SINGLE query instead of looping
       const allStudents = await prisma.$queryRawUnsafe(`
@@ -741,7 +792,7 @@ router.get('/class/:className', authenticateToken, requirePermission(FINANCE_PER
  * GET /api/finance/monthly-payments-view/student/:studentId
  * Get detailed invoice breakdown for a specific student
  */
-router.get('/student/:studentId', authenticateToken, requirePermission(FINANCE_PERMISSIONS.INVOICES_VIEW), async (req, res) => {
+router.get('/student/:studentId', authenticateWithBranch, requirePermission(FINANCE_PERMISSIONS.INVOICES_VIEW), async (req, res) => {
   try {
     const { studentId } = req.params;
     const { feeStructureId } = req.query;
@@ -852,7 +903,7 @@ router.get('/student/:studentId', authenticateToken, requirePermission(FINANCE_P
  * GET /api/finance/monthly-payments-view/student/:studentId/payment-history
  * Get payment history with transaction details for a student
  */
-router.get('/student/:studentId/payment-history', authenticateToken, requirePermission(FINANCE_PERMISSIONS.INVOICES_VIEW), async (req, res) => {
+router.get('/student/:studentId/payment-history', authenticateWithBranch, requirePermission(FINANCE_PERMISSIONS.INVOICES_VIEW), async (req, res) => {
   try {
     const { studentId } = req.params;
 
@@ -915,7 +966,7 @@ router.get('/student/:studentId/payment-history', authenticateToken, requirePerm
  * GET /api/finance/monthly-payments-view/reports/class-students-balance
  * Get class-wise student balance report
  */
-router.get('/reports/class-students-balance', authenticateToken, requirePermission(FINANCE_PERMISSIONS.INVOICES_VIEW), async (req, res) => {
+router.get('/reports/class-students-balance', authenticateWithBranch, requirePermission(FINANCE_PERMISSIONS.INVOICES_VIEW), async (req, res) => {
   try {
     const { currentMonth = 5 } = req.query;
     const currentEthiopianMonth = parseInt(currentMonth);
@@ -988,7 +1039,7 @@ router.get('/reports/class-students-balance', authenticateToken, requirePermissi
  * GET /api/finance/monthly-payments-view/reports/multiple-monthly-payments
  * Get report of students who paid multiple months
  */
-router.get('/reports/multiple-monthly-payments', authenticateToken, requirePermission(FINANCE_PERMISSIONS.INVOICES_VIEW), async (req, res) => {
+router.get('/reports/multiple-monthly-payments', authenticateWithBranch, requirePermission(FINANCE_PERMISSIONS.INVOICES_VIEW), async (req, res) => {
   try {
     const { startDate, endDate } = req.query;
 
@@ -1060,7 +1111,7 @@ router.get('/reports/multiple-monthly-payments', authenticateToken, requirePermi
  * GET /api/finance/monthly-payments-view/unpaid-students
  * Get detailed list of students with unpaid unlocked months
  */
-router.get('/unpaid-students', authenticateToken, requirePermission(FINANCE_PERMISSIONS.INVOICES_VIEW), async (req, res) => {
+router.get('/unpaid-students', authenticateWithBranch, requirePermission(FINANCE_PERMISSIONS.INVOICES_VIEW), async (req, res) => {
   try {
     const currentEthiopianMonth = parseInt(req.query.currentMonth) || 5;
 
@@ -1087,17 +1138,41 @@ router.get('/unpaid-students', authenticateToken, requirePermission(FINANCE_PERM
       let studentInfoMap = new Map();
       
       try {
-        // Check if is_active column exists
+        // Check if is_active, student_type, is_kg, is_evening_class columns exist
         const columnCheck = await prisma.$queryRawUnsafe(`
           SELECT column_name 
           FROM information_schema.columns 
           WHERE table_schema = 'classes_schema' 
             AND table_name = '${className}'
-            AND column_name = 'is_active'
+            AND column_name IN ('is_active', 'student_type', 'is_kg', 'is_evening_class')
         `);
         
-        const hasIsActive = columnCheck.length > 0;
-        const whereClause = hasIsActive ? 'WHERE is_active = TRUE OR is_active IS NULL' : '';
+        const columnNames = columnCheck.map(c => c.column_name);
+        const hasIsActive = columnNames.includes('is_active');
+        const hasStudentType = columnNames.includes('student_type');
+        const hasIsKg = columnNames.includes('is_kg');
+        const hasIsEvening = columnNames.includes('is_evening_class');
+        
+        let whereClause = hasIsActive ? 'WHERE is_active = TRUE OR is_active IS NULL' : 'WHERE 1=1';
+        
+        // V2 Enhancement: Add student type filter support
+        const studentTypeFilter = req.query.studentType; // 'kg', 'evening', 'kg_evening', 'regular', or 'all'
+        if (studentTypeFilter && studentTypeFilter !== 'all') {
+          if (hasStudentType) {
+            whereClause += ` AND student_type = '${studentTypeFilter}'`;
+          } else if (hasIsKg && hasIsEvening) {
+            // Fallback to individual columns
+            if (studentTypeFilter === 'kg') {
+              whereClause += ` AND is_kg = TRUE AND is_evening_class = FALSE`;
+            } else if (studentTypeFilter === 'evening') {
+              whereClause += ` AND is_evening_class = TRUE AND is_kg = FALSE`;
+            } else if (studentTypeFilter === 'kg_evening') {
+              whereClause += ` AND is_kg = TRUE AND is_evening_class = TRUE`;
+            } else if (studentTypeFilter === 'regular') {
+              whereClause += ` AND (is_kg = FALSE OR is_kg IS NULL) AND (is_evening_class = FALSE OR is_evening_class IS NULL)`;
+            }
+          }
+        }
         
         const activeStudents = await prisma.$queryRawUnsafe(`
           SELECT school_id, class_id, student_name, is_free

@@ -5,7 +5,8 @@ const deviceUserBufferService = require('../services/DeviceUserBufferService');
 const conflictResolutionService = require('../services/ConflictResolutionService');
 const deviceUserMonitoringService = require('../services/DeviceUserMonitoringService');
 const backupRestoreService = require('../services/BackupRestoreService');
-const { authenticateToken } = require('../middleware/auth');
+const { authenticateWithBranch, validateBranchCode } = require('../middleware/branchAuth');
+const { getEndpointPath, API_ENDPOINTS } = require('../config/api.config');
 
 // ============================================
 // Buffer Management Endpoints
@@ -15,7 +16,7 @@ const { authenticateToken } = require('../middleware/auth');
  * GET /api/device-users/buffer
  * Retrieve all buffer records with filtering and pagination
  */
-router.get('/buffer', authenticateToken, async (req, res) => {
+router.get('/buffer', authenticateWithBranch, async (req, res) => {
   try {
     const { status, page = 1, limit = 50 } = req.query;
     
@@ -54,7 +55,7 @@ router.get('/buffer', authenticateToken, async (req, res) => {
  * POST /api/device-users/buffer/:id/map
  * Create user_machine_mapping for an unmapped user
  */
-router.post('/buffer/:id/map', authenticateToken, async (req, res) => {
+router.post('/buffer/:id/map', authenticateWithBranch, async (req, res) => {
   try {
     const { id } = req.params;
     const { personId, personType = 'staff' } = req.body;
@@ -115,7 +116,7 @@ router.post('/buffer/:id/map', authenticateToken, async (req, res) => {
  * GET /api/device-users/buffer/statistics
  * Get buffer statistics
  */
-router.get('/buffer/statistics', authenticateToken, async (req, res) => {
+router.get('/buffer/statistics', authenticateWithBranch, async (req, res) => {
   try {
     const stats = await deviceUserBufferService.getStatistics();
     res.json({
@@ -139,7 +140,7 @@ router.get('/buffer/statistics', authenticateToken, async (req, res) => {
  * GET /api/device-users/conflicts
  * Retrieve unresolved conflicts
  */
-router.get('/conflicts', authenticateToken, async (req, res) => {
+router.get('/conflicts', authenticateWithBranch, async (req, res) => {
   try {
     const conflicts = await conflictResolutionService.getUnresolvedConflicts();
     res.json({
@@ -159,7 +160,7 @@ router.get('/conflicts', authenticateToken, async (req, res) => {
  * POST /api/device-users/conflicts/:id/resolve
  * Resolve a conflict
  */
-router.post('/conflicts/:id/resolve', authenticateToken, async (req, res) => {
+router.post('/conflicts/:id/resolve', authenticateWithBranch, async (req, res) => {
   try {
     const { id } = req.params;
     const { resolution } = req.body;
@@ -195,7 +196,7 @@ router.post('/conflicts/:id/resolve', authenticateToken, async (req, res) => {
  * GET /api/device-users/backups
  * List available backups
  */
-router.get('/backups', authenticateToken, async (req, res) => {
+router.get('/backups', authenticateWithBranch, async (req, res) => {
   try {
     const backups = await backupRestoreService.listBackups();
     res.json({
@@ -215,7 +216,7 @@ router.get('/backups', authenticateToken, async (req, res) => {
  * POST /api/device-users/backups/:filename/restore
  * Restore users from backup
  */
-router.post('/backups/:filename/restore', authenticateToken, async (req, res) => {
+router.post('/backups/:filename/restore', authenticateWithBranch, async (req, res) => {
   try {
     const { filename } = req.params;
     const { dryRun = false } = req.body;
@@ -243,7 +244,7 @@ router.post('/backups/:filename/restore', authenticateToken, async (req, res) =>
  * POST /api/device-users/backups/create
  * Manually trigger a backup
  */
-router.post('/backups/create', authenticateToken, async (req, res) => {
+router.post('/backups/create', authenticateWithBranch, async (req, res) => {
   try {
     const result = await backupRestoreService.backupDeviceUsers();
     res.json({
@@ -270,7 +271,7 @@ router.post('/backups/create', authenticateToken, async (req, res) => {
  * GET /api/device-users/monitoring/status
  * Get current device user count and status
  */
-router.get('/monitoring/status', authenticateToken, async (req, res) => {
+router.get('/monitoring/status', authenticateWithBranch, async (req, res) => {
   try {
     const status = await deviceUserMonitoringService.getCurrentUserCount();
     res.json({
@@ -290,7 +291,7 @@ router.get('/monitoring/status', authenticateToken, async (req, res) => {
  * GET /api/device-users/monitoring/history
  * Get user count history
  */
-router.get('/monitoring/history', authenticateToken, async (req, res) => {
+router.get('/monitoring/history', authenticateWithBranch, async (req, res) => {
   try {
     const { hours = 24 } = req.query;
     const history = await deviceUserMonitoringService.getUserCountHistory(parseInt(hours));
@@ -311,7 +312,7 @@ router.get('/monitoring/history', authenticateToken, async (req, res) => {
  * GET /api/device-users/monitoring/missing
  * Check for missing users
  */
-router.get('/monitoring/missing', authenticateToken, async (req, res) => {
+router.get('/monitoring/missing', authenticateWithBranch, async (req, res) => {
   try {
     const result = await deviceUserMonitoringService.checkForMissingUsers();
     res.json({

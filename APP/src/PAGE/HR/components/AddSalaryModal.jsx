@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
-const API_URL = import.meta.env.VITE_API_URL || 'https://iqrab3.skoolific.com';
+const API_URL = import.meta.env.VITE_API_URL || 'https://iqrab3.skoolific.com/api';
 
 const AddSalaryModal = ({ staff, onClose }) => {
   const [accounts, setAccounts] = useState([]);
@@ -21,7 +21,7 @@ const AddSalaryModal = ({ staff, onClose }) => {
   const fetchAccounts = async () => {
     try {
       const token = localStorage.getItem('authToken') || localStorage.getItem('token');
-      const response = await axios.get(`${API_URL}/api/finance/accounts`, {
+      const response = await axios.get(`${API_URL}/finance/accounts`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (response.data.success) {
@@ -40,7 +40,7 @@ const AddSalaryModal = ({ staff, onClose }) => {
     try {
       const token = localStorage.getItem('authToken') || localStorage.getItem('token');
       const response = await axios.post(
-        `${API_URL}/api/hr/salary/staff/${staff.id}/salary`,
+        `${API_URL}/hr/salary/staff/${staff.id}/salary`,
         formData,
         { headers: { Authorization: `Bearer ${token}` } }
       );

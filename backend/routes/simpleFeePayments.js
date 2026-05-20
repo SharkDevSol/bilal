@@ -1,7 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const pool = require('../config/db');
-const { authenticateToken } = require('../middleware/auth');
+const { authenticateWithBranch, validateBranchCode } = require('../middleware/branchAuth');
+const { getEndpointPath, API_ENDPOINTS } = require('../config/api.config');
 
 // Initialize fee payments table
 const initializeFeePaymentsTable = async () => {
@@ -69,7 +70,7 @@ const generateReceiptNumber = async () => {
  * GET /api/fee-payments
  * Get all fee payments with filtering
  */
-router.get('/', authenticateToken, async (req, res) => {
+router.get('/', authenticateWithBranch, async (req, res) => {
   console.log('\n📥 GET /api/fee-payments - Request received');
   
   try {
@@ -192,7 +193,7 @@ router.get('/', authenticateToken, async (req, res) => {
  * POST /api/fee-payments
  * Record a new fee payment
  */
-router.post('/', authenticateToken, async (req, res) => {
+router.post('/', authenticateWithBranch, async (req, res) => {
   console.log('\n📥 POST /api/fee-payments - Request received');
   console.log('Body:', req.body);
   
@@ -273,7 +274,7 @@ router.post('/', authenticateToken, async (req, res) => {
  * GET /api/fee-payments/student/:studentId
  * Get payment history for a specific student
  */
-router.get('/student/:studentId', authenticateToken, async (req, res) => {
+router.get('/student/:studentId', authenticateWithBranch, async (req, res) => {
   console.log('\n📥 GET /api/fee-payments/student/:studentId - Request received');
   
   try {
@@ -326,7 +327,7 @@ router.get('/student/:studentId', authenticateToken, async (req, res) => {
  * GET /api/fee-payments/fee-structure/:id
  * Get payments for a specific fee structure
  */
-router.get('/fee-structure/:id', authenticateToken, async (req, res) => {
+router.get('/fee-structure/:id', authenticateWithBranch, async (req, res) => {
   console.log('\n📥 GET /api/fee-payments/fee-structure/:id - Request received');
   
   try {
@@ -379,7 +380,7 @@ router.get('/fee-structure/:id', authenticateToken, async (req, res) => {
  * DELETE /api/fee-payments/:id
  * Delete a payment record
  */
-router.delete('/:id', authenticateToken, async (req, res) => {
+router.delete('/:id', authenticateWithBranch, async (req, res) => {
   console.log('\n📥 DELETE /api/fee-payments/:id - Request received');
   
   try {
@@ -418,7 +419,7 @@ router.delete('/:id', authenticateToken, async (req, res) => {
  * GET /api/fee-payments/students/:className
  * Get students from a specific class
  */
-router.get('/students/:className', authenticateToken, async (req, res) => {
+router.get('/students/:className', authenticateWithBranch, async (req, res) => {
   console.log('\n📥 GET /api/fee-payments/students/:className - Request received');
   
   try {

@@ -1,0 +1,199 @@
+/* Sidebar Container */
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  width: 260px;
+  background-color: var(--color-surface);
+  border-right: 1px solid var(--color-border);
+  display: flex;
+  flex-direction: column;
+  transition: width 0.3s ease, transform 0.3s ease;
+  z-index: 1000;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+/* Collapsed State */
+.sidebar.collapsed {
+  width: 70px;
+}
+
+/* Mobile Overlay */
+.mobileOverlay {
+  display: none;
+}
+
+/* Mobile Menu Button */
+.mobileMenuButton {
+  display: none;
+  position: fixed;
+  top: 1rem;
+  left: 1rem;
+  z-index: 1100;
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius-md);
+  padding: 0.5rem;
+  cursor: pointer;
+  color: var(--color-text);
+  transition: background-color 0.2s ease;
+}
+
+.mobileMenuButton:hover {
+  background-color: var(--color-background);
+}
+
+.mobileMenuButton:focus {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* Toggle Button (Desktop) */
+.toggleButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  background: none;
+  border: none;
+  color: var(--color-text);
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.toggleButton:hover {
+  background-color: var(--color-background);
+}
+
+.toggleButton:focus {
+  outline: 2px solid var(--color-primary);
+  outline-offset: -2px;
+}
+
+/* Menu Container */
+.menuContainer {
+  flex: 1;
+  padding: 1rem 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+/* Scrollbar Styling */
+.menuContainer::-webkit-scrollbar {
+  width: 6px;
+}
+
+.menuContainer::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.menuContainer::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 3px;
+}
+
+.menuContainer::-webkit-scrollbar-thumb:hover {
+  background: var(--color-text-secondary);
+}
+
+/* Tablet Styles (768px - 1023px) */
+@media (max-width: 1023px) {
+  .sidebar {
+    width: 70px;
+  }
+
+  .sidebar.collapsed {
+    width: 260px;
+  }
+}
+
+/* Mobile Styles (320px - 767px) */
+@media (max-width: 767px) {
+  .sidebar {
+    transform: translateX(-100%);
+    width: 260px;
+    box-shadow: var(--shadow-lg);
+  }
+
+  .sidebar.mobileOpen {
+    transform: translateX(0);
+  }
+
+  .mobileOverlay {
+    display: block;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 999;
+    animation: fadeIn 0.3s ease;
+  }
+
+  .mobileMenuButton {
+    display: flex;
+  }
+
+  .toggleButton {
+    display: none;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* RTL Support */
+[dir="rtl"] .sidebar {
+  left: auto;
+  right: 0;
+  border-right: none;
+  border-left: 1px solid var(--border-primary);
+}
+
+[dir="rtl"] .mobileMenuButton {
+  left: auto;
+  right: 1rem;
+}
+
+/* Mobile RTL Styles (320px - 767px) */
+@media (max-width: 767px) {
+  [dir="rtl"] .sidebar {
+    transform: translateX(100%);
+  }
+
+  [dir="rtl"] .sidebar.mobileOpen {
+    transform: translateX(0);
+  }
+
+  [dir="rtl"] .mobileOverlay {
+    left: 0;
+    right: 0;
+  }
+}
+
+/* Tablet RTL Styles (768px - 1023px) */
+@media (max-width: 1023px) {
+  [dir="rtl"] .sidebar {
+    left: auto;
+    right: 0;
+  }
+}
+
+/* Accessibility - Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+  .sidebar,
+  .mobileOverlay {
+    transition: none;
+    animation: none;
+  }
+}

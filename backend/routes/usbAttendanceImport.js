@@ -4,6 +4,7 @@ const multer = require('multer');
 const pool = require('../config/db');
 const fs = require('fs');
 const path = require('path');
+const { getEndpointPath, API_ENDPOINTS } = require('../config/api.config');
 
 // Configure multer for file upload
 const storage = multer.diskStorage({

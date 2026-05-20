@@ -2,6 +2,7 @@
 const express = require('express');
 const router = express.Router();
 const pool = require('../config/db');
+const { getEndpointPath, API_ENDPOINTS } = require('../config/api.config');
 
 // Get activities for a specific student in a class
 router.get('/activities/:className/:studentName', async (req, res) => {

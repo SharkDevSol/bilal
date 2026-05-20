@@ -2,10 +2,11 @@ const express = require('express');
 const router = express.Router();
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
-const { authenticateToken } = require('../../middleware/auth');
+const { authenticateWithBranch } = require('../../middleware/branchAuth');
+const { getEndpointPath, API_ENDPOINTS } = require('../../config/api.config');
 
 // Get all accounts with hierarchy
-router.get('/', authenticateToken, async (req, res) => {
+router.get('/', authenticateWithBranch, async (req, res) => {
   try {
     const { type, isActive, search } = req.query;
     
@@ -36,7 +37,7 @@ router.get('/', authenticateToken, async (req, res) => {
 });
 
 // Get account tree (hierarchical structure)
-router.get('/tree', authenticateToken, async (req, res) => {
+router.get('/tree', authenticateWithBranch, async (req, res) => {
   try {
     const accounts = await prisma.account.findMany({
       where: { isActive: true },
@@ -59,7 +60,7 @@ router.get('/tree', authenticateToken, async (req, res) => {
 });
 
 // Get single account
-router.get('/:id', authenticateToken, async (req, res) => {
+router.get('/:id', authenticateWithBranch, async (req, res) => {
   try {
     const account = await prisma.account.findUnique({
       where: { id: req.params.id },
@@ -81,7 +82,7 @@ router.get('/:id', authenticateToken, async (req, res) => {
 });
 
 // Create account
-router.post('/', authenticateToken, async (req, res) => {
+router.post('/', authenticateWithBranch, async (req, res) => {
   try {
     const { code, name, type, parentId, campusId } = req.body;
     
@@ -104,7 +105,7 @@ router.post('/', authenticateToken, async (req, res) => {
 });
 
 // Update account
-router.put('/:id', authenticateToken, async (req, res) => {
+router.put('/:id', authenticateWithBranch, async (req, res) => {
   try {
     const { name, isActive } = req.body;
     
@@ -121,7 +122,7 @@ router.put('/:id', authenticateToken, async (req, res) => {
 });
 
 // Delete (deactivate) account
-router.delete('/:id', authenticateToken, async (req, res) => {
+router.delete('/:id', authenticateWithBranch, async (req, res) => {
   try {
     const account = await prisma.account.update({
       where: { id: req.params.id },

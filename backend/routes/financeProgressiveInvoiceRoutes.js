@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { PrismaClient } = require('@prisma/client');
+const { getEndpointPath, API_ENDPOINTS } = require('../config/api.config');
 const prisma = new PrismaClient();
 const { 
   calculateStudentBalance, 
@@ -8,7 +9,7 @@ const {
 } = require('../services/balanceAccumulationService');
 
 // Security middleware
-const { authenticateToken } = require('../middleware/auth');
+const { authenticateWithBranch, validateBranchCode } = require('../middleware/branchAuth');
 const { requirePermission, FINANCE_PERMISSIONS } = require('../middleware/financeAuth');
 
 /**
@@ -31,7 +32,7 @@ function compositeIdToUuid(compositeId) {
  * Get the current month number for invoice generation (1-12)
  * This determines which invoice to show based on the academic year progress
  */
-router.get('/current-month', authenticateToken, async (req, res) => {
+router.get('/current-month', authenticateWithBranch, async (req, res) => {
   try {
     const { feeStructureId } = req.query;
 
@@ -117,7 +118,7 @@ router.get('/current-month', authenticateToken, async (req, res) => {
  * - Balance accumulates automatically each month
  * - Late fees apply to overdue invoices
  */
-router.post('/generate-all', authenticateToken, requirePermission(FINANCE_PERMISSIONS.INVOICES_CREATE), async (req, res) => {
+router.post('/generate-all', authenticateWithBranch, requirePermission(FINANCE_PERMISSIONS.INVOICES_CREATE), async (req, res) => {
   try {
     const { feeStructureId, regenerate = false } = req.body;
 

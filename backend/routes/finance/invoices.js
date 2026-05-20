@@ -2,7 +2,8 @@ const express = require('express');
 const router = express.Router();
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
-const { authenticateToken } = require('../../middleware/auth');
+const { authenticateWithBranch } = require('../../middleware/branchAuth');
+const { getEndpointPath, API_ENDPOINTS } = require('../../config/api.config');
 
 // Generate invoice number
 async function generateInvoiceNumber() {
@@ -16,7 +17,7 @@ async function generateInvoiceNumber() {
 }
 
 // Get all invoices
-router.get('/', authenticateToken, async (req, res) => {
+router.get('/', authenticateWithBranch, async (req, res) => {
   try {
     const { studentId, status, campusId, page = 1, limit = 20 } = req.query;
     
@@ -57,7 +58,7 @@ router.get('/', authenticateToken, async (req, res) => {
 });
 
 // Get single invoice
-router.get('/:id', authenticateToken, async (req, res) => {
+router.get('/:id', authenticateWithBranch, async (req, res) => {
   try {
     const invoice = await prisma.invoice.findUnique({
       where: { id: req.params.id },
@@ -79,7 +80,7 @@ router.get('/:id', authenticateToken, async (req, res) => {
 });
 
 // Generate invoice
-router.post('/generate', authenticateToken, async (req, res) => {
+router.post('/generate', authenticateWithBranch, async (req, res) => {
   try {
     const { studentId, academicYearId, termId, feeStructureId, dueDate, campusId } = req.body;
     
@@ -143,7 +144,7 @@ router.post('/generate', authenticateToken, async (req, res) => {
 });
 
 // Update invoice
-router.put('/:id', authenticateToken, async (req, res) => {
+router.put('/:id', authenticateWithBranch, async (req, res) => {
   try {
     const { dueDate, status } = req.body;
     
@@ -160,7 +161,7 @@ router.put('/:id', authenticateToken, async (req, res) => {
 });
 
 // Cancel invoice
-router.post('/:id/cancel', authenticateToken, async (req, res) => {
+router.post('/:id/cancel', authenticateWithBranch, async (req, res) => {
   try {
     const invoice = await prisma.invoice.update({
       where: { id: req.params.id },

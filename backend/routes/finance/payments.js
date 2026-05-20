@@ -2,7 +2,8 @@ const express = require('express');
 const router = express.Router();
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
-const { authenticateToken } = require('../../middleware/auth');
+const { authenticateWithBranch } = require('../../middleware/branchAuth');
+const { getEndpointPath, API_ENDPOINTS } = require('../../config/api.config');
 
 // Generate receipt number
 async function generateReceiptNumber() {
@@ -16,7 +17,7 @@ async function generateReceiptNumber() {
 }
 
 // Get all payments
-router.get('/', authenticateToken, async (req, res) => {
+router.get('/', authenticateWithBranch, async (req, res) => {
   try {
     const { studentId, status, campusId, page = 1, limit = 20 } = req.query;
     
@@ -57,7 +58,7 @@ router.get('/', authenticateToken, async (req, res) => {
 });
 
 // Get student payment history
-router.get('/student/:studentId', authenticateToken, async (req, res) => {
+router.get('/student/:studentId', authenticateWithBranch, async (req, res) => {
   try {
     const payments = await prisma.payment.findMany({
       where: { studentId: req.params.studentId },
@@ -75,7 +76,7 @@ router.get('/student/:studentId', authenticateToken, async (req, res) => {
 });
 
 // Record payment
-router.post('/', authenticateToken, async (req, res) => {
+router.post('/', authenticateWithBranch, async (req, res) => {
   try {
     const { studentId, amount, paymentMethod, referenceNumber, invoiceId, campusId } = req.body;
     
@@ -176,7 +177,7 @@ router.post('/', authenticateToken, async (req, res) => {
 });
 
 // Get payment details
-router.get('/:id', authenticateToken, async (req, res) => {
+router.get('/:id', authenticateWithBranch, async (req, res) => {
   try {
     const payment = await prisma.payment.findUnique({
       where: { id: req.params.id },

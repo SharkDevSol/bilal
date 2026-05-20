@@ -13,6 +13,11 @@ import { getFileType, getFileIcon, isFileField, getFileUrl, formatLabel, getFile
 import { useApp } from '../../../context/AppContext';
 import styles from './ListStaff.module.css';
 
+import Table from '../../../components/Table/Table';
+import Input from '../../../components/Input/Input';
+import Select from '../../../components/Select/Select';
+import Button from '../../../components/Button/Button';
+
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://iqrab3.skoolific.com/api';
 const ListStaff = () => {
   const { t } = useApp();
@@ -363,6 +368,100 @@ const ListStaff = () => {
   const totalPages = Math.ceil(filteredData.length / itemsPerPage);
   const currentStaff = filteredData.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
+  // Table columns definition for modern Table component
+  const tableColumns = [
+    {
+      key: 'photo', header: 'Photo', width: '80px', sortable: false,
+      render: (_, staff) => {
+        const isInactive = staff.is_active === false || staff.is_active === 'false';
+        return (
+          <div className={styles.tableImageWrapper}>
+            {staff.image_staff ? (
+              <img src={getFileUrl(staff.image_staff, 'staff')} alt="" className={styles.tableImage} />
+            ) : (
+              <div className={styles.tableAvatar}><FiUser /></div>
+            )}
+            {isInactive && <div className={styles.inactiveOverlay}><FiUserX /></div>}
+          </div>
+        );
+      }
+    },
+    {
+      key: 'full_name', header: 'Name', sortable: true,
+      render: (_, staff) => {
+        const isInactive = staff.is_active === false || staff.is_active === 'false';
+        const name = staff.full_name || staff.name;
+        return (
+          <div>
+            <strong>{name}</strong>
+            {isInactive && <span className={styles.inactiveLabel}> (Deactivated)</span>}
+          </div>
+        );
+      }
+    },
+    {
+      key: 'staffType', header: 'Type', sortable: true,
+      render: (staffType) => staffType || '-'
+    },
+    {
+      key: 'role', header: 'Role', sortable: true,
+      render: (_, staff) => staff.role || staff.position || '-'
+    },
+    {
+      key: 'email', header: 'Email', sortable: true,
+      render: (email) => email || '-'
+    },
+    {
+      key: 'phone', header: 'Phone', sortable: true,
+      render: (phone) => phone || '-'
+    },
+    {
+      key: 'documents', header: 'Documents', sortable: false,
+      render: (_, staff) => {
+        const fileFields = getStaffFiles(staff);
+        return fileFields.length > 0 ? (
+          <div className={styles.tableFiles}>
+            {fileFields.slice(0, 2).map(([key, value]) => (
+              <span 
+                key={key} 
+                className={styles.tableFileChip}
+                onClick={(e) => { e.stopPropagation(); openFilePreview(value, formatLabel(key)); }}
+              >
+                {renderFileIcon(getFileType(value))}
+              </span>
+            ))}
+            {fileFields.length > 2 && (
+              <span className={styles.moreCount}>+{fileFields.length - 2}</span>
+            )}
+          </div>
+        ) : '-';
+      }
+    },
+    {
+      key: 'actions', header: 'Actions', sortable: false, align: 'right',
+      render: (_, staff) => {
+        const isInactive = staff.is_active === false || staff.is_active === 'false';
+        return (
+          <div className={styles.tableActions}>
+            <button onClick={(e) => { e.stopPropagation(); setSelectedStaff(staff); setShowModal(true); }}>
+              <FiEye />
+            </button>
+            <button onClick={(e) => { e.stopPropagation(); handleEdit(staff); }}>
+              <FiEdit />
+            </button>
+            <button 
+              onClick={(e) => { e.stopPropagation(); handleToggleActive(staff); }}
+              title={isInactive ? 'Activate staff' : 'Deactivate staff'}
+              className={isInactive ? styles.activateBtn : styles.deactivateBtn}
+            >
+              {isInactive ? <FiUserCheck /> : <FiUserX />}
+            </button>
+          </div>
+        );
+      }
+    }
+  ];
+
   if (loading && staffData.length === 0) {
     return (
       <div className={styles.loadingContainer}>
@@ -398,48 +497,49 @@ const ListStaff = () => {
       {/* Controls */}
       <motion.div className={styles.controls} initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
         <div className={styles.searchBox}>
-          <FiSearch />
-          <input 
-            type="text" 
-            placeholder={t('searchStaff')} 
+          <Input 
+            prefixIcon={<FiSearch />}
+            placeholder={t('searchStaff') || 'Search staff...'} 
             value={searchTerm} 
-            onChange={(e) => setSearchTerm(e.target.value)} 
+            onChange={setSearchTerm} 
           />
         </div>
         <div className={styles.filters}>
-          <div className={styles.filterGroup}>
-            <FiFilter />
-            <select value={filterType} onChange={(e) => setFilterType(e.target.value)}>
-              <option value="all">{t('allTypes')}</option>
-              {staffTypes.map(type => (
-                <option key={type} value={type}>{type}</option>
-              ))}
-            </select>
-          </div>
+          <Select 
+            value={filterType} 
+            onChange={setFilterType}
+            options={[
+              { value: 'all', label: t('allTypes') || 'All Types' },
+              ...staffTypes.map(type => ({ value: type, label: type }))
+            ]}
+          />
         </div>
         <div className={styles.viewToggle}>
-          <button 
-            className={`${styles.viewBtn} ${viewMode === 'grid' ? styles.active : ''}`} 
+          <Button 
+            variant={viewMode === 'grid' ? 'primary' : 'ghost'} 
             onClick={() => setViewMode('grid')}
-          >
-            <FiGrid />
-          </button>
-          <button 
-            className={`${styles.viewBtn} ${viewMode === 'list' ? styles.active : ''}`} 
+            icon={<FiGrid />}
+          />
+          <Button 
+            variant={viewMode === 'list' ? 'primary' : 'ghost'} 
             onClick={() => setViewMode('list')}
-          >
-            <FiList />
-          </button>
+            icon={<FiList />}
+          />
         </div>
-        <button className={styles.refreshBtn} onClick={fetchAllStaff}>
-          <FiRefreshCw /> {t('refresh')}
-        </button>
-        <button 
-          className={`${styles.toggleInactiveBtn} ${showInactive ? styles.active : ''}`}
-          onClick={() => setShowInactive(!showInactive)}
+        <Button 
+          variant="secondary" 
+          onClick={fetchAllStaff}
+          icon={<FiRefreshCw />}
         >
-          <FiUserX /> {showInactive ? 'Show Active Staff' : 'Show Deactivated Staff'}
-        </button>
+          {t('refresh') || 'Refresh'}
+        </Button>
+        <Button 
+          variant={showInactive ? "primary" : "secondary"}
+          onClick={() => setShowInactive(!showInactive)}
+          icon={showInactive ? <FiUserCheck /> : <FiUserX />}
+        >
+          {showInactive ? 'Show Active Staff' : 'Show Deactivated Staff'}
+        </Button>
       </motion.div>
 
       {/* Staff Display */}
@@ -559,107 +659,17 @@ const ListStaff = () => {
           </AnimatePresence>
         </motion.div>
       ) : (
-        /* Table View */
+        /* List View */
         <motion.div className={styles.tableWrapper} initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-          <table className={styles.staffTable}>
-            <thead>
-              <tr>
-                <th>Photo</th>
-                <th>Name</th>
-                <th>Type</th>
-                <th>Role</th>
-                <th>Email</th>
-                <th>Phone</th>
-                <th>Documents</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {currentStaff.map((staff) => {
-                const fileFields = getStaffFiles(staff);
-                const isInactive = staff.is_active === false || staff.is_active === 'false';
-                return (
-                  <tr key={staff.uniqueId} className={isInactive ? styles.inactiveRow : ''} onClick={() => { setSelectedStaff(staff); setShowModal(true); }}>
-                    <td>
-                      <div className={styles.tableImageWrapper}>
-                        {staff.image_staff ? (
-                          <img src={getFileUrl(staff.image_staff, 'staff')} alt="" className={styles.tableImage} />
-                        ) : (
-                          <div className={styles.tableAvatar}><FiUser /></div>
-                        )}
-                        {isInactive && <div className={styles.inactiveOverlay}><FiUserX /></div>}
-                      </div>
-                    </td>
-                    <td>
-                      <strong>{staff.full_name || staff.name}</strong>
-                      {isInactive && <span className={styles.inactiveLabel}> (Deactivated)</span>}
-                    </td>
-                    <td>{staff.staffType}</td>
-                    <td>{staff.role || staff.position || '-'}</td>
-                    <td>{staff.email || '-'}</td>
-                    <td>{staff.phone || '-'}</td>
-                    <td>
-                      {fileFields.length > 0 ? (
-                        <div className={styles.tableFiles}>
-                          {fileFields.slice(0, 2).map(([key, value]) => (
-                            <span 
-                              key={key} 
-                              className={styles.tableFileChip}
-                              onClick={(e) => { e.stopPropagation(); openFilePreview(value, formatLabel(key)); }}
-                            >
-                              {renderFileIcon(getFileType(value))}
-                            </span>
-                          ))}
-                          {fileFields.length > 2 && (
-                            <span className={styles.moreCount}>+{fileFields.length - 2}</span>
-                          )}
-                        </div>
-                      ) : (
-                        <span className={styles.noFiles}>-</span>
-                      )}
-                    </td>
-                    <td>
-                      <div className={styles.tableActions}>
-                        <button onClick={(e) => { e.stopPropagation(); setSelectedStaff(staff); setShowModal(true); }} title="View details">
-                          <FiEye />
-                        </button>
-                        <button onClick={(e) => { e.stopPropagation(); handleEdit(staff); }} title="Edit staff">
-                          <FiEdit />
-                        </button>
-                        <button 
-                          onClick={(e) => { e.stopPropagation(); handleToggleActive(staff); }} 
-                          title={isInactive ? 'Activate staff' : 'Deactivate staff'}
-                          className={isInactive ? styles.activateBtn : styles.deactivateBtn}
-                        >
-                          {isInactive ? <FiUserCheck /> : <FiUserX />}
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+          <Table 
+            columns={tableColumns}
+            data={filteredData}
+            paginated={true}
+            pageSize={itemsPerPage}
+            onRowClick={(staff) => { setSelectedStaff(staff); setShowModal(true); }}
+            emptyMessage={t('noStaffFound') || 'No staff found matching your criteria.'}
+          />
         </motion.div>
-      )}
-
-      {/* Pagination */}
-      {totalPages > 1 && (
-        <div className={styles.pagination}>
-          <button 
-            disabled={currentPage === 1} 
-            onClick={() => setCurrentPage(p => p - 1)}
-          >
-            <FiChevronLeft /> {t('previous')}
-          </button>
-          <span>{t('page')} {currentPage} {t('of')} {totalPages}</span>
-          <button 
-            disabled={currentPage === totalPages} 
-            onClick={() => setCurrentPage(p => p + 1)}
-          >
-            {t('next')} <FiChevronRight />
-          </button>
-        </div>
       )}
 
 

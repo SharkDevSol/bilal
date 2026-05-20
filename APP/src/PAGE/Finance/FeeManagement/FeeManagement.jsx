@@ -6,9 +6,12 @@ const FeeManagement = () => {
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editingFee, setEditingFee] = useState(null);
+  const [showFeeTypesSection, setShowFeeTypesSection] = useState(false);
+  const [customFeeTypes, setCustomFeeTypes] = useState([]);
 
   useEffect(() => {
     fetchFeeStructures();
+    fetchCustomFeeTypes();
   }, []);
 
   const fetchFeeStructures = async () => {
@@ -45,6 +48,51 @@ const FeeManagement = () => {
     }
   };
 
+  const fetchCustomFeeTypes = async () => {
+    try {
+      const token = localStorage.getItem('authToken') || localStorage.getItem('token');
+      const response = await fetch('/api/simple-fees', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (response.ok) {
+        const data = await response.json();
+        // Extract unique custom fee types
+        const customTypes = [];
+        data.data.forEach(structure => {
+          if (structure.feeType === 'CUSTOM' && structure.customFeeName) {
+            const existing = customTypes.find(ct => ct.name === structure.customFeeName);
+            if (!existing) {
+              customTypes.push({
+                id: structure.customFeeName,
+                name: structure.customFeeName,
+                icon: '💰',
+                color: '#00BCD4',
+                isCustom: true
+              });
+            }
+          }
+        });
+        setCustomFeeTypes(customTypes);
+      }
+    } catch (error) {
+      console.error('Error fetching custom fee types:', error);
+    }
+  };
+
+  // Predefined fee types
+  const predefinedTypes = [
+    { id: 'TUITION', name: 'Tuition', icon: '📚', color: '#4CAF50' },
+    { id: 'TRANSPORT', name: 'Transport', icon: '🚌', color: '#FF9800' },
+    { id: 'LIBRARY', name: 'Library', icon: '📖', color: '#2196F3' },
+    { id: 'LAB', name: 'Laboratory', icon: '🔬', color: '#9C27B0' },
+    { id: 'SPORTS', name: 'Sports', icon: '⚽', color: '#F44336' },
+    { id: 'EXAM', name: 'Examination', icon: '📝', color: '#FF5722' },
+    { id: 'BOOKS', name: 'Books', icon: '📕', color: '#795548' },
+    { id: 'PHONE', name: 'Phone', icon: '📱', color: '#607D8B' },
+    { id: 'UNIFORM', name: 'Uniform', icon: '👔', color: '#3F51B5' },
+    { id: 'MEALS', name: 'Meals', icon: '🍽️', color: '#FF5722' }
+  ];
+
   const handleDelete = async (id) => {
     if (!confirm('Delete this fee structure?')) return;
     try {
@@ -68,15 +116,94 @@ const FeeManagement = () => {
       <div className={styles.header}>
         <div>
           <h1>Fee Management</h1>
-          <p>Configure fee structures for different classes and terms</p>
+          <p>Configure fee structures and manage fee types for different classes and terms</p>
         </div>
-        <button className={styles.addButton} onClick={() => { setEditingFee(null); setShowModal(true); }}>
-          + Add Fee Structure
-        </button>
+        <div style={{ display: 'flex', gap: '10px' }}>
+          <button 
+            className={styles.addButton} 
+            onClick={() => setShowFeeTypesSection(!showFeeTypesSection)}
+            style={{ background: showFeeTypesSection ? '#666' : '#2196F3' }}
+          >
+            {showFeeTypesSection ? '📋 View Fee Structures' : '🏷️ View Fee Types'}
+          </button>
+          <button className={styles.addButton} onClick={() => { setEditingFee(null); setShowModal(true); }}>
+            + Add Fee Structure
+          </button>
+        </div>
       </div>
 
       {loading ? (
         <div className={styles.loading}>Loading fee structures...</div>
+      ) : showFeeTypesSection ? (
+        <>
+          {/* Fee Types Section */}
+          <div className={styles.section}>
+            <h2>Predefined Fee Types</h2>
+            <p style={{ color: '#666', marginBottom: '20px' }}>
+              These are standard fee types available for all fee structures
+            </p>
+            <div className={styles.grid}>
+              {predefinedTypes.map(type => (
+                <div key={type.id} className={styles.card} style={{ borderLeft: `4px solid ${type.color}` }}>
+                  <div className={styles.cardHeader}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      <span style={{ fontSize: '2rem' }}>{type.icon}</span>
+                      <h3>{type.name}</h3>
+                    </div>
+                    <span className={`${styles.badge} ${styles.active}`}>Built-in</span>
+                  </div>
+                  <div className={styles.cardBody}>
+                    <p><strong>Type ID:</strong> {type.id}</p>
+                    <p style={{ color: '#666', fontSize: '0.9rem', marginTop: '8px' }}>
+                      This is a standard fee type available for all fee structures
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {customFeeTypes.length > 0 && (
+            <div className={styles.section} style={{ marginTop: '40px' }}>
+              <h2>Custom Fee Types</h2>
+              <p style={{ color: '#666', marginBottom: '20px' }}>
+                Custom fee types created for specific needs
+              </p>
+              <div className={styles.grid}>
+                {customFeeTypes.map(type => (
+                  <div key={type.id} className={styles.card} style={{ borderLeft: `4px solid ${type.color}` }}>
+                    <div className={styles.cardHeader}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <span style={{ fontSize: '2rem' }}>{type.icon}</span>
+                        <h3>{type.name}</h3>
+                      </div>
+                      <span className={`${styles.badge}`} style={{ backgroundColor: '#00BCD4' }}>Custom</span>
+                    </div>
+                    <div className={styles.cardBody}>
+                      <p><strong>Type ID:</strong> {type.id}</p>
+                      <p style={{ color: '#666', fontSize: '0.9rem', marginTop: '8px' }}>
+                        Custom fee type created for specific needs
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <div style={{ 
+            marginTop: '30px', 
+            padding: '20px', 
+            background: '#E3F2FD', 
+            borderRadius: '8px',
+            border: '1px solid #2196F3'
+          }}>
+            <p style={{ margin: 0, color: '#1976D2' }}>
+              ℹ️ <strong>Note:</strong> Custom fee types are automatically created when you add a fee structure 
+              with a custom fee category. You can use any name you want when creating fee structures.
+            </p>
+          </div>
+        </>
       ) : (
         <div className={styles.grid}>
           {feeStructures.length === 0 ? (
@@ -113,7 +240,7 @@ const FeeManagement = () => {
         <FeeModal 
           fee={editingFee}
           onClose={() => setShowModal(false)}
-          onSuccess={() => { setShowModal(false); fetchFeeStructures(); }}
+          onSuccess={() => { setShowModal(false); fetchFeeStructures(); fetchCustomFeeTypes(); }}
         />
       )}
     </div>

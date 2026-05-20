@@ -4,6 +4,7 @@ const pool = require("../config/db");
 const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
+const { getEndpointPath, API_ENDPOINTS } = require('../config/api.config');
 
 // Configure multer for file uploads
 const upload = multer({
@@ -58,7 +59,7 @@ router.get("/classes", async (req, res) => {
 // Get students for a specific class - returns ALL columns including password fields
 router.get("/students/:className", async (req, res) => {
   const { className } = req.params;
-  const { includeInactive } = req.query; // Add query parameter to include inactive students
+  const { includeInactive, studentType } = req.query; // Add query parameters for filtering
   
   try {
     // Validate className to prevent SQL injection and ensure it's a valid table name
@@ -67,30 +68,53 @@ router.get("/students/:className", async (req, res) => {
       return res.status(400).json({ error: "Invalid class name provided." });
     }
 
-    // Check if is_active column exists
+    // Check which columns exist
     const columnCheck = await pool.query(
       `SELECT column_name FROM information_schema.columns 
-       WHERE table_schema = 'classes_schema' AND table_name = $1 AND column_name = 'is_active'`,
+       WHERE table_schema = 'classes_schema' AND table_name = $1 
+       AND column_name IN ('is_active', 'is_kg', 'is_evening_class', 'student_type')`,
       [className]
     );
     
-    // Build query with is_active filter if column exists
-    let query;
-    if (columnCheck.rowCount > 0) {
+    const existingColumns = columnCheck.rows.map(row => row.column_name);
+    const hasIsActive = existingColumns.includes('is_active');
+    const hasStudentType = existingColumns.includes('student_type');
+    const hasIsKg = existingColumns.includes('is_kg');
+    const hasIsEvening = existingColumns.includes('is_evening_class');
+    
+    // Build query with filters
+    let whereConditions = [];
+    
+    // Handle is_active filter
+    if (hasIsActive) {
       if (includeInactive === 'true') {
-        // Include all students (active and inactive)
-        query = `SELECT * FROM classes_schema."${className}" ORDER BY LOWER(student_name) ASC`;
+        // Include all students (no filter)
       } else if (includeInactive === 'only') {
-        // Only inactive students
-        query = `SELECT * FROM classes_schema."${className}" WHERE is_active = FALSE ORDER BY LOWER(student_name) ASC`;
+        whereConditions.push('is_active = FALSE');
       } else {
         // Only active students (default)
-        query = `SELECT * FROM classes_schema."${className}" WHERE is_active = TRUE OR is_active IS NULL ORDER BY LOWER(student_name) ASC`;
+        whereConditions.push('(is_active = TRUE OR is_active IS NULL)');
       }
-    } else {
-      // No is_active column, return all students
-      query = `SELECT * FROM classes_schema."${className}" ORDER BY LOWER(student_name) ASC`;
     }
+    
+    // Handle student type filter (KG, evening, regular)
+    if (studentType && hasStudentType) {
+      // studentType can be: 'kg', 'evening', 'kg_evening', 'regular'
+      whereConditions.push(`student_type = '${studentType}'`);
+    } else if (studentType === 'kg' && hasIsKg && !hasStudentType) {
+      // Fallback to is_kg column if student_type doesn't exist
+      whereConditions.push('is_kg = TRUE');
+    } else if (studentType === 'evening' && hasIsEvening && !hasStudentType) {
+      // Fallback to is_evening_class column if student_type doesn't exist
+      whereConditions.push('is_evening_class = TRUE');
+    }
+    
+    // Build final query
+    let query = `SELECT * FROM classes_schema."${className}"`;
+    if (whereConditions.length > 0) {
+      query += ` WHERE ${whereConditions.join(' AND ')}`;
+    }
+    query += ' ORDER BY LOWER(student_name) ASC';
     
     const result = await pool.query(query);
     res.json(result.rows);

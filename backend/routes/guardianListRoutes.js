@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const db = require("../config/db");
+const { getEndpointPath, API_ENDPOINTS } = require('../config/api.config');
 
 // Get all unique guardians aggregated from all class tables
 router.get("/guardians", async (req, res) => {

@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const pool = require("../config/db");
+const { getEndpointPath, API_ENDPOINTS } = require('../config/api.config');
 
 // Get all class names from school_schema_points.classes (actual student classes only)
 router.get("/classes", async (req, res) => {
@@ -23,18 +24,68 @@ router.get("/classes", async (req, res) => {
 // Get students for a specific class (for attendance marking)
 router.get("/students/:className", async (req, res) => {
   const { className } = req.params;
+  const { studentType } = req.query; // Filter by student type (kg, evening, regular, kg_evening)
+  
   try {
     const validTableName = /^[a-zA-Z0-9_]+$/.test(className);
     if (!validTableName) {
       return res.status(400).json({ error: "Invalid class name provided." });
     }
 
-    const result = await pool.query(`
+    // Check if student_type column exists
+    const columnCheck = await pool.query(`
+      SELECT column_name 
+      FROM information_schema.columns 
+      WHERE table_schema = 'classes_schema' 
+        AND table_name = $1 
+        AND column_name IN ('student_type', 'is_kg', 'is_evening_class')
+    `, [className]);
+
+    const hasStudentType = columnCheck.rows.some(row => row.column_name === 'student_type');
+    const hasIsKg = columnCheck.rows.some(row => row.column_name === 'is_kg');
+    const hasIsEvening = columnCheck.rows.some(row => row.column_name === 'is_evening_class');
+
+    let query = `
       SELECT school_id, class_id, student_name, age, gender, image_student
+    `;
+
+    // Add student type columns if they exist
+    if (hasStudentType) {
+      query += `, student_type`;
+    }
+    if (hasIsKg) {
+      query += `, is_kg`;
+    }
+    if (hasIsEvening) {
+      query += `, is_evening_class`;
+    }
+
+    query += `
       FROM classes_schema."${className}"
-      WHERE is_active = TRUE OR is_active IS NULL
-      ORDER BY LOWER(student_name) ASC
-    `);
+      WHERE (is_active = TRUE OR is_active IS NULL)
+    `;
+
+    // Apply student type filter if provided
+    if (studentType && studentType !== 'all') {
+      if (hasStudentType) {
+        query += ` AND student_type = '${studentType}'`;
+      } else if (hasIsKg && hasIsEvening) {
+        // Fallback to individual columns
+        if (studentType === 'kg') {
+          query += ` AND is_kg = TRUE AND is_evening_class = FALSE`;
+        } else if (studentType === 'evening') {
+          query += ` AND is_evening_class = TRUE AND is_kg = FALSE`;
+        } else if (studentType === 'kg_evening') {
+          query += ` AND is_kg = TRUE AND is_evening_class = TRUE`;
+        } else if (studentType === 'regular') {
+          query += ` AND (is_kg = FALSE OR is_kg IS NULL) AND (is_evening_class = FALSE OR is_evening_class IS NULL)`;
+        }
+      }
+    }
+
+    query += ` ORDER BY LOWER(student_name) ASC`;
+
+    const result = await pool.query(query);
     res.json(result.rows);
   } catch (error) {
     console.error(`Error fetching students for ${className}:`, error);

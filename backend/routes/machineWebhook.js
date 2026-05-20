@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const pool = require('../config/db');
+const { getEndpointPath, API_ENDPOINTS } = require('../config/api.config');
 
 /**
  * Webhook endpoint to receive attendance data from AI06 machine

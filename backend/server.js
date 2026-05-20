@@ -33,6 +33,7 @@ const { initializeDatabase } = require('./config/initDatabase');
 const { securityHeaders, httpsRedirect, preventParamPollution, xssProtection, suspiciousActivityLogger } = require('./middleware/security');
 const { apiLimiter, loginLimiter } = require('./middleware/rateLimiter');
 const { sanitizeInputs } = require('./middleware/inputValidation');
+const { sanitizeRequest, preventInjection } = require('./middleware/sanitizeRequest');
 
 // Route imports
 const healthRoutes = require('./routes/healthRoutes');
@@ -64,6 +65,7 @@ const guardianPaymentsRoutes = require('./routes/guardianPayments');
 const guardianNotificationRoutes = require('./routes/guardianNotificationRoutes');
 const subAccountRoutes = require('./routes/subAccountRoutes');
 const reportsRoutes = require('./routes/reportsRoutes');
+const branchRoutes = require('./routes/branchRoutes');
 const financeReportsRoutes = require('./routes/finance/dashboardReports');
 const inventoryReportsRoutes = require('./routes/inventory/dashboardReports');
 const hrReportsRoutes = require('./routes/hr/dashboardReports');
@@ -247,8 +249,10 @@ app.use('/api/staff/login', loginLimiter);
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// 7. Input sanitization
-app.use(sanitizeInputs);
+// 7. Input sanitization (comprehensive)
+app.use(sanitizeRequest);
+app.use(preventInjection);
+app.use(sanitizeInputs); // Keep existing for backward compatibility
 
 // 8. Prevent parameter pollution
 app.use(preventParamPollution);
@@ -273,6 +277,9 @@ app.use('/uploads/branding', express.static(path.join(__dirname, 'uploads/brandi
 app.get('/api/health', (req, res) => {
   res.json({ status: 'OK', message: 'Server is running' });
 });
+
+// Public About Us route (no authentication required)
+app.use('/api/public/about-us', require('./routes/aboutUsRoutes'));
 
 // Test route to broadcast attendance event (for debugging)
 app.get('/api/test-attendance', (req, res) => {
@@ -308,6 +315,7 @@ app.use('/api/faults', studentFaultsRoutes);
 app.use('/api/mark-list', markListRoutes);
 app.use('/api/student-activities', studentActivitiesRoutes);
 app.use('/api/evaluations', evaluationRoutes);
+app.use('/api/kg-evaluations', require('./routes/kgEvaluationRoutes')); // KG-specific evaluation module
 app.use('/api/staff', staffRoutes);
 app.use('/api/posts', postRoutes);
 app.use('/api/chats', chatRoutes); 
@@ -316,6 +324,7 @@ app.use('/api/school-setup', schoolSetupRoutes);
 app.use('/api/task6', task6Routes);
 app.use('/api/dashboard', dashboardRoutes); // This is CORRECT - dashboardRoutes will have routes like '/stats'
 app.use('/api/admin', adminRoutes);
+app.use('/api/user-profile', require('./routes/userProfileRoutes')); // Username and password change for all user types
 app.use('/api/guardian-list', guardianListRoutes);
 app.use('/api/student-attendance', studentAttendanceRoutes);
 app.use('/api/class-teacher', classTeacherRoutes);
@@ -348,6 +357,7 @@ app.use('/api/finance/invoices', financeInvoiceRoutes);
 app.use('/api/finance/payments', financePaymentRoutes);
 app.use('/api/finance/monthly-payments', financeMonthlyPaymentRoutes);
 app.use('/api/finance/monthly-payments-view', financeMonthlyPaymentViewRoutes);
+app.use('/api/year-rollover', require('./routes/yearRollover')); // Year rollover routes
 app.use('/api/finance/simple-invoices', financeSimpleInvoiceRoutes);
 app.use('/api/finance/progressive-invoices', financeProgressiveInvoiceRoutes);
 app.use('/api/finance', financeClassStudentRoutes);
@@ -359,6 +369,7 @@ app.use('/api/settings', settingsRoutes);
 app.use('/api/academic/student-attendance', academicStudentAttendanceRoutes);
 app.use('/api/tasks', taskStatusRoutes);
 app.use('/api/device-users', deviceUserManagementRoutes); // Device user persistence management
+app.use('/api/v2/branches', branchRoutes); // Multi-branch architecture routes
 
 // ===========================================
 // AI06 WEBSOCKET SERVICE

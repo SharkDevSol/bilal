@@ -24,6 +24,7 @@ const translations = {
   en: {
     // Navigation
     dashboard: 'Dashboard',
+    dashboardSubtitle: 'Overview of school management system',
     registration: 'Registration',
     registerStudent: 'Register Student',
     registerStaff: 'Register Staff',
@@ -148,6 +149,29 @@ const translations = {
     noStudentsFound: 'No Students Found',
     noStaffFound: 'No Staff Found',
     tryAdjustingFilters: 'Try adjusting your search or filters',
+    // Dashboard
+    totalStudents: 'Total Students',
+    attendanceRate: 'Attendance Rate',
+    feeCollectionRate: 'Fee Collection Rate',
+    vsLastMonth: 'vs last month',
+    vsYesterday: 'vs yesterday',
+    attendanceTrend: 'Attendance Trend',
+    enrollmentTrend: 'Enrollment Trend',
+    financialOverview: 'Financial Overview',
+    last30Days: 'Last 30 days',
+    thisAcademicYear: 'This academic year',
+    currentMonth: 'Current month',
+    chartPlaceholder: 'Chart visualization will be implemented here',
+    recentActivity: 'Recent Activity',
+    latestActions: 'Latest actions in the system',
+    upcomingEvents: 'Upcoming Events',
+    scheduledEvents: 'Scheduled exams and events',
+    noRecentActivity: 'No recent activity',
+    noUpcomingEvents: 'No upcoming events',
+    lastUpdated: 'Last updated',
+    minutesAgo: 'minutes ago',
+    hoursAgo: 'hours ago',
+    daysAgo: 'days ago',
     documents: 'Documents',
     document: 'Document',
     basicInformation: 'Basic Information',
@@ -758,6 +782,7 @@ const translations = {
   },
   am: {
     dashboard: 'ዳሽቦርድ',
+    dashboardSubtitle: 'የትምህርት ቤት አስተዳደር ስርዓት አጠቃላይ እይታ',
     registration: 'ምዝገባ',
     registerStudent: 'ተማሪ መዝግብ',
     registerStaff: 'ሰራተኛ መዝግብ',
@@ -823,6 +848,29 @@ const translations = {
     all: 'ሁሉም',
     noDataFound: 'ምንም መረጃ አልተገኘም',
     actions: 'ድርጊቶች',
+    // Dashboard
+    totalStudents: 'ጠቅላላ ተማሪዎች',
+    attendanceRate: 'የመገኘት መጠን',
+    feeCollectionRate: 'የክፍያ ስብስብ መጠን',
+    vsLastMonth: 'ካለፈው ወር ጋር',
+    vsYesterday: 'ከትናንት ጋር',
+    attendanceTrend: 'የመገኘት አዝማሚያ',
+    enrollmentTrend: 'የምዝገባ አዝማሚያ',
+    financialOverview: 'የገንዘብ አጠቃላይ እይታ',
+    last30Days: 'ባለፉት 30 ቀናት',
+    thisAcademicYear: 'በዚህ የትምህርት ዓመት',
+    currentMonth: 'የአሁኑ ወር',
+    chartPlaceholder: 'የገበታ ምስላዊ እዚህ ይተገበራል',
+    recentActivity: 'የቅርብ ጊዜ እንቅስቃሴ',
+    latestActions: 'በስርዓቱ ውስጥ የቅርብ ጊዜ ድርጊቶች',
+    upcomingEvents: 'መጪ ዝግጅቶች',
+    scheduledEvents: 'የታቀዱ ፈተናዎች እና ዝግጅቶች',
+    noRecentActivity: 'ምንም የቅርብ ጊዜ እንቅስቃሴ የለም',
+    noUpcomingEvents: 'ምንም መጪ ዝግጅቶች የሉም',
+    lastUpdated: 'መጨረሻ የዘመነው',
+    minutesAgo: 'ደቂቃዎች በፊት',
+    hoursAgo: 'ሰዓታት በፊት',
+    daysAgo: 'ቀናት በፊት',
     // List Pages
     studentDirectory: 'የተማሪዎች ማውጫ',
     studentDirectoryDesc: 'ሁሉንም ተማሪዎች እና ሰነዶቻቸውን ያስተዳድሩ',
@@ -1352,6 +1400,7 @@ const translations = {
   },
   ar: {
     dashboard: 'لوحة التحكم',
+    dashboardSubtitle: 'نظرة عامة على نظام إدارة المدرسة',
     registration: 'التسجيل',
     registerStudent: 'تسجيل طالب',
     registerStaff: 'تسجيل موظف',
@@ -1417,6 +1466,29 @@ const translations = {
     all: 'الكل',
     noDataFound: 'لم يتم العثور على بيانات',
     actions: 'الإجراءات',
+    // Dashboard
+    totalStudents: 'إجمالي الطلاب',
+    attendanceRate: 'معدل الحضور',
+    feeCollectionRate: 'معدل تحصيل الرسوم',
+    vsLastMonth: 'مقارنة بالشهر الماضي',
+    vsYesterday: 'مقارنة بالأمس',
+    attendanceTrend: 'اتجاه الحضور',
+    enrollmentTrend: 'اتجاه التسجيل',
+    financialOverview: 'نظرة عامة مالية',
+    last30Days: 'آخر 30 يومًا',
+    thisAcademicYear: 'هذا العام الدراسي',
+    currentMonth: 'الشهر الحالي',
+    chartPlaceholder: 'سيتم تنفيذ تصور الرسم البياني هنا',
+    recentActivity: 'النشاط الأخير',
+    latestActions: 'أحدث الإجراءات في النظام',
+    upcomingEvents: 'الأحداث القادمة',
+    scheduledEvents: 'الامتحانات والأحداث المجدولة',
+    noRecentActivity: 'لا يوجد نشاط حديث',
+    noUpcomingEvents: 'لا توجد أحداث قادمة',
+    lastUpdated: 'آخر تحديث',
+    minutesAgo: 'دقائق مضت',
+    hoursAgo: 'ساعات مضت',
+    daysAgo: 'أيام مضت',
     // List Pages
     studentDirectory: 'دليل الطلاب',
     studentDirectoryDesc: 'إدارة جميع الطلاب ووثائقهم',
@@ -1998,7 +2070,7 @@ export const AppProvider = ({ children }) => {
 
       // Then load branding from database (this overrides localStorage)
       try {
-        const response = await axios.get(`${import.meta.env.VITE_API_URL}/admin/branding`);
+        const response = await axios.get(`${import.meta.env.VITE_API_URL}/settings/branding`);
         const data = response.data;
         
         // Update website name from database

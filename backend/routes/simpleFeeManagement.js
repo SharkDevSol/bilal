@@ -1,7 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const pool = require('../config/db');
-const { authenticateToken } = require('../middleware/auth');
+const { authenticateWithBranch, validateBranchCode } = require('../middleware/branchAuth');
+const { getEndpointPath, API_ENDPOINTS } = require('../config/api.config');
 
 // Simple fee management table initialization
 const initializeFeeManagementTable = async () => {
@@ -35,8 +36,9 @@ initializeFeeManagementTable();
 /**
  * GET /api/simple-fees/metadata
  * Get academic years, terms, and classes for dropdowns
+ * V2 Enhancement: Retrieves term data from Task1 configuration
  */
-router.get('/metadata', authenticateToken, async (req, res) => {
+router.get('/metadata', authenticateWithBranch, async (req, res) => {
   console.log('\n📥 GET /api/simple-fees/metadata - Request received');
   
   try {
@@ -50,6 +52,16 @@ router.get('/metadata', authenticateToken, async (req, res) => {
     
     const classes = classesResult.rows.map(row => row.table_name);
     
+    // V2 Enhancement: Get academic year from Task1 configuration (schedule_schema.school_config)
+    const scheduleConfigResult = await pool.query(`
+      SELECT academic_year, current_term 
+      FROM schedule_schema.school_config 
+      WHERE id = 1
+    `);
+    
+    const scheduleConfig = scheduleConfigResult.rows[0];
+    const currentAcademicYear = scheduleConfig?.academic_year || new Date().getFullYear().toString();
+    
     // Get unique academic years from existing fee structures
     const yearsResult = await pool.query(`
       SELECT DISTINCT academic_year 
@@ -59,30 +71,54 @@ router.get('/metadata', authenticateToken, async (req, res) => {
     
     const academicYears = yearsResult.rows.map(row => row.academic_year);
     
-    // Add current year if not present
-    const currentYear = new Date().getFullYear().toString();
-    if (!academicYears.includes(currentYear)) {
-      academicYears.unshift(currentYear);
+    // Add current academic year from Task1 if not present
+    if (!academicYears.includes(currentAcademicYear)) {
+      academicYears.unshift(currentAcademicYear);
     }
     
-    // Predefined terms
-    const terms = ['Term 1', 'Term 2', 'Term 3', 'Semester 1', 'Semester 2'];
+    // V2 Enhancement: Get term count from Task1 configuration (subjects_of_school_schema.school_config)
+    const termConfigResult = await pool.query(`
+      SELECT term_count 
+      FROM subjects_of_school_schema.school_config 
+      WHERE id = 1
+    `);
     
-    console.log(`✅ Found ${classes.length} classes, ${academicYears.length} academic years`);
+    const termCount = termConfigResult.rows[0]?.term_count || 2;
+    
+    // Generate terms based on term count from Task1
+    const terms = [];
+    for (let i = 1; i <= termCount; i++) {
+      terms.push(`Term ${i}`);
+    }
+    
+    console.log(`✅ Found ${classes.length} classes, ${academicYears.length} academic years, ${termCount} terms (from Task1)`);
     
     res.json({
       success: true,
       data: {
         classes,
         academicYears,
-        terms
+        terms,
+        currentAcademicYear, // V2: Include current academic year from Task1
+        termCount // V2: Include term count from Task1
       }
     });
   } catch (error) {
     console.error('Error fetching metadata:', error);
+    
+    // Specific error messages based on error type
+    let errorMessage = 'Failed to fetch fee management metadata';
+    if (error.message.includes('classes_schema')) {
+      errorMessage = 'Unable to retrieve class information. Please ensure classes are configured in Task2.';
+    } else if (error.message.includes('schedule_schema')) {
+      errorMessage = 'Unable to retrieve academic year configuration. Please complete Task1 setup.';
+    } else if (error.message.includes('subjects_of_school_schema')) {
+      errorMessage = 'Unable to retrieve term configuration. Please complete Task4 setup.';
+    }
+    
     res.status(500).json({
       success: false,
-      error: 'Failed to fetch metadata',
+      error: errorMessage,
       details: error.message
     });
   }
@@ -92,7 +128,7 @@ router.get('/metadata', authenticateToken, async (req, res) => {
  * GET /api/simple-fees
  * Get all fee structures
  */
-router.get('/', authenticateToken, async (req, res) => {
+router.get('/', authenticateWithBranch, async (req, res) => {
   console.log('\n📥 GET /api/simple-fees - Request received');
   console.log('User:', req.user);
   
@@ -126,7 +162,7 @@ router.get('/', authenticateToken, async (req, res) => {
     console.error('Error fetching fee structures:', error);
     res.status(500).json({
       success: false,
-      error: 'Failed to fetch fee structures',
+      error: 'Failed to fetch fee structures. Please check your database connection.',
       details: error.message
     });
   }
@@ -136,7 +172,7 @@ router.get('/', authenticateToken, async (req, res) => {
  * POST /api/simple-fees
  * Create a new fee structure
  */
-router.post('/', authenticateToken, async (req, res) => {
+router.post('/', authenticateWithBranch, async (req, res) => {
   console.log('\n📥 POST /api/simple-fees - Request received');
   console.log('User:', req.user);
   console.log('Body:', req.body);
@@ -159,7 +195,31 @@ router.post('/', authenticateToken, async (req, res) => {
       return res.status(400).json({
         success: false,
         error: 'Missing required fields',
-        details: 'Name, academic year, amount, and fee type are required'
+        details: 'Fee name, academic year, amount, and fee type are required to create a fee structure.'
+      });
+    }
+    
+    if (!classNames || classNames.length === 0) {
+      return res.status(400).json({
+        success: false,
+        error: 'No classes selected',
+        details: 'Please select at least one class for this fee structure.'
+      });
+    }
+    
+    if (parseFloat(amount) <= 0) {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid amount',
+        details: 'Fee amount must be greater than zero.'
+      });
+    }
+    
+    if (feeType === 'CUSTOM' && !customFeeName) {
+      return res.status(400).json({
+        success: false,
+        error: 'Custom fee name required',
+        details: 'Please provide a name for your custom fee type.'
       });
     }
 
@@ -206,9 +266,18 @@ router.post('/', authenticateToken, async (req, res) => {
     });
   } catch (error) {
     console.error('Error creating fee structure:', error);
+    
+    // Specific error messages
+    let errorMessage = 'Failed to create fee structure';
+    if (error.code === '23505') { // Unique constraint violation
+      errorMessage = 'A fee structure with this configuration already exists.';
+    } else if (error.code === '23503') { // Foreign key violation
+      errorMessage = 'Invalid class or configuration reference. Please check your selections.';
+    }
+    
     res.status(500).json({
       success: false,
-      error: 'Failed to create fee structure',
+      error: errorMessage,
       details: error.message
     });
   }
@@ -218,7 +287,7 @@ router.post('/', authenticateToken, async (req, res) => {
  * PUT /api/simple-fees/:id
  * Update a fee structure
  */
-router.put('/:id', authenticateToken, async (req, res) => {
+router.put('/:id', authenticateWithBranch, async (req, res) => {
   console.log('\n📥 PUT /api/simple-fees/:id - Request received');
   console.log('User:', req.user);
   console.log('ID:', req.params.id);
@@ -297,9 +366,16 @@ router.put('/:id', authenticateToken, async (req, res) => {
     });
   } catch (error) {
     console.error('Error updating fee structure:', error);
+    
+    // Specific error messages
+    let errorMessage = 'Failed to update fee structure';
+    if (error.code === '23505') {
+      errorMessage = 'A fee structure with this configuration already exists.';
+    }
+    
     res.status(500).json({
       success: false,
-      error: 'Failed to update fee structure',
+      error: errorMessage,
       details: error.message
     });
   }
@@ -309,7 +385,7 @@ router.put('/:id', authenticateToken, async (req, res) => {
  * DELETE /api/simple-fees/:id
  * Delete a fee structure
  */
-router.delete('/:id', authenticateToken, async (req, res) => {
+router.delete('/:id', authenticateWithBranch, async (req, res) => {
   console.log('\n📥 DELETE /api/simple-fees/:id - Request received');
   console.log('User:', req.user);
   console.log('ID:', req.params.id);
@@ -338,9 +414,16 @@ router.delete('/:id', authenticateToken, async (req, res) => {
     });
   } catch (error) {
     console.error('Error deleting fee structure:', error);
+    
+    // Specific error messages
+    let errorMessage = 'Failed to delete fee structure';
+    if (error.code === '23503') { // Foreign key violation
+      errorMessage = 'Cannot delete this fee structure as it is referenced by existing payment records.';
+    }
+    
     res.status(500).json({
       success: false,
-      error: 'Failed to delete fee structure',
+      error: errorMessage,
       details: error.message
     });
   }

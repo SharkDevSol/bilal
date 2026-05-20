@@ -20,6 +20,15 @@ function TaskDetail() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [academicYear, setAcademicYear] = useState('');
+  
+  // V2 Enhancement: Additional Task 1 configuration options
+  const [shiftCount, setShiftCount] = useState(1);
+  const [shiftRotation, setShiftRotation] = useState(false);
+  const [periodsPerShift, setPeriodsPerShift] = useState(7);
+  const [periodDuration, setPeriodDuration] = useState(45);
+  const [hasKG, setHasKG] = useState(false);
+  const [hasEveningClass, setHasEveningClass] = useState(false);
+  const [schoolDays, setSchoolDays] = useState([1, 2, 3, 4, 5]); // Monday-Friday by default
 
   // Schedule status state for Task 7
   const [scheduleStatus, setScheduleStatus] = useState({
@@ -60,7 +69,7 @@ function TaskDetail() {
     }
   };
 
-  const TOTAL_TASKS = 7;
+  const TOTAL_TASKS = 6;
   
   const handleComplete = async () => {
     const id = parseInt(taskId);
@@ -130,7 +139,7 @@ function TaskDetail() {
     setLoading(true);
     setError(null);
     try {
-      // Save schedule config
+      // Save schedule config with V2 enhancements
       const response = await fetch(`${API_BASE_URL}/schedule/config`, {
         method: 'PUT',
         headers: {
@@ -138,12 +147,15 @@ function TaskDetail() {
         },
         body: JSON.stringify({ 
           terms,
-          periods_per_shift: 7,
-          period_duration: 45,
+          periods_per_shift: periodsPerShift,
+          period_duration: periodDuration,
           short_break_duration: 10,
-          total_shifts: 2,
-          teaching_days_per_week: 5,
-          school_days: [1,2,3,4,5],
+          total_shifts: shiftCount,
+          shift_rotation: shiftRotation,
+          teaching_days_per_week: schoolDays.length,
+          school_days: schoolDays,
+          has_kg: hasKG,
+          has_evening_class: hasEveningClass,
           shift1_morning_start: '07:00',
           shift1_morning_end: '12:30',
           shift1_afternoon_start: '12:30',
@@ -176,9 +188,9 @@ function TaskDetail() {
     }
   };
 
-  // Check schedule status when Task 7 component mounts
+  // Check schedule status when Task 6 component mounts
   useEffect(() => {
-    if (taskId === '7') {
+    if (taskId === '6') {
       checkScheduleCreated();
     }
   }, [taskId]);
@@ -249,6 +261,163 @@ function TaskDetail() {
                 <option key={t} value={t}>{t} Term{t > 1 ? 's' : ''}</option>
               ))}
             </select>
+          </div>
+
+          {/* V2 Enhancement: School Days Selector */}
+          <div className={styles.formGroup}>
+            <label className={styles.label}>School Days:</label>
+            <p style={{ fontSize: '0.85rem', color: '#666', marginTop: '4px', marginBottom: '12px' }}>
+              Select which days of the week school is in session
+            </p>
+            <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+              {[
+                { value: 0, label: 'Sunday' },
+                { value: 1, label: 'Monday' },
+                { value: 2, label: 'Tuesday' },
+                { value: 3, label: 'Wednesday' },
+                { value: 4, label: 'Thursday' },
+                { value: 5, label: 'Friday' },
+                { value: 6, label: 'Saturday' }
+              ].map(day => (
+                <label key={day.value} style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  padding: '8px 12px',
+                  backgroundColor: schoolDays.includes(day.value) ? '#e3f2fd' : '#f5f5f5',
+                  borderRadius: '6px',
+                  border: schoolDays.includes(day.value) ? '2px solid #2196F3' : '2px solid #e0e0e0',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease'
+                }}>
+                  <input
+                    type="checkbox"
+                    checked={schoolDays.includes(day.value)}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        setSchoolDays([...schoolDays, day.value].sort());
+                      } else {
+                        setSchoolDays(schoolDays.filter(d => d !== day.value));
+                      }
+                    }}
+                    style={{ width: '16px', height: '16px' }}
+                  />
+                  <span style={{ fontWeight: schoolDays.includes(day.value) ? '600' : '400' }}>
+                    {day.label}
+                  </span>
+                </label>
+              ))}
+            </div>
+          </div>
+
+          {/* V2 Enhancement: Shift Count Selector */}
+          <div className={styles.formGroup}>
+            <label htmlFor="shiftCount" className={styles.label}>Number of Shifts:</label>
+            <select 
+              id="shiftCount"
+              value={shiftCount}
+              onChange={(e) => setShiftCount(parseInt(e.target.value))}
+              className={styles.select}
+            >
+              <option value={1}>1 Shift (All classes same time)</option>
+              <option value={2}>2 Shifts (Morning & Afternoon)</option>
+            </select>
+            <p style={{ fontSize: '0.85rem', color: '#666', marginTop: '4px' }}>
+              {shiftCount === 1 
+                ? 'All classes will attend at the same time' 
+                : 'Classes will be divided into morning and afternoon shifts'}
+            </p>
+          </div>
+
+          {/* V2 Enhancement: Shift Rotation (only show if 2 shifts) */}
+          {shiftCount === 2 && (
+            <div className={styles.formGroup}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}>
+                <input
+                  type="checkbox"
+                  checked={shiftRotation}
+                  onChange={(e) => setShiftRotation(e.target.checked)}
+                  style={{ width: '18px', height: '18px' }}
+                />
+                <span className={styles.label} style={{ marginBottom: 0 }}>
+                  Enable Shift Rotation
+                </span>
+              </label>
+              <p style={{ fontSize: '0.85rem', color: '#666', marginTop: '4px' }}>
+                When enabled, classes will alternate between morning and afternoon shifts weekly
+              </p>
+            </div>
+          )}
+
+          {/* V2 Enhancement: Periods Per Shift */}
+          <div className={styles.formGroup}>
+            <label htmlFor="periodsPerShift" className={styles.label}>Periods Per Shift:</label>
+            <input
+              type="number"
+              id="periodsPerShift"
+              value={periodsPerShift}
+              onChange={(e) => setPeriodsPerShift(parseInt(e.target.value))}
+              min="4"
+              max="10"
+              className={styles.select}
+            />
+            <p style={{ fontSize: '0.85rem', color: '#666', marginTop: '4px' }}>
+              Number of teaching periods in each shift (typically 6-8)
+            </p>
+          </div>
+
+          {/* V2 Enhancement: Period Duration */}
+          <div className={styles.formGroup}>
+            <label htmlFor="periodDuration" className={styles.label}>Period Duration (minutes):</label>
+            <input
+              type="number"
+              id="periodDuration"
+              value={periodDuration}
+              onChange={(e) => setPeriodDuration(parseInt(e.target.value))}
+              min="30"
+              max="60"
+              step="5"
+              className={styles.select}
+            />
+            <p style={{ fontSize: '0.85rem', color: '#666', marginTop: '4px' }}>
+              Duration of each teaching period (typically 40-50 minutes)
+            </p>
+          </div>
+
+          {/* V2 Enhancement: KG Checkbox */}
+          <div className={styles.formGroup}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}>
+              <input
+                type="checkbox"
+                checked={hasKG}
+                onChange={(e) => setHasKG(e.target.checked)}
+                style={{ width: '18px', height: '18px' }}
+              />
+              <span className={styles.label} style={{ marginBottom: 0 }}>
+                School has Kindergarten (KG) classes
+              </span>
+            </label>
+            <p style={{ fontSize: '0.85rem', color: '#666', marginTop: '4px' }}>
+              Enable this if your school has KG classes with different schedules
+            </p>
+          </div>
+
+          {/* V2 Enhancement: Evening Class Checkbox */}
+          <div className={styles.formGroup}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}>
+              <input
+                type="checkbox"
+                checked={hasEveningClass}
+                onChange={(e) => setHasEveningClass(e.target.checked)}
+                style={{ width: '18px', height: '18px' }}
+              />
+              <span className={styles.label} style={{ marginBottom: 0 }}>
+                School has Evening classes
+              </span>
+            </label>
+            <p style={{ fontSize: '0.85rem', color: '#666', marginTop: '4px' }}>
+              Enable this if your school offers evening classes for adult education or special programs
+            </p>
           </div>
 
           {/* Language Selection Section */}
@@ -389,54 +558,6 @@ function TaskDetail() {
   if (taskId === '4') {
     return (
       <div className={styles.container}>
-        <h1 className={styles.title}>Add Staff Members</h1>
-        <p className={styles.description}>
-          Select a staff type and add members using the existing forms.
-        </p>
-        <div className={styles.contentArea}>
-          <CreateRegisterStaff />
-        </div>
-        <div style={{ 
-          marginTop: '2rem', 
-          padding: '2rem', 
-          backgroundColor: '#f0f9ff', 
-          borderRadius: '8px',
-          border: '2px solid #667eea',
-          textAlign: 'center'
-        }}>
-          <button 
-            onClick={() => {
-              console.log('🔴 BUTTON CLICKED - Task 4');
-              alert('Button clicked! Check console for details.');
-              handleComplete();
-            }}
-            className={styles.completeButton}
-            style={{
-              fontSize: '18px',
-              padding: '16px 32px',
-              backgroundColor: '#667eea',
-              color: 'white',
-              border: 'none',
-              borderRadius: '8px',
-              cursor: 'pointer',
-              fontWeight: 'bold',
-              zIndex: 9999,
-              position: 'relative'
-            }}
-          >
-            ✓ Complete Task 4
-          </button>
-          <p style={{ marginTop: '1rem', color: '#666' }}>
-            Click after adding at least one staff member using the forms above.
-          </p>
-        </div>
-      </div>
-    );
-  }
-
-  if (taskId === '5') {
-    return (
-      <div className={styles.container}>
         <h1 className={styles.title}>Configure Subjects and Classes</h1>
         <p className={styles.description}>
           Set up subjects and map them to classes for your school.
@@ -449,7 +570,7 @@ function TaskDetail() {
     );
   }
 
-  if (taskId === '6') {
+  if (taskId === '5') {
     const [mergeLoading, setMergeLoading] = useState(false);
     const [mergeData, setMergeData] = useState([]);
     const [stats, setStats] = useState(null);
@@ -598,11 +719,11 @@ function TaskDetail() {
 
     return (
       <div className={styles.container}>
-        <h1 className={styles.title}>Task 6: Assign Teachers to Classes and Subjects</h1>
+        <h1 className={styles.title}>Task 5: Assign Teachers to Classes and Subjects</h1>
         <p className={styles.description}>
           Manually assign teachers to their respective classes and subjects for scheduling and period management.
           <br />
-          <strong>Important:</strong> Teacher work time (Full-Time/Part-Time) will be used for automatic schedule generation in Task 7.
+          <strong>Important:</strong> Teacher work time (Full-Time/Part-Time) will be used for automatic schedule generation in Task 6.
         </p>
         
         <div className={styles.contentArea}>
@@ -661,17 +782,17 @@ function TaskDetail() {
                 <div className={styles.requirements}>
                   <ul>
                     <li className={classSubjects.length === 0 ? styles.pending : styles.completed}>
-                      {classSubjects.length === 0 ? '✗' : '✓'} Task 5: Configure Subjects and Classes
+                      {classSubjects.length === 0 ? '✗' : '✓'} Task 4: Configure Subjects and Classes
                     </li>
                     <li className={teachers.length === 0 ? styles.pending : styles.completed}>
-                      {teachers.length === 0 ? '✗' : '✓'} Task 4: Add Staff Members (with Teacher role)
+                      {teachers.length === 0 ? '✗' : '✓'} Task 3: Add Staff Members (with Teacher role)
                     </li>
                   </ul>
                   {classSubjects.length === 0 && (
-                    <p className={styles.warning}>No class-subject mappings found. Complete Task 5 first.</p>
+                    <p className={styles.warning}>No class-subject mappings found. Complete Task 4 first.</p>
                   )}
                   {teachers.length === 0 && (
-                    <p className={styles.warning}>No teachers found. Add teachers in Task 4 first.</p>
+                    <p className={styles.warning}>No teachers found. Add teachers in Task 3 first.</p>
                   )}
                 </div>
               </div>
@@ -777,7 +898,7 @@ function TaskDetail() {
             className={`${styles.completeButton} ${!canCompleteTask ? styles.disabled : ''}`}
             disabled={!canCompleteTask}
           >
-            {canCompleteTask ? 'Complete Task 6' : 'Complete Assignments First'}
+            {canCompleteTask ? 'Complete Task 5' : 'Complete Assignments First'}
           </button>
           
           {!canCompleteTask && (
@@ -790,12 +911,12 @@ function TaskDetail() {
     );
   }
 
-  if (taskId === '7') {
+  if (taskId === '6') {
     return (
       <div className={styles.container}>
-        <h1 className={styles.title}>Task 7: Schedule Configuration & Generation</h1>
+        <h1 className={styles.title}>Task 6: Schedule Configuration & Generation</h1>
         <p className={styles.description}>
-          Configure school schedule settings and generate timetables using teacher assignments from Task 6.
+          Configure school schedule settings and generate timetables using teacher assignments from Task 5.
           <br />
           <strong>Important:</strong> The system will schedule exactly the assigned number of periods - no more, no less.
         </p>

@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const pool = require('../config/db');
 const { generateAttendanceReport } = require('../utils/attendanceReportGenerator');
+const { getEndpointPath, API_ENDPOINTS } = require('../config/api.config');
 
 // Get all attendance tables for a class (weekly attendance)
 router.get('/tables/:className', async (req, res) => {

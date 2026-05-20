@@ -3,13 +3,15 @@ const router = express.Router();
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const pool = require('../config/db');
+const { getEndpointPath } = require('../config/api.config');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 require('dotenv').config();
 
 // Security middleware
-const { authenticateToken, authorizeRoles } = require('../middleware/auth');
+const { authorizeRoles } = require('../middleware/auth');
+const { authenticateWithBranch, validateBranchCode } = require('../middleware/branchAuth');
 const { generateToken } = require('../middleware/jwtValidator');
 const { validate, schemas } = require('../middleware/inputValidation');
 const { fileValidator, multerFileFilter } = require('../middleware/fileValidation');
@@ -137,7 +139,7 @@ const initializeAdminTable = async () => {
 initializeAdminTable();
 
 // Verify token endpoint - check if token is still valid
-router.get('/verify-token', authenticateToken, (req, res) => {
+router.get(getEndpointPath('ADMIN.PROFILE').replace('/api/admin/profile', '/verify-token'), authenticateWithBranch, (req, res) => {
   res.json({
     valid: true,
     user: {
@@ -150,7 +152,7 @@ router.get('/verify-token', authenticateToken, (req, res) => {
 });
 
 // Admin Login (supports both primary admin and sub-accounts)
-router.post('/login', async (req, res) => {
+router.post(getEndpointPath('AUTH.ADMIN_LOGIN').replace('/api/admin', ''), async (req, res) => {
   try {
     const { username, password } = req.body;
 
@@ -269,7 +271,7 @@ router.post('/login', async (req, res) => {
 });
 
 // Change admin password (protected route)
-router.post('/change-password', authenticateToken, async (req, res) => {
+router.post(getEndpointPath('SETTINGS.PASSWORD').replace('/api/settings', ''), authenticateWithBranch, async (req, res) => {
   try {
     const { username, currentPassword, newPassword } = req.body;
 
@@ -315,7 +317,7 @@ router.post('/change-password', authenticateToken, async (req, res) => {
 });
 
 // Get branding settings
-router.get('/branding', async (req, res) => {
+router.get(getEndpointPath('SETTINGS.BRANDING').replace('/api/settings', ''), async (req, res) => {
   try {
     const result = await pool.query('SELECT * FROM branding_settings WHERE id = 1');
     if (result.rows.length === 0) {
@@ -335,7 +337,7 @@ router.get('/branding', async (req, res) => {
 });
 
 // Update branding settings (protected - admin and sub-accounts with settings permission)
-router.put('/branding', authenticateToken, authorizeRoles('admin', 'sub-account'), async (req, res) => {
+router.put(getEndpointPath('SETTINGS.BRANDING').replace('/api/settings', ''), authenticateWithBranch, authorizeRoles('admin', 'sub-account'), async (req, res) => {
   try {
     const { website_name, primary_color, secondary_color, theme_mode, school_address, school_phone, school_email, academic_year } = req.body;
     
@@ -362,7 +364,7 @@ router.put('/branding', authenticateToken, authorizeRoles('admin', 'sub-account'
 });
 
 // Upload branding icon (protected - admin and sub-accounts with settings permission)
-router.post('/branding/icon', authenticateToken, authorizeRoles('admin', 'sub-account'), uploadLimiter, upload.single('icon'), fileValidator, async (req, res) => {
+router.post(getEndpointPath('SETTINGS.BRANDING').replace('/api/settings', '') + '/icon', authenticateWithBranch, authorizeRoles('admin', 'sub-account'), uploadLimiter, upload.single('icon'), fileValidator, async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ error: 'No file uploaded' });
@@ -399,7 +401,7 @@ router.post('/branding/icon', authenticateToken, authorizeRoles('admin', 'sub-ac
 });
 
 // Upload school logo (protected - admin and sub-accounts with settings permission)
-router.post('/branding/logo', authenticateToken, authorizeRoles('admin', 'sub-account'), uploadLimiter, upload.single('logo'), fileValidator, async (req, res) => {
+router.post(getEndpointPath('SETTINGS.BRANDING').replace('/api/settings', '') + '/logo', authenticateWithBranch, authorizeRoles('admin', 'sub-account'), uploadLimiter, upload.single('logo'), fileValidator, async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ error: 'No file uploaded' });

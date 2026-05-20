@@ -1,5 +1,6 @@
 const express = require('express');
 const pool = require('../config/db');
+const { getEndpointPath, API_ENDPOINTS } = require('../config/api.config');
 const router = express.Router();
 
 // Helper function to check if is_active column exists and build WHERE clause
@@ -433,6 +434,9 @@ router.post('/create-mark-forms', async (req, res) => {
     const additionalColumns = [
       'total DECIMAL(5,2) DEFAULT 0',
       'pass_status VARCHAR(10) DEFAULT \'Fail\'',
+      'is_locked BOOLEAN DEFAULT FALSE',
+      'locked_at TIMESTAMP',
+      'locked_by VARCHAR(100)',
       'created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP',
       'updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP'
     ];
@@ -481,6 +485,9 @@ router.post('/create-mark-forms', async (req, res) => {
         term_number INTEGER NOT NULL,
         mark_components JSONB NOT NULL,
         pass_threshold DECIMAL(5,2) DEFAULT 50.00,
+        is_locked BOOLEAN DEFAULT FALSE,
+        locked_at TIMESTAMP,
+        locked_by VARCHAR(100),
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         CONSTRAINT unique_class_term UNIQUE (class_name, term_number)
       )
@@ -649,6 +656,17 @@ router.put('/update-marks', async (req, res) => {
     }
     
     const config = configResult.rows[0];
+    
+    // V2 Enhancement: Check if marks are locked
+    if (config.is_locked === true) {
+      return res.status(403).json({ 
+        error: 'Mark list is locked',
+        message: `This mark list was locked by ${config.locked_by} on ${config.locked_at}. Contact an administrator to unlock it.`,
+        lockedBy: config.locked_by,
+        lockedAt: config.locked_at
+      });
+    }
+    
     const markComponents = config.mark_components;
     
     // Build update query
@@ -1830,6 +1848,174 @@ router.get('/guardian-marks/:guardianUsername', async (req, res) => {
   } catch (error) {
     console.error('Error fetching guardian marks:', error);
     res.status(500).json({ error: 'Failed to fetch guardian marks', details: error.message });
+  } finally {
+    client.release();
+  }
+});
+
+// Route to lock mark list (prevent further editing)
+router.post('/lock-marks', async (req, res) => {
+  const { subjectName, termNumber, lockedBy } = req.body;
+  const className = req.body.className?.toLowerCase();
+  
+  if (!subjectName || !className || !termNumber) {
+    return res.status(400).json({ error: 'Subject name, class name, and term number are required' });
+  }
+  
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    
+    const schemaName = `subject_${subjectName.toLowerCase().replace(/[\s\-\.]+/g, '_')}_schema`;
+    const tableName = `${className.toLowerCase()}_term_${termNumber}`;
+    
+    // Check if table exists
+    const tableCheck = await client.query(`
+      SELECT EXISTS (
+        SELECT FROM information_schema.tables 
+        WHERE table_schema = $1 AND table_name = $2
+      )
+    `, [schemaName, tableName]);
+    
+    if (!tableCheck.rows[0].exists) {
+      return res.status(404).json({ error: 'Mark list not found' });
+    }
+    
+    // Check if is_locked column exists, if not add it
+    const columnCheck = await client.query(`
+      SELECT column_name 
+      FROM information_schema.columns 
+      WHERE table_schema = $1 AND table_name = $2 AND column_name = 'is_locked'
+    `, [schemaName, tableName]);
+    
+    if (columnCheck.rows.length === 0) {
+      // Add is_locked, locked_at, locked_by columns
+      await client.query(`
+        ALTER TABLE ${schemaName}.${tableName}
+        ADD COLUMN IF NOT EXISTS is_locked BOOLEAN DEFAULT FALSE,
+        ADD COLUMN IF NOT EXISTS locked_at TIMESTAMP,
+        ADD COLUMN IF NOT EXISTS locked_by VARCHAR(100)
+      `);
+    }
+    
+    // Lock all marks in this table
+    await client.query(`
+      UPDATE ${schemaName}.${tableName}
+      SET is_locked = TRUE, locked_at = NOW(), locked_by = $1
+    `, [lockedBy || 'admin']);
+    
+    // Update form_config to mark as locked
+    await client.query(`
+      UPDATE ${schemaName}.form_config
+      SET is_locked = TRUE, locked_at = NOW(), locked_by = $1
+      WHERE class_name = $2 AND term_number = $3
+    `, [lockedBy || 'admin', className, termNumber]);
+    
+    await client.query('COMMIT');
+    res.json({ 
+      message: 'Mark list locked successfully',
+      lockedAt: new Date(),
+      lockedBy: lockedBy || 'admin'
+    });
+  } catch (error) {
+    await client.query('ROLLBACK');
+    console.error('Error locking marks:', error);
+    res.status(500).json({ error: 'Failed to lock marks', details: error.message });
+  } finally {
+    client.release();
+  }
+});
+
+// Route to unlock mark list (admin only)
+router.post('/unlock-marks', async (req, res) => {
+  const { subjectName, termNumber, unlockedBy } = req.body;
+  const className = req.body.className?.toLowerCase();
+  
+  if (!subjectName || !className || !termNumber) {
+    return res.status(400).json({ error: 'Subject name, class name, and term number are required' });
+  }
+  
+  // TODO: Add admin permission check here
+  // if (!req.user || !req.user.isAdmin) {
+  //   return res.status(403).json({ error: 'Only administrators can unlock mark lists' });
+  // }
+  
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    
+    const schemaName = `subject_${subjectName.toLowerCase().replace(/[\s\-\.]+/g, '_')}_schema`;
+    const tableName = `${className.toLowerCase()}_term_${termNumber}`;
+    
+    // Check if table exists
+    const tableCheck = await client.query(`
+      SELECT EXISTS (
+        SELECT FROM information_schema.tables 
+        WHERE table_schema = $1 AND table_name = $2
+      )
+    `, [schemaName, tableName]);
+    
+    if (!tableCheck.rows[0].exists) {
+      return res.status(404).json({ error: 'Mark list not found' });
+    }
+    
+    // Unlock all marks in this table
+    await client.query(`
+      UPDATE ${schemaName}.${tableName}
+      SET is_locked = FALSE, locked_at = NULL, locked_by = NULL
+    `);
+    
+    // Update form_config to mark as unlocked
+    await client.query(`
+      UPDATE ${schemaName}.form_config
+      SET is_locked = FALSE, locked_at = NULL, locked_by = NULL
+      WHERE class_name = $1 AND term_number = $2
+    `, [className, termNumber]);
+    
+    await client.query('COMMIT');
+    res.json({ 
+      message: 'Mark list unlocked successfully',
+      unlockedAt: new Date(),
+      unlockedBy: unlockedBy || 'admin'
+    });
+  } catch (error) {
+    await client.query('ROLLBACK');
+    console.error('Error unlocking marks:', error);
+    res.status(500).json({ error: 'Failed to unlock marks', details: error.message });
+  } finally {
+    client.release();
+  }
+});
+
+// Route to check lock status
+router.get('/lock-status/:subjectName/:className/:termNumber', async (req, res) => {
+  const { subjectName, termNumber } = req.params;
+  const className = req.params.className.toLowerCase();
+  
+  const client = await pool.connect();
+  try {
+    const schemaName = `subject_${subjectName.toLowerCase().replace(/[\s\-\.]+/g, '_')}_schema`;
+    
+    // Get lock status from form_config
+    const result = await client.query(`
+      SELECT is_locked, locked_at, locked_by
+      FROM ${schemaName}.form_config
+      WHERE class_name = $1 AND term_number = $2
+    `, [className, termNumber]);
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Mark list configuration not found' });
+    }
+    
+    const config = result.rows[0];
+    res.json({
+      isLocked: config.is_locked || false,
+      lockedAt: config.locked_at,
+      lockedBy: config.locked_by
+    });
+  } catch (error) {
+    console.error('Error checking lock status:', error);
+    res.status(500).json({ error: 'Failed to check lock status', details: error.message });
   } finally {
     client.release();
   }

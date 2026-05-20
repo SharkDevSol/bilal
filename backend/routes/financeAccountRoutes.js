@@ -1,17 +1,18 @@
 const express = require('express');
 const router = express.Router();
 const { PrismaClient } = require('@prisma/client');
+const { getEndpointPath, API_ENDPOINTS } = require('../config/api.config');
 const prisma = new PrismaClient();
 
 // Security middleware
-const { authenticateToken } = require('../middleware/auth');
+const { authenticateWithBranch, validateBranchCode } = require('../middleware/branchAuth');
 const { requirePermission, FINANCE_PERMISSIONS } = require('../middleware/financeAuth');
 
 /**
  * POST /api/finance/accounts
  * Create a new account with validation
  */
-router.post('/', authenticateToken, requirePermission(FINANCE_PERMISSIONS.ACCOUNTS_CREATE), async (req, res) => {
+router.post('/', authenticateWithBranch, requirePermission(FINANCE_PERMISSIONS.ACCOUNTS_CREATE), async (req, res) => {
   try {
     const { code, name, type, parentId, campusId } = req.body;
 
@@ -144,7 +145,7 @@ router.post('/', authenticateToken, requirePermission(FINANCE_PERMISSIONS.ACCOUN
  * GET /api/finance/accounts
  * List accounts with filtering
  */
-router.get('/', authenticateToken, requirePermission(FINANCE_PERMISSIONS.ACCOUNTS_VIEW), async (req, res) => {
+router.get('/', authenticateWithBranch, requirePermission(FINANCE_PERMISSIONS.ACCOUNTS_VIEW), async (req, res) => {
   try {
     const { type, campusId, isActive, parentId, search, page = 1, limit = 50 } = req.query;
 
@@ -232,7 +233,7 @@ router.get('/', authenticateToken, requirePermission(FINANCE_PERMISSIONS.ACCOUNT
  * GET /api/finance/accounts/tree
  * Get hierarchical account tree
  */
-router.get('/tree', authenticateToken, requirePermission(FINANCE_PERMISSIONS.ACCOUNTS_VIEW), async (req, res) => {
+router.get('/tree', authenticateWithBranch, requirePermission(FINANCE_PERMISSIONS.ACCOUNTS_VIEW), async (req, res) => {
   try {
     const { type, campusId } = req.query;
 
@@ -296,7 +297,7 @@ router.get('/tree', authenticateToken, requirePermission(FINANCE_PERMISSIONS.ACC
  * GET /api/finance/accounts/:id
  * Get account details
  */
-router.get('/:id', authenticateToken, requirePermission(FINANCE_PERMISSIONS.ACCOUNTS_VIEW), async (req, res) => {
+router.get('/:id', authenticateWithBranch, requirePermission(FINANCE_PERMISSIONS.ACCOUNTS_VIEW), async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -366,7 +367,7 @@ router.get('/:id', authenticateToken, requirePermission(FINANCE_PERMISSIONS.ACCO
  * PUT /api/finance/accounts/:id
  * Update account
  */
-router.put('/:id', authenticateToken, requirePermission(FINANCE_PERMISSIONS.ACCOUNTS_UPDATE), async (req, res) => {
+router.put('/:id', authenticateWithBranch, requirePermission(FINANCE_PERMISSIONS.ACCOUNTS_UPDATE), async (req, res) => {
   try {
     const { id } = req.params;
     const { code, name, type, parentId, campusId } = req.body;
@@ -534,7 +535,7 @@ router.put('/:id', authenticateToken, requirePermission(FINANCE_PERMISSIONS.ACCO
  * DELETE /api/finance/accounts/:id
  * Deactivate account (soft delete)
  */
-router.delete('/:id', authenticateToken, requirePermission(FINANCE_PERMISSIONS.ACCOUNTS_DELETE), async (req, res) => {
+router.delete('/:id', authenticateWithBranch, requirePermission(FINANCE_PERMISSIONS.ACCOUNTS_DELETE), async (req, res) => {
   try {
     const { id } = req.params;
 

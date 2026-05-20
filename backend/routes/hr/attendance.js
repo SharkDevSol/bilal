@@ -1,10 +1,11 @@
 const express = require('express');
 const router = express.Router();
 const pool = require('../../config/db');
-const { authenticateToken } = require('../../middleware/auth');
+const { authenticateWithBranch } = require('../../middleware/branchAuth');
+const { getEndpointPath, API_ENDPOINTS } = require('../../config/api.config');
 
 // Get attendance records for a specific date
-router.get('/attendance', authenticateToken, async (req, res) => {
+router.get('/attendance', authenticateWithBranch, async (req, res) => {
   try {
     const { date } = req.query;
     
@@ -48,7 +49,7 @@ router.get('/attendance', authenticateToken, async (req, res) => {
 });
 
 // Get attendance records for a month (date range)
-router.get('/attendance/monthly', authenticateToken, async (req, res) => {
+router.get('/attendance/monthly', authenticateWithBranch, async (req, res) => {
   try {
     const { startDate, endDate } = req.query;
     
@@ -94,7 +95,7 @@ router.get('/attendance/monthly', authenticateToken, async (req, res) => {
 });
 
 // Mark attendance for a single staff member
-router.post('/attendance', authenticateToken, async (req, res) => {
+router.post('/attendance', authenticateWithBranch, async (req, res) => {
   try {
     const { staffId, date, status, checkIn, checkOut, notes } = req.body;
 
@@ -158,7 +159,7 @@ router.post('/attendance', authenticateToken, async (req, res) => {
 });
 
 // Bulk mark attendance
-router.post('/attendance/bulk', authenticateToken, async (req, res) => {
+router.post('/attendance/bulk', authenticateWithBranch, async (req, res) => {
   try {
     const { records } = req.body;
 
@@ -234,7 +235,7 @@ router.post('/attendance/bulk', authenticateToken, async (req, res) => {
 });
 
 // Update attendance record
-router.put('/attendance/:id', authenticateToken, async (req, res) => {
+router.put('/attendance/:id', authenticateWithBranch, async (req, res) => {
   try {
     const { id } = req.params;
     const { checkIn, checkOut, status, notes } = req.body;
@@ -276,7 +277,7 @@ router.put('/attendance/:id', authenticateToken, async (req, res) => {
 });
 
 // Delete attendance record
-router.delete('/attendance/:id', authenticateToken, async (req, res) => {
+router.delete('/attendance/:id', authenticateWithBranch, async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -300,7 +301,7 @@ router.delete('/attendance/:id', authenticateToken, async (req, res) => {
 });
 
 // Get attendance summary/report
-router.get('/attendance/summary', authenticateToken, async (req, res) => {
+router.get('/attendance/summary', authenticateWithBranch, async (req, res) => {
   try {
     const { startDate, endDate, staffId, department } = req.query;
 
@@ -363,7 +364,7 @@ router.get('/attendance/summary', authenticateToken, async (req, res) => {
 });
 
 // Get attendance records for Ethiopian month
-router.get('/attendance/ethiopian-month', authenticateToken, async (req, res) => {
+router.get('/attendance/ethiopian-month', authenticateWithBranch, async (req, res) => {
   try {
     const { ethMonth, ethYear } = req.query;
     
@@ -407,7 +408,7 @@ router.get('/attendance/ethiopian-month', authenticateToken, async (req, res) =>
 });
 
 // Mark attendance for Ethiopian calendar
-router.post('/attendance/ethiopian', authenticateToken, async (req, res) => {
+router.post('/attendance/ethiopian', authenticateWithBranch, async (req, res) => {
   try {
     console.log('📥 POST /api/hr/attendance/ethiopian - Recording attendance...');
     console.log('Request body:', JSON.stringify(req.body, null, 2));
@@ -770,7 +771,7 @@ router.post('/attendance/ethiopian', authenticateToken, async (req, res) => {
 });
 
 // Delete Ethiopian attendance record
-router.delete('/attendance/ethiopian/:id', authenticateToken, async (req, res) => {
+router.delete('/attendance/ethiopian/:id', authenticateWithBranch, async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -794,7 +795,7 @@ router.delete('/attendance/ethiopian/:id', authenticateToken, async (req, res) =
 });
 
 // Bulk mark attendance for Ethiopian calendar
-router.post('/attendance/ethiopian/bulk', authenticateToken, async (req, res) => {
+router.post('/attendance/ethiopian/bulk', authenticateWithBranch, async (req, res) => {
   try {
     const { records } = req.body;
 
@@ -921,7 +922,7 @@ router.post('/attendance/ethiopian/bulk', authenticateToken, async (req, res) =>
 // ==================== ATTENDANCE TIME SETTINGS ====================
 
 // Get attendance time settings
-router.get('/attendance/time-settings', authenticateToken, async (req, res) => {
+router.get('/attendance/time-settings', authenticateWithBranch, async (req, res) => {
   try {
     console.log('📥 GET /api/hr/attendance/time-settings - Fetching time settings...');
     
@@ -978,7 +979,7 @@ router.get('/attendance/time-settings', authenticateToken, async (req, res) => {
 });
 
 // Save/Update attendance time settings
-router.post('/attendance/time-settings', authenticateToken, async (req, res) => {
+router.post('/attendance/time-settings', authenticateWithBranch, async (req, res) => {
   try {
     console.log('📥 POST /api/hr/attendance/time-settings - Saving settings...');
     console.log('Request body:', req.body);
@@ -1062,7 +1063,7 @@ router.post('/attendance/time-settings', authenticateToken, async (req, res) => 
 // ==================== ATTENDANCE DEDUCTION SETTINGS ====================
 
 // Get all deduction settings
-router.get('/attendance/deduction-settings', authenticateToken, async (req, res) => {
+router.get('/attendance/deduction-settings', authenticateWithBranch, async (req, res) => {
   try {
     // Create table if not exists
     await pool.query(`
@@ -1094,7 +1095,7 @@ router.get('/attendance/deduction-settings', authenticateToken, async (req, res)
 });
 
 // Create deduction setting
-router.post('/attendance/deduction-settings', authenticateToken, async (req, res) => {
+router.post('/attendance/deduction-settings', authenticateWithBranch, async (req, res) => {
   try {
     const { staffType, deductionType, deductionAmount, description, isActive } = req.body;
 
@@ -1143,7 +1144,7 @@ router.post('/attendance/deduction-settings', authenticateToken, async (req, res
 });
 
 // Update deduction setting
-router.put('/attendance/deduction-settings/:id', authenticateToken, async (req, res) => {
+router.put('/attendance/deduction-settings/:id', authenticateWithBranch, async (req, res) => {
   try {
     const { id } = req.params;
     const { staffType, deductionType, deductionAmount, description, isActive } = req.body;
@@ -1177,7 +1178,7 @@ router.put('/attendance/deduction-settings/:id', authenticateToken, async (req, 
 });
 
 // Delete deduction setting
-router.delete('/attendance/deduction-settings/:id', authenticateToken, async (req, res) => {
+router.delete('/attendance/deduction-settings/:id', authenticateWithBranch, async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -1201,7 +1202,7 @@ router.delete('/attendance/deduction-settings/:id', authenticateToken, async (re
 });
 
 // Calculate attendance deductions for a staff member
-router.get('/attendance/calculate-deductions', authenticateToken, async (req, res) => {
+router.get('/attendance/calculate-deductions', authenticateWithBranch, async (req, res) => {
   try {
     const { staffId, staffType, ethMonth, ethYear } = req.query;
 
@@ -1279,7 +1280,7 @@ router.get('/attendance/calculate-deductions', authenticateToken, async (req, re
 // ==================== STAFF-SPECIFIC TIME SETTINGS ====================
 
 // Get all staff-specific time settings
-router.get('/attendance/staff-specific-times', authenticateToken, async (req, res) => {
+router.get('/attendance/staff-specific-times', authenticateWithBranch, async (req, res) => {
   try {
     // Create table if not exists
     await pool.query(`
@@ -1315,7 +1316,7 @@ router.get('/attendance/staff-specific-times', authenticateToken, async (req, re
 });
 
 // Add staff-specific time setting
-router.post('/attendance/staff-specific-times', authenticateToken, async (req, res) => {
+router.post('/attendance/staff-specific-times', authenticateWithBranch, async (req, res) => {
   try {
     const { 
       staffId, 
@@ -1399,7 +1400,7 @@ router.post('/attendance/staff-specific-times', authenticateToken, async (req, r
 });
 
 // Delete staff-specific time setting
-router.delete('/attendance/staff-specific-times/:id', authenticateToken, async (req, res) => {
+router.delete('/attendance/staff-specific-times/:id', authenticateWithBranch, async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -1423,7 +1424,7 @@ router.delete('/attendance/staff-specific-times/:id', authenticateToken, async (
 });
 
 // Get time settings for a specific staff member (checks staff-specific first, then global)
-router.get('/attendance/staff-time-settings/:staffId', authenticateToken, async (req, res) => {
+router.get('/attendance/staff-time-settings/:staffId', authenticateWithBranch, async (req, res) => {
   try {
     const { staffId } = req.params;
 
@@ -1458,7 +1459,7 @@ router.get('/attendance/staff-time-settings/:staffId', authenticateToken, async 
 });
 
 // Get AI06 device connection status
-router.get('/devices/status', authenticateToken, async (req, res) => {
+router.get('/devices/status', authenticateWithBranch, async (req, res) => {
   try {
     // Get the AI06 service instance from the app
     const ai06Service = req.app.get('ai06Service');
@@ -1496,7 +1497,7 @@ router.get('/devices/status', authenticateToken, async (req, res) => {
 });
 
 // Test endpoint to manually trigger attendance log processing
-router.post('/devices/test-log', authenticateToken, async (req, res) => {
+router.post('/devices/test-log', authenticateWithBranch, async (req, res) => {
   try {
     const { machineId, name, scanTime } = req.body;
     
@@ -1544,7 +1545,7 @@ router.post('/devices/test-log', authenticateToken, async (req, res) => {
 // ==================== MANUAL AUTO-MARKER TRIGGER ====================
 
 // Manually trigger the auto-marker to run immediately
-router.post('/attendance/trigger-auto-marker', authenticateToken, async (req, res) => {
+router.post('/attendance/trigger-auto-marker', authenticateWithBranch, async (req, res) => {
   try {
     console.log('🔧 Manual trigger: Running auto-marker immediately...');
     

@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const pool = require('../../config/db');
 const { authenticateToken } = require('../../middleware/auth');
+const { getEndpointPath, API_ENDPOINTS } = require('../../config/api.config');
 
 // GET /api/reports/inventory/summary - Inventory summary for dashboard
 router.get('/summary', authenticateToken, async (req, res) => {

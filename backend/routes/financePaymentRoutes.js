@@ -4,6 +4,7 @@ const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 const multer = require('multer');
 const path = require('path');
+const { getEndpointPath, API_ENDPOINTS } = require('../config/api.config');
 
 // Configure multer for screenshot uploads
 const storage = multer.diskStorage({
@@ -33,14 +34,14 @@ const upload = multer({
 });
 
 // Security middleware
-const { authenticateToken } = require('../middleware/auth');
+const { authenticateWithBranch, validateBranchCode } = require('../middleware/branchAuth');
 const { requirePermission, FINANCE_PERMISSIONS } = require('../middleware/financeAuth');
 
 /**
  * POST /api/finance/payments
  * Record a payment for an invoice
  */
-router.post('/', authenticateToken, requirePermission(FINANCE_PERMISSIONS.PAYMENTS_CREATE), upload.single('screenshot'), async (req, res) => {
+router.post('/', authenticateWithBranch, requirePermission(FINANCE_PERMISSIONS.PAYMENTS_CREATE), upload.single('screenshot'), async (req, res) => {
   try {
     const {
       invoiceId,
@@ -181,7 +182,7 @@ router.post('/', authenticateToken, requirePermission(FINANCE_PERMISSIONS.PAYMEN
  * GET /api/finance/payments
  * Get all payments with optional filters
  */
-router.get('/', authenticateToken, requirePermission(FINANCE_PERMISSIONS.PAYMENTS_VIEW), async (req, res) => {
+router.get('/', authenticateWithBranch, requirePermission(FINANCE_PERMISSIONS.PAYMENTS_VIEW), async (req, res) => {
   try {
     const { studentId, startDate, endDate, status, paymentMethod } = req.query;
 
@@ -236,7 +237,7 @@ router.get('/', authenticateToken, requirePermission(FINANCE_PERMISSIONS.PAYMENT
  * GET /api/finance/payments/:id
  * Get a specific payment by ID
  */
-router.get('/:id', authenticateToken, requirePermission(FINANCE_PERMISSIONS.PAYMENTS_VIEW), async (req, res) => {
+router.get('/:id', authenticateWithBranch, requirePermission(FINANCE_PERMISSIONS.PAYMENTS_VIEW), async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -277,7 +278,7 @@ router.get('/:id', authenticateToken, requirePermission(FINANCE_PERMISSIONS.PAYM
  * GET /api/finance/payments/invoice/:invoiceId
  * Get all payments for a specific invoice
  */
-router.get('/invoice/:invoiceId', authenticateToken, requirePermission(FINANCE_PERMISSIONS.PAYMENTS_VIEW), async (req, res) => {
+router.get('/invoice/:invoiceId', authenticateWithBranch, requirePermission(FINANCE_PERMISSIONS.PAYMENTS_VIEW), async (req, res) => {
   try {
     const { invoiceId } = req.params;
 
@@ -308,7 +309,7 @@ router.get('/invoice/:invoiceId', authenticateToken, requirePermission(FINANCE_P
  * GET /api/finance/payments/check-reference/:reference
  * Check if a reference number already exists
  */
-router.get('/check-reference/:reference', authenticateToken, async (req, res) => {
+router.get('/check-reference/:reference', authenticateWithBranch, async (req, res) => {
   try {
     const { reference } = req.params;
 

@@ -2,10 +2,12 @@ const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcrypt');
 const pool = require('../config/db');
+const { getEndpointPath, API_ENDPOINTS } = require('../config/api.config');
 require('dotenv').config();
 
 // Security middleware
-const { authenticateToken, authorizeRoles } = require('../middleware/auth');
+const { authorizeRoles } = require('../middleware/auth');
+const { authenticateWithBranch, validateBranchCode } = require('../middleware/branchAuth');
 const { validate, sanitizeInputs } = require('../middleware/inputValidation');
 
 // Initialize admin_sub_accounts table
@@ -50,7 +52,7 @@ initializeSubAccountsTable();
 router.use(sanitizeInputs);
 
 // All sub-account routes require PRIMARY admin authentication (not sub-accounts)
-router.use(authenticateToken);
+router.use(authenticateWithBranch);
 router.use(async (req, res, next) => {
   console.log('\n🔐 Sub-Account Route Authorization Check');
   console.log('User ID:', req.user?.id);

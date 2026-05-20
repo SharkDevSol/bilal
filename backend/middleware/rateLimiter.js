@@ -1,4 +1,4 @@
-const rateLimit = require('express-rate-limit');
+const { rateLimit, ipKeyGenerator } = require('express-rate-limit');
 
 // General API rate limiter
 const apiLimiter = rateLimit({
@@ -32,7 +32,7 @@ const loginLimiter = rateLimit({
   skipSuccessfulRequests: true,
   // Key by IP + User-Agent so each browser/tab is tracked separately
   keyGenerator: (req) => {
-    const ip = req.ip || req.connection.remoteAddress || 'unknown';
+    const ip = ipKeyGenerator(req.ip || req.connection.remoteAddress || 'unknown', 56);
     const ua = req.headers['user-agent'] || 'unknown';
     // Use first 50 chars of UA to differentiate browsers/tabs
     return `${ip}-${ua.substring(0, 50)}`;
@@ -69,9 +69,40 @@ const uploadLimiter = rateLimit({
   legacyHeaders: false,
 });
 
+// AI exam generation rate limiter (expensive operation)
+// Limits to 10 exam generations per hour per teacher
+const aiLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 10, // 10 exam generations per hour
+  message: {
+    success: false,
+    message: 'Too many exam generation requests. Please try again later.'
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+  // Key by user ID to track per teacher
+  keyGenerator: (req) => {
+    // Use authenticated user ID if available
+    if (req.user?.id || req.user?.userId) {
+      const userId = req.user.id || req.user.userId;
+      return `ai-gen-${userId}`;
+    }
+    // Fall back to IP with proper IPv6 handling
+    return `ai-gen-${ipKeyGenerator(req.ip, 56)}`;
+  },
+  handler: (req, res) => {
+    res.status(429).json({
+      success: false,
+      message: 'Too many exam generation requests. Please try again later.',
+      retryAfter: '1 hour'
+    });
+  }
+});
+
 module.exports = {
   apiLimiter,
   loginLimiter,
   passwordResetLimiter,
-  uploadLimiter
+  uploadLimiter,
+  aiLimiter
 };

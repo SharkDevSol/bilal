@@ -379,6 +379,22 @@
   box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
 }
 
+/* KG Student Badge */
+.badgeKG {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  color: white;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3);
+}
+
+/* Evening Class Badge */
+.badgeEvening {
+  background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+  color: white;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(139, 92, 246, 0.3);
+}
+
 /* Exemption Modal */
 .exemptionModal {
   background: var(--card-bg);

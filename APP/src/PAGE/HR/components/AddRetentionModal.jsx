@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
-const API_URL = import.meta.env.VITE_API_URL || 'https://iqrab3.skoolific.com';
+const API_URL = import.meta.env.VITE_API_URL || 'https://iqrab3.skoolific.com/api';
 
 const AddRetentionModal = ({ onClose }) => {
   const [staffTypes, setStaffTypes] = useState([]);
@@ -37,7 +37,7 @@ const AddRetentionModal = ({ onClose }) => {
   const fetchStaffTypes = async () => {
     try {
       const token = localStorage.getItem('authToken') || localStorage.getItem('token');
-      const response = await axios.get(`${API_URL}/api/hr/salary/staff-types`, {
+      const response = await axios.get(`${API_URL}/hr/salary/staff-types`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (response.data.success) {
@@ -51,7 +51,7 @@ const AddRetentionModal = ({ onClose }) => {
   const fetchStaffByType = async (type) => {
     try {
       const token = localStorage.getItem('authToken') || localStorage.getItem('token');
-      const response = await axios.get(`${API_URL}/api/hr/salary/staff?staffType=${type}`, {
+      const response = await axios.get(`${API_URL}/hr/salary/staff?staffType=${type}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (response.data.success) {
@@ -96,7 +96,7 @@ const AddRetentionModal = ({ onClose }) => {
       };
 
       const response = await axios.post(
-        `${API_URL}/api/hr/salary/retentions`,
+        `${API_URL}/hr/salary/retentions`,
         payload,
         { headers: { Authorization: `Bearer ${token}` } }
       );

@@ -1,17 +1,18 @@
 const express = require('express');
 const router = express.Router();
 const { PrismaClient } = require('@prisma/client');
+const { getEndpointPath, API_ENDPOINTS } = require('../config/api.config');
 const prisma = new PrismaClient();
 
 // Security middleware
-const { authenticateToken } = require('../middleware/auth');
+const { authenticateWithBranch, validateBranchCode } = require('../middleware/branchAuth');
 const { requirePermission, FINANCE_PERMISSIONS } = require('../middleware/financeAuth');
 
 /**
  * POST /api/finance/late-fee-rules
  * Create a new late fee rule with validation
  */
-router.post('/', authenticateToken, requirePermission(FINANCE_PERMISSIONS.LATE_FEES_MANAGE), async (req, res) => {
+router.post('/', authenticateWithBranch, requirePermission(FINANCE_PERMISSIONS.LATE_FEES_MANAGE), async (req, res) => {
   try {
     const { name, type, value, gracePeriodDays, applicableFeeCategories, campusId } = req.body;
 
@@ -133,7 +134,7 @@ router.post('/', authenticateToken, requirePermission(FINANCE_PERMISSIONS.LATE_F
  * GET /api/finance/late-fee-rules
  * List late fee rules with filtering
  */
-router.get('/', authenticateToken, requirePermission(FINANCE_PERMISSIONS.LATE_FEES_MANAGE), async (req, res) => {
+router.get('/', authenticateWithBranch, requirePermission(FINANCE_PERMISSIONS.LATE_FEES_MANAGE), async (req, res) => {
   try {
     const { type, campusId, isActive, search, page = 1, limit = 50 } = req.query;
 
@@ -170,7 +171,7 @@ router.get('/', authenticateToken, requirePermission(FINANCE_PERMISSIONS.LATE_FE
  * GET /api/finance/late-fee-rules/:id
  * Get late fee rule details
  */
-router.get('/:id', authenticateToken, requirePermission(FINANCE_PERMISSIONS.LATE_FEES_MANAGE), async (req, res) => {
+router.get('/:id', authenticateWithBranch, requirePermission(FINANCE_PERMISSIONS.LATE_FEES_MANAGE), async (req, res) => {
   try {
     const { id } = req.params;
     const lateFeeRule = await prisma.lateFeeRule.findUnique({ where: { id } });
@@ -200,7 +201,7 @@ router.get('/:id', authenticateToken, requirePermission(FINANCE_PERMISSIONS.LATE
  * Update late fee rule
  * When deactivating a rule, automatically remove late fees from all invoices
  */
-router.put('/:id', authenticateToken, requirePermission(FINANCE_PERMISSIONS.LATE_FEES_MANAGE), async (req, res) => {
+router.put('/:id', authenticateWithBranch, requirePermission(FINANCE_PERMISSIONS.LATE_FEES_MANAGE), async (req, res) => {
   try {
     const { id } = req.params;
     const { name, type, value, gracePeriodDays, applicableFeeCategories, campusId, isActive } = req.body;
@@ -457,7 +458,7 @@ router.put('/:id', authenticateToken, requirePermission(FINANCE_PERMISSIONS.LATE
  * DELETE /api/finance/late-fee-rules/:id
  * Delete a late fee rule permanently
  */
-router.delete('/:id', authenticateToken, async (req, res) => {
+router.delete('/:id', authenticateWithBranch, async (req, res) => {
   try {
     const { id } = req.params;
 

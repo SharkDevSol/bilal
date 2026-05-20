@@ -6,10 +6,12 @@ const path = require('path');
 const fs = require('fs').promises;
 const multer = require('multer');
 const { v4: uuidv4 } = require('uuid');
+const { getEndpointPath, API_ENDPOINTS } = require('../config/api.config');
 require('dotenv').config();
 
 // Security middleware
-const { authenticateToken, authorizeRoles } = require('../middleware/auth');
+const { authorizeRoles } = require('../middleware/auth');
+const { authenticateWithBranch, validateBranchCode } = require('../middleware/branchAuth');
 const { sanitizeInputs } = require('../middleware/inputValidation');
 const { multerFileFilter } = require('../middleware/fileValidation');
 const { uploadLimiter } = require('../middleware/rateLimiter');
@@ -603,6 +605,31 @@ router.post('/add-student', upload.any(), async (req, res) => {
       guardian_username: guardianUsername,
       guardian_password: guardianPassword
     };
+    
+    // V2 Enhancement: Add KG and evening class support
+    if (validColumns.includes('is_kg')) {
+      insertData.is_kg = formData.is_kg === 'true' || formData.is_kg === true || formData.is_kg === 'on';
+    }
+    
+    if (validColumns.includes('is_evening_class')) {
+      insertData.is_evening_class = formData.is_evening_class === 'true' || formData.is_evening_class === true || formData.is_evening_class === 'on';
+    }
+    
+    // V2 Enhancement: Set student_type based on KG and evening class flags
+    if (validColumns.includes('student_type')) {
+      const isKG = insertData.is_kg || false;
+      const isEvening = insertData.is_evening_class || false;
+      
+      if (isKG && isEvening) {
+        insertData.student_type = 'kg_evening';
+      } else if (isKG) {
+        insertData.student_type = 'kg';
+      } else if (isEvening) {
+        insertData.student_type = 'evening';
+      } else {
+        insertData.student_type = 'regular';
+      }
+    }
     
     // Validate smachine_id uniqueness across ALL classes if provided
     if (formData.smachine_id) {

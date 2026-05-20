@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
-const API_URL = import.meta.env.VITE_API_URL || 'https://iqrab3.skoolific.com';
+const API_URL = import.meta.env.VITE_API_URL || 'https://iqrab3.skoolific.com/api';
 
 const StaffDeductionsAllowancesModal = ({ staff, onClose }) => {
   const [deductions, setDeductions] = useState([]);
@@ -23,7 +23,7 @@ const StaffDeductionsAllowancesModal = ({ staff, onClose }) => {
       
       // Fetch salary info
       const salaryResponse = await axios.get(
-        `${API_URL}/api/hr/salary/all-salaries`,
+        `${API_URL}/hr/salary/all-salaries`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       
@@ -37,13 +37,13 @@ const StaffDeductionsAllowancesModal = ({ staff, onClose }) => {
       
       // Fetch deductions
       const deductionsResponse = await axios.get(
-        `${API_URL}/api/hr/salary/deductions?staffId=${staff.id}`,
+        `${API_URL}/hr/salary/deductions?staffId=${staff.id}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       
       // Fetch allowances
       const allowancesResponse = await axios.get(
-        `${API_URL}/api/hr/salary/allowances?staffId=${staff.id}`,
+        `${API_URL}/hr/salary/allowances?staffId=${staff.id}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       
@@ -175,7 +175,7 @@ const StaffDeductionsAllowancesModal = ({ staff, onClose }) => {
     try {
       const token = localStorage.getItem('authToken') || localStorage.getItem('token');
       const response = await axios.delete(
-        `${API_URL}/api/hr/salary/deductions/${id}`,
+        `${API_URL}/hr/salary/deductions/${id}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       
@@ -195,7 +195,7 @@ const StaffDeductionsAllowancesModal = ({ staff, onClose }) => {
     try {
       const token = localStorage.getItem('authToken') || localStorage.getItem('token');
       const response = await axios.delete(
-        `${API_URL}/api/hr/salary/allowances/${id}`,
+        `${API_URL}/hr/salary/allowances/${id}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       

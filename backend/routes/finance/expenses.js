@@ -2,9 +2,10 @@ const express = require('express');
 const router = express.Router();
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
-const { authenticateToken } = require('../../middleware/auth');
+const { authenticateWithBranch } = require('../../middleware/branchAuth');
 const multer = require('multer');
 const path = require('path');
+const { getEndpointPath, API_ENDPOINTS } = require('../../config/api.config');
 
 // Configure multer for file uploads
 const storage = multer.diskStorage({
@@ -27,7 +28,7 @@ async function generateExpenseNumber() {
 }
 
 // Get all expenses
-router.get('/', authenticateToken, async (req, res) => {
+router.get('/', authenticateWithBranch, async (req, res) => {
   try {
     const { status, category, vendorId, campusId, dateFrom, dateTo, page = 1, limit = 20 } = req.query;
     
@@ -76,7 +77,7 @@ router.get('/', authenticateToken, async (req, res) => {
 });
 
 // Get single expense
-router.get('/:id', authenticateToken, async (req, res) => {
+router.get('/:id', authenticateWithBranch, async (req, res) => {
   try {
     const expense = await prisma.expense.findUnique({
       where: { id: req.params.id },
@@ -100,7 +101,7 @@ router.get('/:id', authenticateToken, async (req, res) => {
 });
 
 // Create expense
-router.post('/', authenticateToken, async (req, res) => {
+router.post('/', authenticateWithBranch, async (req, res) => {
   try {
     const {
       category,
@@ -146,7 +147,7 @@ router.post('/', authenticateToken, async (req, res) => {
 });
 
 // Update expense
-router.put('/:id', authenticateToken, async (req, res) => {
+router.put('/:id', authenticateWithBranch, async (req, res) => {
   try {
     const { description, amount, status } = req.body;
     
@@ -167,7 +168,7 @@ router.put('/:id', authenticateToken, async (req, res) => {
 });
 
 // Submit expense for approval
-router.post('/:id/submit', authenticateToken, async (req, res) => {
+router.post('/:id/submit', authenticateWithBranch, async (req, res) => {
   try {
     const expense = await prisma.expense.update({
       where: { id: req.params.id },
@@ -182,7 +183,7 @@ router.post('/:id/submit', authenticateToken, async (req, res) => {
 });
 
 // Approve expense
-router.post('/:id/approve', authenticateToken, async (req, res) => {
+router.post('/:id/approve', authenticateWithBranch, async (req, res) => {
   try {
     const result = await prisma.$transaction(async (tx) => {
       const expense = await tx.expense.update({
@@ -222,7 +223,7 @@ router.post('/:id/approve', authenticateToken, async (req, res) => {
 });
 
 // Upload attachment
-router.post('/:id/attachments', authenticateToken, upload.single('file'), async (req, res) => {
+router.post('/:id/attachments', authenticateWithBranch, upload.single('file'), async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ success: false, error: { message: 'No file uploaded' } });
@@ -247,7 +248,7 @@ router.post('/:id/attachments', authenticateToken, upload.single('file'), async 
 });
 
 // Get expense summary by category
-router.get('/reports/by-category', authenticateToken, async (req, res) => {
+router.get('/reports/by-category', authenticateWithBranch, async (req, res) => {
   try {
     const { campusId, dateFrom, dateTo } = req.query;
     

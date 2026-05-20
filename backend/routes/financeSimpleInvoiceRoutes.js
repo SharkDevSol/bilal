@@ -1,10 +1,11 @@
 const express = require('express');
 const router = express.Router();
 const { PrismaClient } = require('@prisma/client');
+const { getEndpointPath, API_ENDPOINTS } = require('../config/api.config');
 const prisma = new PrismaClient();
 
 // Security middleware
-const { authenticateToken } = require('../middleware/auth');
+const { authenticateWithBranch, validateBranchCode } = require('../middleware/branchAuth');
 const { requirePermission, FINANCE_PERMISSIONS } = require('../middleware/financeAuth');
 
 /**
@@ -28,7 +29,7 @@ function compositeIdToUuid(compositeId) {
  * POST /api/finance/simple-invoices/generate
  * Simple invoice generation that works with your database structure
  */
-router.post('/generate', authenticateToken, requirePermission(FINANCE_PERMISSIONS.INVOICES_CREATE), async (req, res) => {
+router.post('/generate', authenticateWithBranch, requirePermission(FINANCE_PERMISSIONS.INVOICES_CREATE), async (req, res) => {
   try {
     const {
       studentId,

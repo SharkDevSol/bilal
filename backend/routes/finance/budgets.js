@@ -2,10 +2,11 @@ const express = require('express');
 const router = express.Router();
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
-const { authenticateToken } = require('../../middleware/auth');
+const { authenticateWithBranch } = require('../../middleware/branchAuth');
+const { getEndpointPath, API_ENDPOINTS } = require('../../config/api.config');
 
 // Get all budgets
-router.get('/', authenticateToken, async (req, res) => {
+router.get('/', authenticateWithBranch, async (req, res) => {
   try {
     const { fiscalYear, status, campusId } = req.query;
     
@@ -32,7 +33,7 @@ router.get('/', authenticateToken, async (req, res) => {
 });
 
 // Get single budget
-router.get('/:id', authenticateToken, async (req, res) => {
+router.get('/:id', authenticateWithBranch, async (req, res) => {
   try {
     const budget = await prisma.budget.findUnique({
       where: { id: req.params.id },
@@ -55,7 +56,7 @@ router.get('/:id', authenticateToken, async (req, res) => {
 });
 
 // Create budget
-router.post('/', authenticateToken, async (req, res) => {
+router.post('/', authenticateWithBranch, async (req, res) => {
   try {
     const { name, fiscalYear, startDate, endDate, campusId, lines } = req.body;
     
@@ -94,7 +95,7 @@ router.post('/', authenticateToken, async (req, res) => {
 });
 
 // Update budget
-router.put('/:id', authenticateToken, async (req, res) => {
+router.put('/:id', authenticateWithBranch, async (req, res) => {
   try {
     const { name, status } = req.body;
     
@@ -111,7 +112,7 @@ router.put('/:id', authenticateToken, async (req, res) => {
 });
 
 // Approve budget
-router.post('/:id/approve', authenticateToken, async (req, res) => {
+router.post('/:id/approve', authenticateWithBranch, async (req, res) => {
   try {
     const budget = await prisma.budget.update({
       where: { id: req.params.id },
@@ -130,7 +131,7 @@ router.post('/:id/approve', authenticateToken, async (req, res) => {
 });
 
 // Get budget vs actual report
-router.get('/:id/vs-actual', authenticateToken, async (req, res) => {
+router.get('/:id/vs-actual', authenticateWithBranch, async (req, res) => {
   try {
     const budget = await prisma.budget.findUnique({
       where: { id: req.params.id },
@@ -187,7 +188,7 @@ router.get('/:id/vs-actual', authenticateToken, async (req, res) => {
 });
 
 // Get budget alerts (lines exceeding threshold)
-router.get('/:id/alerts', authenticateToken, async (req, res) => {
+router.get('/:id/alerts', authenticateWithBranch, async (req, res) => {
   try {
     const budget = await prisma.budget.findUnique({
       where: { id: req.params.id },

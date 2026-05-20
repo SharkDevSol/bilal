@@ -1,13 +1,14 @@
 const express = require('express');
 const router = express.Router();
 const guardianNotificationService = require('../services/guardianNotificationService');
-const { authenticateToken } = require('../middleware/auth');
+const { authenticateWithBranch, validateBranchCode } = require('../middleware/branchAuth');
+const { getEndpointPath, API_ENDPOINTS } = require('../config/api.config');
 
 /**
  * POST /api/guardian-notifications/send-attendance
  * Manually trigger daily attendance reports
  */
-router.post('/send-attendance', authenticateToken, async (req, res) => {
+router.post('/send-attendance', authenticateWithBranch, async (req, res) => {
   try {
     await guardianNotificationService.sendDailyAttendanceReports();
     res.json({
@@ -28,7 +29,7 @@ router.post('/send-attendance', authenticateToken, async (req, res) => {
  * POST /api/guardian-notifications/send-payments
  * Manually trigger monthly payment summaries
  */
-router.post('/send-payments', authenticateToken, async (req, res) => {
+router.post('/send-payments', authenticateWithBranch, async (req, res) => {
   try {
     await guardianNotificationService.sendMonthlyPaymentSummaries();
     res.json({
@@ -49,7 +50,7 @@ router.post('/send-payments', authenticateToken, async (req, res) => {
  * POST /api/guardian-notifications/test-email
  * Test email configuration
  */
-router.post('/test-email', authenticateToken, async (req, res) => {
+router.post('/test-email', authenticateWithBranch, async (req, res) => {
   try {
     const { email } = req.body;
     
@@ -95,7 +96,7 @@ router.post('/test-email', authenticateToken, async (req, res) => {
  * GET /api/guardian-notifications/status
  * Get notification service status
  */
-router.get('/status', authenticateToken, async (req, res) => {
+router.get('/status', authenticateWithBranch, async (req, res) => {
   try {
     res.json({
       success: true,
@@ -120,7 +121,7 @@ router.get('/status', authenticateToken, async (req, res) => {
  * GET /api/guardian-notifications/preview-attendance/:guardianUsername
  * Preview attendance report for a specific guardian
  */
-router.get('/preview-attendance/:guardianUsername', authenticateToken, async (req, res) => {
+router.get('/preview-attendance/:guardianUsername', authenticateWithBranch, async (req, res) => {
   try {
     const { guardianUsername } = req.params;
     
@@ -165,7 +166,7 @@ router.get('/preview-attendance/:guardianUsername', authenticateToken, async (re
  * GET /api/guardian-notifications/preview-payment/:guardianUsername
  * Preview payment summary for a specific guardian
  */
-router.get('/preview-payment/:guardianUsername', authenticateToken, async (req, res) => {
+router.get('/preview-payment/:guardianUsername', authenticateWithBranch, async (req, res) => {
   try {
     const { guardianUsername } = req.params;
     const { month, year } = req.query;

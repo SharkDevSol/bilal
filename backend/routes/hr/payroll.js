@@ -1,8 +1,9 @@
 const express = require('express');
 const router = express.Router();
 const pool = require('../../config/db');
-const { authenticateToken } = require('../../middleware/auth');
+const { authenticateWithBranch } = require('../../middleware/branchAuth');
 const XLSX = require('xlsx');
+const { getEndpointPath, API_ENDPOINTS } = require('../../config/api.config');
 
 // Helper function to get Ethiopian month name
 function getEthiopianMonthName(monthNumber) {
@@ -24,7 +25,7 @@ function sanitizeStaffTypeToSchema(staffType) {
 }
 
 // Generate payroll for selected month
-router.post('/generate', authenticateToken, async (req, res) => {
+router.post('/generate', authenticateWithBranch, async (req, res) => {
   try {
     const { ethMonth, ethYear } = req.body;
 
@@ -151,7 +152,7 @@ router.post('/generate', authenticateToken, async (req, res) => {
 });
 
 // Export payroll to Excel
-router.post('/export-excel', authenticateToken, async (req, res) => {
+router.post('/export-excel', authenticateWithBranch, async (req, res) => {
   try {
     const { ethMonth, ethYear, payrollData } = req.body;
 
@@ -209,7 +210,7 @@ router.post('/export-excel', authenticateToken, async (req, res) => {
 });
 
 // Get payroll history
-router.get('/history', authenticateToken, async (req, res) => {
+router.get('/history', authenticateWithBranch, async (req, res) => {
   try {
     // This would query a payroll_history table if you want to save generated payrolls
     // For now, return empty array

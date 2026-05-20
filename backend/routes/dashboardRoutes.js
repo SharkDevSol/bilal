@@ -1,13 +1,14 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../config/db');
+const { getEndpointPath, API_ENDPOINTS } = require('../config/api.config');
 require('dotenv').config();
 
 // Security middleware
-const { authenticateToken } = require('../middleware/auth');
+const { authenticateWithBranch, validateBranchCode } = require('../middleware/branchAuth');
 
 // All dashboard routes require authentication
-router.use(authenticateToken);
+router.use(authenticateWithBranch);
 
 // Enhanced dashboard statistics
 router.get('/enhanced-stats', async (req, res) => {
@@ -998,29 +999,205 @@ async function getRecentActivity() {
 }
 
 // Keep existing endpoints for backward compatibility
+// Phase 6.11: Enhanced Dashboard Statistics
 router.get('/stats', async (req, res) => {
   try {
+    console.log('\n📊 GET /api/dashboard/stats - Phase 6.11 Enhanced Statistics');
+    
+    const stats = {};
+    
+    // Get basic stats first
     const basicStats = await getBasicStats();
+    
+    // 6.11.1: Total Student Enrollment (with breakdown by type)
+    stats.studentEnrollment = {
+      total: basicStats.totalStudents,
+      byType: {
+        regular: basicStats.totalStudents - (basicStats.kgStudents || 0) - (basicStats.eveningStudents || 0),
+        kg: basicStats.kgStudents || 0,
+        evening: basicStats.eveningStudents || 0
+      },
+      byGender: basicStats.gender
+    };
+    
+    // 6.11.2: Total Staff Count by Type
+    stats.staffCount = {
+      total: basicStats.staffCount,
+      byType: {
+        teachers: 0,
+        administrative: 0,
+        supportive: 0
+      }
+    };
+    
+    // Try to get staff breakdown by type
+    try {
+      const staffBreakdown = await db.query(`
+        SELECT 
+          COUNT(CASE WHEN staff_type = 'Teacher' THEN 1 END) as teachers,
+          COUNT(CASE WHEN staff_type = 'Administrative' THEN 1 END) as administrative,
+          COUNT(CASE WHEN staff_type = 'Supportive' THEN 1 END) as supportive
+        FROM staff_schema.staff
+      `);
+      
+      if (staffBreakdown.rows.length > 0) {
+        stats.staffCount.byType = {
+          teachers: parseInt(staffBreakdown.rows[0].teachers) || 0,
+          administrative: parseInt(staffBreakdown.rows[0].administrative) || 0,
+          supportive: parseInt(staffBreakdown.rows[0].supportive) || 0
+        };
+      }
+    } catch (error) {
+      console.log('Could not fetch staff breakdown:', error.message);
+    }
+    
+    // 6.11.3: Current Month Financial Summary
+    const currentMonth = new Date().getMonth() + 1;
+    const currentYear = new Date().getFullYear();
+    
+    try {
+      const financialSummary = await db.query(`
+        SELECT 
+          COALESCE(SUM(amount), 0) as total_collected,
+          COUNT(*) as total_transactions
+        FROM simple_fee_structures
+        WHERE EXTRACT(MONTH FROM created_at) = $1
+          AND EXTRACT(YEAR FROM created_at) = $2
+          AND is_active = true
+      `, [currentMonth, currentYear]);
+      
+      stats.financialSummary = {
+        month: currentMonth,
+        year: currentYear,
+        totalCollected: parseFloat(financialSummary.rows[0]?.total_collected) || 0,
+        totalTransactions: parseInt(financialSummary.rows[0]?.total_transactions) || 0
+      };
+    } catch (error) {
+      console.log('Could not fetch financial summary:', error.message);
+      stats.financialSummary = {
+        month: currentMonth,
+        year: currentYear,
+        totalCollected: 0,
+        totalTransactions: 0
+      };
+    }
+    
+    // 6.11.4: Current Day Attendance Summary
+    const today = new Date().toISOString().split('T')[0];
+    let totalPresent = 0;
+    let totalAbsent = 0;
+    let totalLate = 0;
+    
+    for (const className of basicStats.classes) {
+      try {
+        const attendanceTableCheck = await db.query(`
+          SELECT EXISTS (
+            SELECT FROM information_schema.tables 
+            WHERE table_schema = 'attendance_schema' 
+            AND table_name = $1
+          )
+        `, [`${className}_attendance`]);
+        
+        if (attendanceTableCheck.rows[0].exists) {
+          const attendanceResult = await db.query(`
+            SELECT 
+              COUNT(CASE WHEN status = 'Present' THEN 1 END) as present,
+              COUNT(CASE WHEN status = 'Absent' THEN 1 END) as absent,
+              COUNT(CASE WHEN status = 'Late' THEN 1 END) as late
+            FROM attendance_schema."${className}_attendance"
+            WHERE date = $1
+          `, [today]);
+          
+          if (attendanceResult.rows.length > 0) {
+            totalPresent += parseInt(attendanceResult.rows[0].present) || 0;
+            totalAbsent += parseInt(attendanceResult.rows[0].absent) || 0;
+            totalLate += parseInt(attendanceResult.rows[0].late) || 0;
+          }
+        }
+      } catch (error) {
+        console.log(`Could not fetch attendance for ${className}:`, error.message);
+      }
+    }
+    
+    const attendanceRate = basicStats.totalStudents > 0 
+      ? ((totalPresent / basicStats.totalStudents) * 100).toFixed(2) 
+      : 0;
+    
+    stats.attendanceSummary = {
+      date: today,
+      present: totalPresent,
+      absent: totalAbsent,
+      late: totalLate,
+      total: basicStats.totalStudents,
+      attendanceRate: parseFloat(attendanceRate)
+    };
+    
+    // 6.11.5: Upcoming Exams and Assessments
+    stats.upcomingExams = {
+      count: 0,
+      exams: []
+    };
+    
+    // 6.11.6: Recent System Activities
+    const recentActivities = await getRecentActivity();
+    stats.recentActivities = {
+      count: recentActivities.length,
+      activities: recentActivities.slice(0, 5)
+    };
+    
+    // 6.11.7: Academic Performance Trends
+    try {
+      const termConfigResult = await db.query(`
+        SELECT term_count 
+        FROM subjects_of_school_schema.school_config 
+        WHERE id = 1
+      `);
+      
+      const termCount = termConfigResult.rows[0]?.term_count || 2;
+      
+      stats.academicPerformance = {
+        termCount,
+        averageByTerm: [],
+        topPerformers: [],
+        classAverages: []
+      };
+      
+      // Get academic performance data
+      const academicData = await getAcademicPerformance();
+      stats.academicPerformance.topPerformers = academicData.topPerformers;
+      stats.academicPerformance.classAverages = academicData.classAverages;
+      
+    } catch (error) {
+      console.log('Could not fetch academic performance:', error.message);
+      stats.academicPerformance = {
+        termCount: 2,
+        averageByTerm: [],
+        topPerformers: [],
+        classAverages: []
+      };
+    }
+    
+    // 6.11.8: Additional metrics
+    stats.faults = {
+      total: basicStats.totalFaults,
+      uniqueStudents: basicStats.uniqueStudentsWithFaults
+    };
+    
+    stats.classes = basicStats.classes;
+    
+    console.log('✅ Phase 6.11 Dashboard statistics compiled successfully');
     
     res.json({
       status: 'success',
       timestamp: new Date().toISOString(),
-      students: {
-        total: basicStats.totalStudents,
-        gender: basicStats.gender
-      },
-      faults: {
-        total: basicStats.totalFaults,
-        uniqueStudents: basicStats.uniqueStudentsWithFaults
-      },
-      staff: { total: basicStats.staffCount },
-      classes: basicStats.classes
+      ...stats
     });
+    
   } catch (error) {
     console.error('Stats error:', error);
     res.status(500).json({ 
       status: 'error',
-      error: 'Failed to fetch stats',
+      error: 'Failed to fetch dashboard statistics',
       details: error.message 
     });
   }

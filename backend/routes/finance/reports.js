@@ -2,10 +2,11 @@ const express = require('express');
 const router = express.Router();
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
-const { authenticateToken } = require('../../middleware/auth');
+const { authenticateWithBranch } = require('../../middleware/branchAuth');
+const { getEndpointPath, API_ENDPOINTS } = require('../../config/api.config');
 
 // Trial Balance
-router.get('/trial-balance', authenticateToken, async (req, res) => {
+router.get('/trial-balance', authenticateWithBranch, async (req, res) => {
   try {
     const { asOfDate, campusId } = req.query;
     const date = asOfDate ? new Date(asOfDate) : new Date();
@@ -69,7 +70,7 @@ router.get('/trial-balance', authenticateToken, async (req, res) => {
 });
 
 // Income Statement (Profit & Loss)
-router.get('/income-statement', authenticateToken, async (req, res) => {
+router.get('/income-statement', authenticateWithBranch, async (req, res) => {
   try {
     const { startDate, endDate, campusId } = req.query;
     
@@ -159,7 +160,7 @@ router.get('/income-statement', authenticateToken, async (req, res) => {
 });
 
 // Balance Sheet
-router.get('/balance-sheet', authenticateToken, async (req, res) => {
+router.get('/balance-sheet', authenticateWithBranch, async (req, res) => {
   try {
     const { asOfDate, campusId } = req.query;
     const date = asOfDate ? new Date(asOfDate) : new Date();
@@ -236,7 +237,7 @@ router.get('/balance-sheet', authenticateToken, async (req, res) => {
 });
 
 // Cash Flow Statement
-router.get('/cash-flow', authenticateToken, async (req, res) => {
+router.get('/cash-flow', authenticateWithBranch, async (req, res) => {
   try {
     const { startDate, endDate, campusId } = req.query;
     
@@ -294,7 +295,7 @@ router.get('/cash-flow', authenticateToken, async (req, res) => {
 });
 
 // Accounts Receivable Aging
-router.get('/ar-aging', authenticateToken, async (req, res) => {
+router.get('/ar-aging', authenticateWithBranch, async (req, res) => {
   try {
     const { campusId } = req.query;
     const today = new Date();
@@ -363,7 +364,7 @@ router.get('/ar-aging', authenticateToken, async (req, res) => {
 });
 
 // Revenue Analysis
-router.get('/revenue-analysis', authenticateToken, async (req, res) => {
+router.get('/revenue-analysis', authenticateWithBranch, async (req, res) => {
   try {
     const { startDate, endDate, groupBy = 'month', campusId } = req.query;
     

@@ -1,6 +1,7 @@
 // routes/schoolSetupRoutes.js - COMPLETELY REWRITTEN
 const express = require('express');
 const pool = require('../config/db');
+const { getEndpointPath, API_ENDPOINTS } = require('../config/api.config');
 const router = express.Router();
 
 // Auto-create schedule schema and tables

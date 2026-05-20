@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FiFilter, FiSave, FiShare2, FiDownload, FiSearch, FiCheck, FiX, FiEdit2, FiUsers } from 'react-icons/fi';
+import { FiFilter, FiSave, FiShare2, FiDownload, FiSearch, FiCheck, FiX, FiEdit2, FiUsers, FiShield } from 'react-icons/fi';
+import { hasFeatureAccess } from '../../utils/roleBasedAccess';
 import styles from './MRLIST.module.css';
 
 const MRLIST = () => {
@@ -9,6 +10,7 @@ const MRLIST = () => {
   const [selectedTerm, setSelectedTerm] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [showFilters, setShowFilters] = useState(false);
+  const [user, setUser] = useState(null);
   const [students, setStudents] = useState([
     { id: 1, name: 'Ahmed Musa', studentId: '1001', test1: 85, test2: 78, quiz: 90, final: 88, total: 85.25, status: 'saved' },
     { id: 2, name: 'Fatuma Ali', studentId: '1002', test1: 78, test2: 82, quiz: 75, final: 80, total: 78.75, status: 'saved' },
@@ -16,6 +18,24 @@ const MRLIST = () => {
     { id: 4, name: 'John Doe', studentId: '1004', test1: 92, test2: 88, quiz: 95, final: 90, total: 91.25, status: 'saved' },
     { id: 5, name: 'Jane Smith', studentId: '1005', test1: '', test2: '', quiz: '', final: '', total: 0, status: 'pending' },
   ]);
+
+  // Load user data to verify access
+  useEffect(() => {
+    const storedUser = localStorage.getItem('staffUser');
+    if (storedUser) {
+      try {
+        const userData = JSON.parse(storedUser);
+        setUser(userData);
+        console.log('MRLIST: Loaded user data:', { 
+          username: userData.username, 
+          staffType: userData.staffType,
+          hasMarkListAccess: hasFeatureAccess(userData.staffType, 'mark-lists')
+        });
+      } catch (error) {
+        console.error('MRLIST: Error parsing user data:', error);
+      }
+    }
+  }, []);
 
   const handleScoreChange = (id, field, value) => {
     const updatedStudents = students.map(student => {
@@ -72,7 +92,26 @@ const MRLIST = () => {
           </div>
           <div>
             <h1 className={styles.title}>Mark List</h1>
-            <p className={styles.subtitle}>Manage student grades and assessments</p>
+            <p className={styles.subtitle}>
+              Manage student grades and assessments
+              {user && (
+                <span style={{ 
+                  marginLeft: '8px', 
+                  padding: '2px 8px', 
+                  background: '#e3f2fd', 
+                  color: '#1976d2', 
+                  borderRadius: '12px', 
+                  fontSize: '0.75rem',
+                  fontWeight: '600',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '4px'
+                }}>
+                  <FiShield size={12} />
+                  Teacher Only
+                </span>
+              )}
+            </p>
           </div>
         </div>
         <div className={styles.headerActions}>

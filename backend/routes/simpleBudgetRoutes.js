@@ -1,7 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const pool = require('../config/db');
-const { authenticateToken } = require('../middleware/auth');
+const { authenticateWithBranch, validateBranchCode } = require('../middleware/branchAuth');
+const { getEndpointPath, API_ENDPOINTS } = require('../config/api.config');
 
 // Initialize budgets table
 const initializeBudgetsTable = async () => {
@@ -68,7 +69,7 @@ const generateBudgetNumber = async () => {
  * GET /api/finance/budgets
  * Get all budgets with filtering
  */
-router.get('/', authenticateToken, async (req, res) => {
+router.get('/', authenticateWithBranch, async (req, res) => {
   console.log('\n📥 GET /api/finance/budgets - Request received');
   
   try {
@@ -169,7 +170,7 @@ router.get('/', authenticateToken, async (req, res) => {
  * POST /api/finance/budgets
  * Create a new budget
  */
-router.post('/', authenticateToken, async (req, res) => {
+router.post('/', authenticateWithBranch, async (req, res) => {
   console.log('\n📥 POST /api/finance/budgets - Request received');
   console.log('Body:', req.body);
   
@@ -255,7 +256,7 @@ router.post('/', authenticateToken, async (req, res) => {
  * PUT /api/finance/budgets/:id
  * Update a budget
  */
-router.put('/:id', authenticateToken, async (req, res) => {
+router.put('/:id', authenticateWithBranch, async (req, res) => {
   console.log('\n📥 PUT /api/finance/budgets/:id - Request received');
   
   try {
@@ -349,7 +350,7 @@ router.put('/:id', authenticateToken, async (req, res) => {
  * DELETE /api/finance/budgets/:id
  * Delete a budget
  */
-router.delete('/:id', authenticateToken, async (req, res) => {
+router.delete('/:id', authenticateWithBranch, async (req, res) => {
   console.log('\n📥 DELETE /api/finance/budgets/:id - Request received');
   
   try {
@@ -388,7 +389,7 @@ router.delete('/:id', authenticateToken, async (req, res) => {
  * GET /api/finance/budgets/summary/stats
  * Get budget summary statistics
  */
-router.get('/summary/stats', authenticateToken, async (req, res) => {
+router.get('/summary/stats', authenticateWithBranch, async (req, res) => {
   console.log('\n📥 GET /api/finance/budgets/summary/stats - Request received');
   
   try {

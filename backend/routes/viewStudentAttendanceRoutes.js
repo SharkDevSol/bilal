@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { Pool } = require('pg');
+const { getEndpointPath, API_ENDPOINTS } = require('../config/api.config');
 
 const pool = new Pool({
   user: process.env.DB_USER || 'postgres',

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
-const API_URL = import.meta.env.VITE_API_URL || 'https://iqrab3.skoolific.com';
+const API_URL = import.meta.env.VITE_API_URL || 'https://iqrab3.skoolific.com/api';
 
 // Edit Salary Modal Component - Updated
 const AddSalaryCompleteModal = ({ onClose, preSelectedStaff }) => {
@@ -48,7 +48,7 @@ const AddSalaryCompleteModal = ({ onClose, preSelectedStaff }) => {
   const fetchStaffTypes = async () => {
     try {
       const token = localStorage.getItem('authToken') || localStorage.getItem('token');
-      const response = await axios.get(`${API_URL}/api/hr/salary/staff-types`, {
+      const response = await axios.get(`${API_URL}/hr/salary/staff-types`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (response.data.success) {
@@ -68,7 +68,7 @@ const AddSalaryCompleteModal = ({ onClose, preSelectedStaff }) => {
   const fetchAccounts = async () => {
     try {
       const token = localStorage.getItem('authToken') || localStorage.getItem('token');
-      const response = await axios.get(`${API_URL}/api/finance/accounts`, {
+      const response = await axios.get(`${API_URL}/finance/accounts`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (response.data.success) {
@@ -82,7 +82,7 @@ const AddSalaryCompleteModal = ({ onClose, preSelectedStaff }) => {
   const fetchStaffByType = async (type) => {
     try {
       const token = localStorage.getItem('authToken') || localStorage.getItem('token');
-      const response = await axios.get(`${API_URL}/api/hr/salary/staff?staffType=${type}`, {
+      const response = await axios.get(`${API_URL}/hr/salary/staff?staffType=${type}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (response.data.success) {
@@ -153,7 +153,7 @@ const AddSalaryCompleteModal = ({ onClose, preSelectedStaff }) => {
         // Update existing salary
         console.log('✏️ Updating salary ID:', existingSalary.id);
         response = await axios.put(
-          `${API_URL}/api/hr/salary/update-complete/${existingSalary.id}`,
+          `${API_URL}/hr/salary/update-complete/${existingSalary.id}`,
           payload,
           { headers: { Authorization: `Bearer ${token}` } }
         );
@@ -161,7 +161,7 @@ const AddSalaryCompleteModal = ({ onClose, preSelectedStaff }) => {
         // Create new salary
         console.log('➕ Creating new salary');
         response = await axios.post(
-          `${API_URL}/api/hr/salary/add-complete`,
+          `${API_URL}/hr/salary/add-complete`,
           payload,
           { headers: { Authorization: `Bearer ${token}` } }
         );

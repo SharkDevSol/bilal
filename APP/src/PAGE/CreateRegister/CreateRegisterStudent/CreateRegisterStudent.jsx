@@ -52,6 +52,9 @@ const AddStudentS = () => {
   
   // Multi-select states
   const [multiSelectValues, setMultiSelectValues] = useState({});
+  
+  // V2 Enhancement: Task1 configuration state
+  const [task1Config, setTask1Config] = useState(null);
 
   const genderOptions = ['Male', 'Female'];
 
@@ -201,6 +204,23 @@ const AddStudentS = () => {
         console.error('Error fetching form structure:', error);
         // Set empty structure on error
         setFormStructure({ classes: [], customFields: [] });
+      });
+      
+    // V2 Enhancement: Fetch Task1 configuration
+    axios.get(`${API_BASE_URL}/schedule/config`)
+      .then(response => {
+        if (response.data) {
+          setTask1Config(response.data);
+          console.log('Task1 Config loaded:', response.data);
+        }
+      })
+      .catch(error => {
+        console.error('Error fetching Task1 config:', error);
+        // Set default config if fetch fails
+        setTask1Config({
+          has_kg: false,
+          has_evening_class: false
+        });
       });
   }, [setValue]);
 
@@ -881,6 +901,47 @@ const AddStudentS = () => {
                 {errors.gender && <span className={styles.errorMessage}>{errors.gender.message}</span>}
               </div>
             </div>
+            
+            {/* V2 Enhancement: KG and Evening Class Checkboxes */}
+            {task1Config && (task1Config.has_kg || task1Config.has_evening_class) && (
+              <div className={styles.formGroup} style={{ gridColumn: '1 / -1' }}>
+                <label style={{ marginBottom: '12px', display: 'block', fontWeight: '600' }}>
+                  Student Type
+                </label>
+                <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap' }}>
+                  {task1Config.has_kg && (
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+                      <input
+                        type="checkbox"
+                        {...register('is_kg')}
+                        disabled={previewMode || isLoading}
+                        style={{ width: '18px', height: '18px', cursor: 'pointer' }}
+                      />
+                      <span>Kindergarten (KG) Student</span>
+                    </label>
+                  )}
+                  {task1Config.has_evening_class && (
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+                      <input
+                        type="checkbox"
+                        {...register('is_evening_class')}
+                        disabled={previewMode || isLoading}
+                        style={{ width: '18px', height: '18px', cursor: 'pointer' }}
+                      />
+                      <span>Evening Class Student</span>
+                    </label>
+                  )}
+                </div>
+                <div style={{ fontSize: '0.85rem', color: '#666', marginTop: '8px' }}>
+                  {task1Config.has_kg && task1Config.has_evening_class 
+                    ? 'Select if this student is in KG program and/or evening class'
+                    : task1Config.has_kg 
+                    ? 'Select if this student is in the KG program'
+                    : 'Select if this student is in the evening class'}
+                </div>
+              </div>
+            )}
+            
             <div className={styles.formGroup}>
               <label>Student Photo</label>
               {photoPreview ? (

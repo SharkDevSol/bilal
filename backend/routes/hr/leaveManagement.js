@@ -1,11 +1,12 @@
 const express = require('express');
 const router = express.Router();
 const pool = require('../../config/db');
-const { authenticateToken } = require('../../middleware/auth');
+const { authenticateWithBranch } = require('../../middleware/branchAuth');
 const axios = require('axios');
+const { getEndpointPath, API_ENDPOINTS } = require('../../config/api.config');
 
 // Get attendance issues (LATE, ABSENT, HALF_DAY) with permission status
-router.get('/attendance-issues', authenticateToken, async (req, res) => {
+router.get('/attendance-issues', authenticateWithBranch, async (req, res) => {
   try {
     const { ethMonth, ethYear, status } = req.query;
 
@@ -146,7 +147,7 @@ router.get('/attendance-issues', authenticateToken, async (req, res) => {
 });
 
 // Approve permission (no deduction will be applied)
-router.post('/approve-permission', authenticateToken, async (req, res) => {
+router.post('/approve-permission', authenticateWithBranch, async (req, res) => {
   try {
     const { attendanceId, reason } = req.body;
 
@@ -198,7 +199,7 @@ router.post('/approve-permission', authenticateToken, async (req, res) => {
 });
 
 // Reject permission (deduction will be applied)
-router.post('/reject-permission', authenticateToken, async (req, res) => {
+router.post('/reject-permission', authenticateWithBranch, async (req, res) => {
   try {
     const { attendanceId, reason } = req.body;
 
@@ -250,7 +251,7 @@ router.post('/reject-permission', authenticateToken, async (req, res) => {
 });
 
 // Grant multi-day leave to a staff member
-router.post('/grant-leave', authenticateToken, async (req, res) => {
+router.post('/grant-leave', authenticateWithBranch, async (req, res) => {
   try {
     const { 
       staffId, 
@@ -369,7 +370,7 @@ router.post('/grant-leave', authenticateToken, async (req, res) => {
 });
 
 // Get leave records (staff with LEAVE status)
-router.get('/leave-records', authenticateToken, async (req, res) => {
+router.get('/leave-records', authenticateWithBranch, async (req, res) => {
   try {
     const { ethMonth, ethYear } = req.query;
 
@@ -412,7 +413,7 @@ router.get('/leave-records', authenticateToken, async (req, res) => {
 });
 
 // Get approval statistics for current user
-router.get('/approval-stats', authenticateToken, async (req, res) => {
+router.get('/approval-stats', authenticateWithBranch, async (req, res) => {
   try {
     const approvedBy = req.user.username || req.user.id;
     

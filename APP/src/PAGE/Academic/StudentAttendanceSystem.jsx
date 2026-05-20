@@ -10,6 +10,7 @@ const StudentAttendanceSystem = ({ preSelectedClass = null }) => {
   const [selectedClass, setSelectedClass] = useState(preSelectedClass || '');
   const [selectedYear, setSelectedYear] = useState(2018);
   const [selectedWeekId, setSelectedWeekId] = useState('');
+  const [filterStudentType, setFilterStudentType] = useState('all'); // New state for student type filter
   const [classes, setClasses] = useState([]);
   const [students, setStudents] = useState([]);
   const [attendanceData, setAttendanceData] = useState([]);
@@ -93,7 +94,7 @@ const StudentAttendanceSystem = ({ preSelectedClass = null }) => {
     if (selectedClass) {
       fetchStudents();
     }
-  }, [selectedClass]);
+  }, [selectedClass, filterStudentType]); // Add filterStudentType as dependency
 
   // Auto-run absent marker when page loads
   useEffect(() => {
@@ -181,7 +182,10 @@ const StudentAttendanceSystem = ({ preSelectedClass = null }) => {
     try {
       setIsLoading(true);
       const response = await axios.get(`${API_BASE_URL}/academic/student-attendance/students`, {
-        params: { class: selectedClass }
+        params: { 
+          class: selectedClass,
+          studentType: filterStudentType // Add student type filter
+        }
       });
       if (response.data.success) {
         setStudents(response.data.data);
@@ -647,6 +651,21 @@ const StudentAttendanceSystem = ({ preSelectedClass = null }) => {
             </select>
           </div>
         )}
+
+        <div className={styles.filterGroup}>
+          <label>Student Type</label>
+          <select
+            value={filterStudentType}
+            onChange={(e) => setFilterStudentType(e.target.value)}
+            className={styles.select}
+          >
+            <option value="all">All Student Types</option>
+            <option value="regular">Regular Students</option>
+            <option value="kg">KG Students</option>
+            <option value="evening">Evening Class Students</option>
+            <option value="kg_evening">KG + Evening Students</option>
+          </select>
+        </div>
 
         <div className={styles.filterGroup}>
           <label>Year</label>

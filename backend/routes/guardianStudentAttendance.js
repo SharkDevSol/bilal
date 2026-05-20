@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const pool = require('../config/db');
 const { getCurrentEthiopianDate } = require('../utils/ethiopianCalendar');
+const { getEndpointPath, API_ENDPOINTS } = require('../config/api.config');
 
 // Get wards for a guardian
 router.get('/wards/:guardianId', async (req, res) => {

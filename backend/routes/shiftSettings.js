@@ -6,6 +6,7 @@
 const express = require('express');
 const router = express.Router();
 const pool = require('../config/db');
+const { getEndpointPath, API_ENDPOINTS } = require('../config/api.config');
 
 // TEST ROUTE - Remove after testing
 router.get('/test', async (req, res) => {

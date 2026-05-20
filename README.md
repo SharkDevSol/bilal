@@ -1,835 +1,436 @@
-# 🎓 Skoolific - Complete School Management System
+# Skoolific V2 - Multi-Platform School Management System
 
-[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Node.js](https://img.shields.io/badge/node-%3E%3D16.0.0-brightgreen.svg)](https://nodejs.org/)
-[![React](https://img.shields.io/badge/react-18.2.0-blue.svg)](https://reactjs.org/)
-[![PostgreSQL](https://img.shields.io/badge/postgresql-14%2B-blue.svg)](https://www.postgresql.org/)
+## Overview
 
-A comprehensive, modern school management system built with React, Node.js, and PostgreSQL. Designed for Ethiopian schools with full support for Ethiopian calendar, Amharic language, and local educational requirements.
+Skoolific V2 is a comprehensive school management system designed for Ethiopian schools. It transforms the existing web-based V1 system into a multi-platform solution with native desktop and mobile applications, AI-powered test generation, multi-branch architecture, offline-first capabilities, and full Ethiopian calendar integration.
 
-## 🌟 Key Features
+**Current Status**: 🚧 Under active development - V2 upgrade in progress
 
-### 📚 Academic Management
-- **Student Registration & Management**
-  - Dynamic form builder for custom student fields
-  - Bulk import/export functionality
-  - Student profiles with photos and credentials
-  - Active/inactive student tracking
-  - Class-wise student organization
-
-- **Staff Management**
-  - Teacher and administrative staff registration
-  - Role-based access control
-  - Staff profiles with credentials
-  - Department and position tracking
-
-- **Evaluation System**
-  - Customizable evaluation templates
-  - Multi-criteria assessment
-  - Area-based evaluation (Academic, Behavioral, Social)
-  - Student performance tracking
-  - Evaluation reports and analytics
-
-- **Evaluation Book**
-  - Daily student evaluations
-  - Template-based assessments
-  - Teacher assignments by class
-  - Guardian feedback system
-  - Comprehensive evaluation reports
-
-- **Mark List Management**
-  - Subject-wise mark entry
-  - Term-based assessments
-  - Configurable mark components (Tests, Assignments, Exams)
-  - Pass/fail status calculation
-  - Progress tracking
-
-- **Report Cards**
-  - Automated report card generation
-  - Customizable templates
-  - Multi-term support
-  - Grade calculation
-  - Performance analytics
-
-- **Schedule Management**
-  - Class timetable creation
-  - Teacher schedule management
-  - Subject allocation
-  - Period-wise scheduling
-  - Shift management
-
-### 👥 Attendance Management
-
-#### Student Attendance
-- **Weekly Attendance System**
-  - Class teacher attendance marking
-  - Day-wise attendance tracking
-  - Attendance status (Present, Absent, Late, Half-Day)
-  - Weekly attendance tables
-  - Historical attendance records
-
-- **Time-Based Attendance**
-  - Check-in/check-out tracking
-  - Late arrival detection
-  - Configurable time settings
-  - Attendance reports
-
-#### Staff Attendance
-- **Biometric Integration**
-  - Fingerprint device support
-  - Real-time attendance capture
-  - Device status monitoring
-  - Multiple device management
-
-- **Manual Attendance**
-  - Web-based check-in/check-out
-  - GPS location tracking
-  - Photo verification
-  - Attendance corrections
-
-- **Attendance Settings**
-  - Shift time configuration
-  - Staff-specific timing
-  - Deduction rules (Late, Absent, Half-Day)
-  - Grace period settings
-
-### 💰 Finance Management
-
-#### Fee Management
-- **Fee Structure**
-  - Multiple fee types (Tuition, Transport, Books, etc.)
-  - Class-wise fee configuration
-  - Term-based fees
-  - Custom fee categories
-
-- **Monthly Payments**
-  - Ethiopian calendar integration
-  - Month-wise payment tracking
-  - Payment locking/unlocking
-  - Bulk payment processing
-  - Payment history
-
-- **Invoice System**
-  - Automated invoice generation
-  - Multiple payment methods
-  - Partial payment support
-  - Invoice templates
-  - Receipt generation
-
-- **Payment Tracking**
-  - Student balance monitoring
-  - Payment reminders
-  - Overdue tracking
-  - Payment reports
-
-#### Budget & Expenses
-- **Budget Management**
-  - Department-wise budgets
-  - Budget allocation
-  - Budget vs actual tracking
-  - Budget reports
-
-- **Expense Management**
-  - Expense recording
-  - Category-wise tracking
-  - Approval workflow
-  - Expense reports
-
-#### Payroll System
-- **Salary Management**
-  - Staff salary configuration
-  - Allowances and deductions
-  - Attendance-based deductions
-  - Salary slip generation
-  - Payment history
-
-- **Payroll Processing**
-  - Monthly payroll calculation
-  - Bulk salary processing
-  - Tax calculations
-  - Bank transfer integration
-
-### 🏢 HR Management
-
-- **Staff Records**
-  - Complete staff database
-  - Employment history
-  - Document management
-  - Performance records
-
-- **Leave Management**
-  - Leave request system
-  - Leave approval workflow
-  - Leave balance tracking
-  - Leave types (Sick, Annual, Emergency)
-
-- **Performance Management**
-  - Performance evaluations
-  - Goal setting
-  - Performance reviews
-  - Rating system
-
-- **HR Reports**
-  - Staff statistics
-  - Attendance reports
-  - Payroll reports
-  - Performance analytics
-
-### 👨‍👩‍👧 Guardian Portal
-
-- **Guardian Dashboard**
-  - Multiple ward management
-  - Real-time updates
-  - Notification center
-
-- **Ward Information**
-  - Student profiles
-  - Academic performance
-  - Attendance records
-  - Fee status
-
-- **Communication**
-  - Direct messaging with teachers
-  - Class announcements
-  - Event notifications
-  - Emergency alerts
-
-- **Evaluation Feedback**
-  - View daily evaluations
-  - Provide feedback
-  - Track progress
-  - Communication with teachers
-
-### 🚨 Student Faults Management
-
-- **Fault Reporting**
-  - 60+ predefined fault types across 14 categories:
-    - Attendance Issues (Late, Truancy, Skipping)
-    - Academic Infractions (Homework, Cheating, Unprepared)
-    - Behavioral Issues (Disruptive, Disrespect, Insubordination)
-    - Bullying & Harassment
-    - Physical Altercations (Fighting, Aggression)
-    - Language & Communication (Profanity, Inappropriate Language)
-    - Dress Code & Appearance
-    - Technology Misuse
-    - Property & Vandalism
-    - Safety Violations
-    - Food & Cafeteria
-    - Substance Related
-    - Dishonesty
-    - Other
-  - Detailed incident descriptions
-  - Date and reporter tracking
-  - Severity levels (Minor, Moderate, Serious, Severe)
-
-- **Fault Tracking**
-  - Student-wise fault history
-  - Offense numbering (1st, 2nd, 3rd offense)
-  - Class-wise fault reports
-  - Teacher fault reporting
-  - Admin fault management
-
-- **Fault Analytics**
-  - Total faults statistics
-  - Students with faults count
-  - Recent faults (last 7 days)
-  - Most common fault types
-  - Class-wise fault distribution
-
-- **Fault Filtering & Export**
-  - Filter by class
-  - Filter by fault type
-  - Date range filtering
-  - Student name search
-  - CSV export functionality
-
-### 📱 Communication System
-
-- **Admin Communications**
-  - Broadcast messages
-  - Class-specific messages
-  - Individual messaging
-  - Message attachments
-
-- **Teacher Communications**
-  - Class communication
-  - Parent messaging
-  - Student messaging
-  - Announcement system
-
-- **Guardian Notifications**
-  - Push notifications
-  - SMS integration
-  - Email notifications
-  - In-app notifications
-
-### 📊 Reports & Analytics
-
-#### Student Reports
-- Student statistics
-- Class-wise distribution
-- Gender distribution
-- Age distribution
-- Enrollment trends
-
-#### Academic Reports
-- Performance analytics
-- Subject-wise analysis
-- Class performance
-- Term comparisons
-- Grade distribution
-
-#### Attendance Reports
-- Daily attendance
-- Monthly summaries
-- Class attendance rates
-- Student attendance history
-- Late arrival reports
-
-#### Behavior Reports
-- Fault statistics
-- Behavioral trends
-- Student discipline records
-- Incident reports
-
-#### Financial Reports
-- Fee collection reports
-- Outstanding payments
-- Payment trends
-- Revenue analysis
-- Expense reports
-
-### 🔐 Security & Access Control
-
-- **Role-Based Access Control (RBAC)**
-  - Admin roles
-  - Sub-admin accounts
-  - Teacher permissions
-  - Guardian access
-  - Student access
-
-- **Permission System**
-  - Granular permissions
-  - Module-level access
-  - Action-level permissions
-  - Custom permission sets
-
-- **Authentication**
-  - JWT token-based auth
-  - Secure password hashing
-  - Session management
-  - Auto-logout
-
-### 🌍 Multi-Language Support
-
-- **Languages**
-  - English
-  - Amharic (አማርኛ)
-  - Arabic (العربية)
-
-- **Ethiopian Calendar**
-  - Full Ethiopian calendar support
-  - Date conversion
-  - Month names in Amharic
-  - Holiday management
-
-### 📱 Mobile & Desktop Apps
-
-- **Progressive Web App (PWA)**
-  - Installable on mobile devices
-  - Offline support
-  - Push notifications
-  - App-like experience
-
-- **Separate Apps**
-  - Student App
-  - Guardian App
-  - Staff App
-
-- **Desktop Apps**
-  - Windows application
-  - macOS application
-  - Linux application
-
-### 🎨 User Interface
-
-- **Modern Design**
-  - Material Design principles
-  - Responsive layout
-  - Mobile-first approach
-  - Dark mode support
-
-- **Customization**
-  - Branding settings
-  - Color themes
-  - Logo customization
-  - School information
-
-- **User Experience**
-  - Intuitive navigation
-  - Quick actions
-  - Search functionality
-  - Keyboard shortcuts
-
-## 🏗️ Technical Architecture
-
-### Frontend
-- **Framework**: React 18.2.0
-- **Build Tool**: Vite 4.5.14
-- **Routing**: React Router v6
-- **State Management**: React Context API + Redux
-- **Styling**: CSS Modules
-- **Icons**: React Icons (Feather Icons)
-- **Animations**: Framer Motion
-- **HTTP Client**: Axios
-- **Date Handling**: Custom Ethiopian Calendar
-
-### Backend
-- **Runtime**: Node.js 16+
-- **Framework**: Express.js
-- **Database**: PostgreSQL 14+
-- **Authentication**: JWT (jsonwebtoken)
-- **File Upload**: Multer
-- **Validation**: Express Validator
-- **Security**: Helmet, CORS
-- **Process Manager**: PM2
-
-### Database Schema
-- **Classes Schema**: Student records by class
-- **Public Schema**: System tables
-- **Fault Schema**: Student fault records
-- **Finance Schema**: Payment and invoice records
-- **HR Schema**: Staff and payroll records
-
-## 📁 Project Structure
+## System Architecture
 
 ```
-bilal/
-├── APP/                          # Frontend Application
-│   ├── public/                   # Static assets
-│   │   ├── downloads/           # Desktop app installers
-│   │   ├── manifest.json        # PWA manifest
-│   │   └── service-worker.js    # Service worker
-│   ├── src/
-│   │   ├── COMPONENTS/          # Reusable components
-│   │   │   ├── mobile/         # Mobile-specific components
-│   │   │   ├── StaffProfile.jsx
-│   │   │   ├── StudentProfile.jsx
-│   │   │   └── GuardianProfile.jsx
-│   │   ├── PAGE/               # Page components
-│   │   │   ├── Academic/       # Academic features
-│   │   │   ├── Finance/        # Finance features
-│   │   │   ├── HR/            # HR features
-│   │   │   ├── Faults/        # Faults management
-│   │   │   ├── Reports/       # Report pages
-│   │   │   └── ...
-│   │   ├── context/           # React Context
-│   │   ├── config/            # Configuration
-│   │   ├── utils/             # Utility functions
-│   │   └── App.jsx            # Main app component
-│   ├── .env.production        # Production environment
-│   ├── package.json
-│   └── vite.config.js
-│
-├── backend/                     # Backend API
-│   ├── routes/                 # API routes
-│   │   ├── academic/          # Academic routes
-│   │   ├── finance/           # Finance routes
-│   │   ├── hr/               # HR routes
-│   │   ├── studentFaultsRoutes.js
-│   │   └── ...
-│   ├── middleware/            # Express middleware
-│   ├── config/               # Configuration
-│   ├── database/             # Database utilities
-│   ├── migrations/           # Database migrations
-│   ├── .env                  # Environment variables
-│   ├── server.js             # Main server file
-│   └── package.json
-│
-├── README.md                   # This file
-└── package.json
-
+┌─────────────────────────────────────────────────────────────────┐
+│                        Client Applications                       │
+├──────────────────┬──────────────────┬──────────────────────────┤
+│   Admin_App      │  Super_Admin_App │   Staff/Student/         │
+│   (Tauri Desktop)│  (Tauri/Mobile)  │   Guardian_App (Mobile)  │
+└────────┬─────────┴────────┬─────────┴──────────┬───────────────┘
+         │                  │                    │
+         └──────────────────┼────────────────────┘
+                            │
+                    ┌───────▼────────┐
+                    │  API Gateway   │
+                    │  (Express.js)  │
+                    └───────┬────────┘
+                            │
+         ┌──────────────────┼──────────────────┐
+         │                  │                  │
+    ┌────▼────┐      ┌─────▼──────┐    ┌─────▼──────┐
+    │ Branch1 │      │  Branch2   │    │  Branch3   │
+    │   DB    │      │     DB     │    │     DB     │
+    └─────────┘      └────────────┘    └────────────┘
 ```
 
-## 🚀 Installation & Setup
+## Monorepo Structure
 
-### Prerequisites
-- Node.js 16+ and npm
-- PostgreSQL 14+
-- Git
+This project uses **npm workspaces** to manage multiple applications in a single repository:
+
+```
+skoolific-v2/
+├── packages/
+│   ├── backend/              # Node.js/Express API server
+│   ├── frontend/             # React admin web app
+│   ├── desktop/              # Tauri desktop apps (Admin & Super Admin)
+│   ├── mobile-staff/         # Capacitor mobile app for staff
+│   ├── mobile-student/       # Capacitor mobile app for students
+│   ├── mobile-guardian/      # Capacitor mobile app for guardians
+│   └── mobile-super-admin/   # Capacitor mobile app for super admins
+├── backend/                  # Actual backend code (V1 location)
+├── APP/                      # Actual frontend code (V1 location)
+├── .kiro/                    # Kiro AI specs and configuration
+├── package.json              # Root workspace configuration
+└── README.md                 # This file
+```
+
+## Key Features
+
+### 🌍 Multi-Platform Support
+- **Desktop**: Native Tauri applications for Windows (Admin & Super Admin)
+- **Mobile**: Native Android APKs via Capacitor (Staff, Student, Guardian, Super Admin)
+- **Web**: React-based admin interface
+
+### 🏢 Multi-Branch Architecture
+- Separate PostgreSQL database per branch
+- Unique branch codes for authentication
+- Cross-branch data aggregation for super admins
+- Complete data isolation between branches
+
+### 🤖 AI-Powered Test Generation
+- Google Gemini API integration
+- Support for 9 question types (MCQ, True/False, Matching, Essay, etc.)
+- Multi-language support (English, Arabic, Amharic, Oromo, Somali, French)
+- Automatic grading for objective questions
+- Teacher review and approval workflow
+
+### 📅 Ethiopian Calendar Integration
+- Full Ethiopian calendar support for all date operations
+- Automatic conversion between Gregorian and Ethiopian dates
+- Academic year management using Ethiopian calendar
+- Multi-language date formatting (English, Amharic)
+
+### 📴 Offline-First Architecture
+- Local storage with IndexedDB
+- Automatic synchronization when online
+- Offline queue for pending operations
+- Sync status indicators
+
+### 🔔 Multi-Channel Notifications
+- Push notifications (mobile & desktop)
+- Telegram bot integration
+- SMS notifications
+- Email notifications
+
+### 🔐 Enhanced Security
+- JWT-based authentication with branch context
+- Role-based access control
+- Secure credential storage (OS keychain for desktop, secure storage for mobile)
+- Data encryption at rest and in transit
+
+## Prerequisites
+
+- **Node.js**: >= 18.0.0
+- **npm**: >= 9.0.0
+- **PostgreSQL**: >= 14.0
+- **Rust**: Latest stable (for Tauri desktop apps)
+- **Android Studio**: Latest (for mobile apps)
+- **Java JDK**: 17+ (for Android builds)
+
+## Installation
 
 ### 1. Clone the Repository
 ```bash
-git clone https://github.com/SharkDevSol/bilal.git
-cd bilal
+git clone <repository-url>
+cd skoolific-v2
 ```
 
-### 2. Backend Setup
+### 2. Install Dependencies
 ```bash
-cd backend
-
-# Install dependencies
+# Install all workspace dependencies
 npm install
-
-# Create .env file
-cp .env.production.template .env
-
-# Configure database connection in .env
-# DB_HOST=localhost
-# DB_PORT=5432
-# DB_NAME=school_db
-# DB_USER=postgres
-# DB_PASSWORD=your_password
-# JWT_SECRET=your_jwt_secret
-# PORT=5011
-
-# Run database migrations (if available)
-npm run migrate
-
-# Start the backend server
-npm start
-
-# Or use PM2 for production
-pm2 start server.js --name bilal-backend
 ```
 
-### 3. Frontend Setup
-```bash
-cd APP
+This will install dependencies for all workspaces (backend, frontend, desktop, mobile apps).
 
-# Install dependencies
-npm install
+### 3. Configure Environment Variables
 
-# Create .env file
-cp .env.example .env.production
+#### Backend (.env in backend/ directory)
+```env
+DB_HOST=localhost
+DB_PORT=5432
+DB_USER=your_db_user
+DB_PASSWORD=your_db_password
+DB_NAME=your_db_name
+JWT_SECRET=your_jwt_secret
+GEMINI_API_KEY=your_gemini_api_key
+API_HOST=localhost
+API_PORT=3000
+API_PROTOCOL=http
+```
 
-# Configure API URL in .env.production
-# VITE_API_URL=http://localhost:5011/api
-
-# Development mode
-npm run dev
-
-# Production build
-npm run build
-
-# Preview production build
-npm run preview
+#### Frontend (.env in APP/ directory)
+```env
+VITE_API_BASE_URL=http://localhost:3000
+VITE_APP_NAME=Skoolific V2
+VITE_APP_VERSION=2.0.0
 ```
 
 ### 4. Database Setup
-
-Create the required schemas:
-```sql
--- Create schemas
-CREATE SCHEMA IF NOT EXISTS classes_schema;
-CREATE SCHEMA IF NOT EXISTS class_students_fault;
-
--- Create classes table in public schema
-CREATE TABLE IF NOT EXISTS public.classes (
-    class_name VARCHAR(255) PRIMARY KEY,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
+```bash
+# Run database migrations
+cd backend
+npx prisma migrate dev
+npx prisma generate
 ```
 
-## 🌐 Deployment
+## Development
 
-### Production Deployment (VPS/Server)
+### Run Backend API Server
+```bash
+# From root
+npm run dev:backend
 
-1. **Server Requirements**
-   - Ubuntu 20.04+ or similar Linux distribution
-   - Node.js 16+
-   - PostgreSQL 14+
-   - Nginx (for reverse proxy)
-   - PM2 (for process management)
-
-2. **Clone and Setup**
-   ```bash
-   cd /var/www
-   git clone https://github.com/SharkDevSol/bilal.git bilal-school
-   cd bilal-school
-   ```
-
-3. **Backend Deployment**
-   ```bash
-   cd backend
-   npm install --production
-   
-   # Configure .env with production settings
-   nano .env
-   
-   # Start with PM2
-   pm2 start server.js --name bilal-backend
-   pm2 save
-   pm2 startup
-   ```
-
-4. **Frontend Deployment**
-   ```bash
-   cd APP
-   npm install
-   npm run build
-   
-   # Copy build to web directory
-   cp -r dist/* /var/www/bilal.skoolific.com/
-   ```
-
-5. **Nginx Configuration**
-   ```nginx
-   server {
-       listen 80;
-       server_name bilal.skoolific.com;
-       
-       root /var/www/bilal.skoolific.com;
-       index index.html;
-       
-       # Frontend
-       location / {
-           try_files $uri $uri/ /index.html;
-       }
-       
-       # Backend API
-       location /api {
-           proxy_pass http://localhost:5011;
-           proxy_http_version 1.1;
-           proxy_set_header Upgrade $http_upgrade;
-           proxy_set_header Connection 'upgrade';
-           proxy_set_header Host $host;
-           proxy_cache_bypass $http_upgrade;
-       }
-   }
-   ```
-
-6. **SSL Certificate (Let's Encrypt)**
-   ```bash
-   sudo certbot --nginx -d bilal.skoolific.com
-   ```
-
-### Environment Variables
-
-#### Backend (.env)
-```env
-# Database
-DB_HOST=localhost
-DB_PORT=5432
-DB_NAME=school_db
-DB_USER=postgres
-DB_PASSWORD=your_secure_password
-
-# Server
-PORT=5011
-NODE_ENV=production
-
-# JWT
-JWT_SECRET=your_jwt_secret_key_here
-
-# File Upload
-UPLOAD_DIR=./uploads
-MAX_FILE_SIZE=10485760
-
-# Email (optional)
-SMTP_HOST=smtp.gmail.com
-SMTP_PORT=587
-SMTP_USER=your_email@gmail.com
-SMTP_PASS=your_app_password
-
-# SMS (optional)
-SMS_API_KEY=your_sms_api_key
-SMS_SENDER_ID=SCHOOL
+# Or from backend workspace
+npm run dev --workspace=packages/backend
 ```
 
-#### Frontend (.env.production)
-```env
-VITE_API_URL=https://bilal.skoolific.com/api
+### Run Frontend Web App
+```bash
+# From root
+npm run dev:frontend
+
+# Or from frontend workspace
+npm run dev --workspace=packages/frontend
 ```
 
-## 📖 Usage Guide
+### Run Desktop App (After Tauri Setup)
+```bash
+npm run dev --workspace=packages/desktop
+```
 
-### Admin Access
-1. Navigate to `https://your-domain.com/login`
-2. Login with admin credentials
-3. Access all features from the dashboard
+### Run Mobile Apps (After Capacitor Setup)
+```bash
+# Staff app
+npm run dev --workspace=packages/mobile-staff
 
-### Teacher Access
-1. Navigate to `https://your-domain.com/app/staff-login`
-2. Login with teacher credentials
-3. Access teacher-specific features
+# Student app
+npm run dev --workspace=packages/mobile-student
 
-### Guardian Access
-1. Navigate to `https://your-domain.com/app/guardian-login`
-2. Login with guardian credentials
-3. View ward information and communicate with teachers
+# Guardian app
+npm run dev --workspace=packages/mobile-guardian
 
-### Student Access
-1. Navigate to `https://your-domain.com/app/student-login`
-2. Login with student credentials
-3. View personal information and academic records
+# Super Admin app
+npm run dev --workspace=packages/mobile-super-admin
+```
 
-## 🔧 Configuration
+## Building for Production
 
-### Branding
-Update school branding in Settings:
-- School name
-- Logo
-- Primary color
-- Secondary color
-- Contact information
+### Backend
+```bash
+npm run start:backend
+```
 
-### Permissions
-Configure role-based permissions:
-- Admin permissions
-- Sub-admin permissions
-- Teacher permissions
-- Custom permission sets
+### Frontend
+```bash
+npm run build:frontend
+```
 
-### Academic Settings
-- Term configuration
-- Grading system
-- Mark components
-- Evaluation templates
+### Desktop Apps
+```bash
+npm run build:desktop
+```
 
-### Financial Settings
-- Fee types
-- Payment methods
-- Invoice templates
-- Currency settings
+### Mobile Apps
+```bash
+npm run build:mobile-staff
+npm run build:mobile-student
+npm run build:mobile-guardian
+npm run build:mobile-super-admin
+```
 
-## 🐛 Troubleshooting
+## Testing
+
+### Run All Tests
+```bash
+npm test
+```
+
+### Run Tests for Specific Workspace
+```bash
+npm run test --workspace=packages/backend
+npm run test --workspace=packages/frontend
+```
+
+### Run Property-Based Tests
+```bash
+npm run test:property --workspace=packages/backend
+```
+
+## Project Status
+
+### ✅ Completed
+- Multi-branch database architecture
+- Ethiopian calendar integration
+- Branch code authentication system
+- Centralized API configuration
+- Backend API structure
+- Frontend admin interface (V1)
+
+### 🚧 In Progress
+- Monorepo structure setup (Phase 1.1)
+- Tauri desktop application setup (Phase 1.3)
+- Capacitor mobile application setup (Phase 1.4)
+
+### 📋 Planned
+- AI-powered test generation (Phase 2)
+- Offline-first architecture (Phase 3)
+- Multi-channel notifications (Phase 4)
+- Data migration from V1 to V2 (Phase 5)
+- UI/UX improvements (Phase 6-8)
+- Performance optimization (Phase 9)
+- Testing and deployment (Phase 10)
+
+## Documentation
+
+- **Requirements**: `.kiro/specs/skoolific-v2-upgrade/requirements.md`
+- **Design**: `.kiro/specs/skoolific-v2-upgrade/design.md`
+- **Tasks**: `.kiro/specs/skoolific-v2-upgrade/tasks.md`
+- **Backend README**: `packages/backend/README.md`
+- **Frontend README**: `packages/frontend/README.md`
+- **Desktop README**: `packages/desktop/README.md`
+- **Mobile Apps READMEs**: `packages/mobile-*/README.md`
+
+## Technology Stack
+
+### Backend
+- Node.js + Express.js
+- PostgreSQL + Prisma ORM
+- JWT Authentication
+- Google Gemini API
+- Socket.io (real-time features)
+
+### Frontend
+- React.js 19.1.0
+- Vite
+- Material-UI + Ant Design
+- Axios
+- Dexie.js (IndexedDB)
+- Ethiopian Calendar Converter
+
+### Desktop
+- Tauri 2.0
+- Rust
+- React.js
+
+### Mobile
+- Capacitor 6.0
+- React.js
+- Android SDK
+
+## Contributing
+
+This is a private project for Ethiopian schools. For development team members:
+
+1. Follow the task list in `.kiro/specs/skoolific-v2-upgrade/tasks.md`
+2. Create feature branches from `develop`
+3. Submit pull requests for review
+4. Ensure all tests pass before merging
+
+## License
+
+UNLICENSED - Private project for Skoolific schools.
+
+## Support
+
+For technical support or questions, contact the development team.
+
+## Troubleshooting
 
 ### Common Issues
 
-1. **"No routes matched location" Error**
-   - Clear browser cache (Ctrl + Shift + R)
-   - Visit `/force-refresh.html` to auto-clear cache
+#### 1. Database Connection Errors
 
-2. **"Failed to load students" Error**
-   - Check database schema (should be `classes_schema`)
-   - Verify class table exists
-   - Check backend logs
+**Problem:** Backend fails to connect to PostgreSQL database
 
-3. **Database Connection Error**
-   - Verify PostgreSQL is running
-   - Check database credentials in `.env`
-   - Ensure database exists
+**Solutions:**
+- Verify PostgreSQL is running: `pg_isready -h localhost -p 5432`
+- Check database credentials in `backend/.env`
+- Ensure database exists: `psql -U postgres -l | grep skoolific`
+- Test connection: `psql -h localhost -U postgres -d skoolific`
 
-4. **API Connection Error**
-   - Check backend server is running
-   - Verify `VITE_API_URL` in frontend `.env`
-   - Check CORS settings
+#### 2. Port Already in Use
 
-## 📝 API Documentation
+**Problem:** `Error: listen EADDRINUSE: address already in use :::5052`
 
-### Authentication
-```
-POST /api/auth/login
-POST /api/auth/logout
-POST /api/auth/refresh
-```
+**Solutions:**
+- Check what's using the port: `netstat -ano | findstr :5052` (Windows) or `lsof -i :5052` (Linux/Mac)
+- Kill the process or change `PORT` in `backend/.env`
+- Use a different port: `PORT=5053 npm run dev`
 
-### Students
-```
-GET    /api/student-list/classes
-GET    /api/student-list/students/:className
-POST   /api/student-list/student
-PUT    /api/student-list/student/:className/:schoolId/:classId
-DELETE /api/student-list/student/:className/:schoolId/:classId
-```
+#### 3. Frontend Cannot Reach Backend
 
-### Faults
-```
-GET  /api/faults/classes
-GET  /api/faults/students/:className
-GET  /api/faults/faults/:className
-POST /api/faults/add-fault
-```
+**Problem:** API requests fail with CORS or network errors
 
-### Finance
-```
-GET  /api/finance/fee-types
-POST /api/finance/invoice
-GET  /api/finance/payments
-POST /api/finance/payment
-```
+**Solutions:**
+- Verify backend is running: `curl http://localhost:5052/health`
+- Check `VITE_API_URL` in `APP/.env` matches backend port
+- Ensure `FRONTEND_URL` in `backend/.env` matches frontend URL
+- Check firewall settings
 
-### HR
-```
-GET  /api/hr/staff
-POST /api/hr/attendance
-GET  /api/hr/payroll
-POST /api/hr/salary
-```
+#### 4. JWT Authentication Failing
 
-## 🤝 Contributing
+**Problem:** Login fails or tokens are invalid
 
-Contributions are welcome! Please follow these steps:
+**Solutions:**
+- Verify `JWT_SECRET` is set in `backend/.env`
+- Ensure secret is at least 32 characters
+- Check token expiration: `JWT_EXPIRES_IN=24h`
+- Clear browser localStorage and try again
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
+#### 5. Ethiopian Calendar Not Working
 
-## 📄 License
+**Problem:** Dates display incorrectly or calendar conversion fails
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+**Solutions:**
+- Verify `ethiopian-calendar-date-converter` is installed
+- Check import: `import EthiopianCalendar from '@/utils/ethiopianCalendar'`
+- Test conversion: `EthiopianCalendar.now()`
+- Ensure timezone is set: `timezone=Africa/Addis_Ababa` in `DATABASE_URL`
 
-## 👥 Authors
+#### 6. Gemini API Errors
 
-- **SharkDevSol** - *Initial work* - [GitHub](https://github.com/SharkDevSol)
+**Problem:** AI test generation fails
 
-## 🙏 Acknowledgments
+**Solutions:**
+- Verify `GEMINI_API_KEY` is set in `backend/.env`
+- Check API key validity: https://makersuite.google.com/app/apikey
+- Verify API quota hasn't been exceeded
+- Test API: `curl -H "x-goog-api-key: YOUR_KEY" https://generativelanguage.googleapis.com/v1/models`
 
-- ALKHWARIZMI - School Management System Framework
-- React Community
-- Node.js Community
-- PostgreSQL Community
+#### 7. Build Failures
 
-## 📞 Support
+**Problem:** `npm run build` fails
 
-For support, email support@skoolific.com or join our Slack channel.
+**Solutions:**
+- Clear node_modules: `rm -rf node_modules && npm install`
+- Clear build cache: `rm -rf dist && npm run build`
+- Check for TypeScript errors: `npm run lint`
+- Verify all dependencies are installed: `npm install`
 
-## 🔗 Links
+#### 8. Workspace Installation Issues
 
-- **Live Demo**: https://bilal.skoolific.com
-- **Documentation**: https://docs.skoolific.com
-- **GitHub**: https://github.com/SharkDevSol/bilal
-- **Issues**: https://github.com/SharkDevSol/bilal/issues
+**Problem:** `npm install` fails with workspace errors
 
-## 📊 Project Status
+**Solutions:**
+- Use `--legacy-peer-deps`: `npm install --legacy-peer-deps`
+- Clear npm cache: `npm cache clean --force`
+- Delete package-lock.json and reinstall: `rm package-lock.json && npm install`
+- Install workspaces individually if needed
 
-- ✅ Core Features: Complete
-- ✅ Student Management: Complete
-- ✅ Staff Management: Complete
-- ✅ Attendance System: Complete
-- ✅ Finance Module: Complete
-- ✅ HR Module: Complete
-- ✅ Faults System: Complete
-- ✅ Guardian Portal: Complete
-- ✅ Reports: Complete
-- 🚧 Inventory Module: Coming Soon
-- 🚧 Asset Management: Coming Soon
-- 🚧 Library Management: Coming Soon
+#### 9. Tauri Build Errors
 
-## 🎯 Roadmap
+**Problem:** Desktop app build fails
 
-### Version 2.0 (Upcoming)
-- [ ] Inventory Management System
-- [ ] Asset Management System
-- [ ] Library Management System
-- [ ] Transport Management
-- [ ] Hostel Management
-- [ ] Online Examination System
-- [ ] Video Conferencing Integration
-- [ ] Mobile App (Native)
+**Solutions:**
+- Ensure Rust is installed: `rustc --version`
+- Update Rust: `rustup update`
+- Install Tauri CLI: `npm install -g @tauri-apps/cli`
+- Check Tauri prerequisites: https://tauri.app/v1/guides/getting-started/prerequisites
 
-### Version 2.1
-- [ ] AI-Powered Analytics
-- [ ] Predictive Student Performance
-- [ ] Automated Report Generation
-- [ ] Advanced Biometric Integration
-- [ ] Blockchain Certificates
+#### 10. Capacitor Build Errors
+
+**Problem:** Mobile app build fails
+
+**Solutions:**
+- Ensure Android Studio is installed
+- Set JAVA_HOME: `export JAVA_HOME=/path/to/jdk`
+- Update Capacitor: `npm install @capacitor/cli@latest @capacitor/core@latest`
+- Sync platforms: `npx cap sync`
+
+### Getting Help
+
+If you encounter issues not covered here:
+
+1. Check the [Environment Variables Documentation](ENVIRONMENT_VARIABLES.md)
+2. Review the [Contributing Guide](CONTRIBUTING.md)
+3. Check the spec files in `.kiro/specs/skoolific-v2-upgrade/`
+4. Contact the development team
+5. Create an issue with:
+   - Error message
+   - Steps to reproduce
+   - Environment details (OS, Node version, etc.)
 
 ---
 
-**Made with ❤️ for Ethiopian Schools**
-
-*Empowering Education Through Technology*
+**Version**: 2.0.0  
+**Last Updated**: 2025  
+**Maintained by**: Skoolific Development Team

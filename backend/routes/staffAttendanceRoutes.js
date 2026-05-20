@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const pool = require('../config/db');
+const { getEndpointPath, API_ENDPOINTS } = require('../config/api.config');
 
 // Clock In - Step 1 (Initial timestamp)
 router.post('/clock-in/step1', async (req, res) => {

@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const pool = require('../config/db');
+const { getEndpointPath, API_ENDPOINTS } = require('../config/api.config');
 
 // Get all class names from school_schema_points.classes (the actual student classes)
 router.get('/classes', async (req, res) => {

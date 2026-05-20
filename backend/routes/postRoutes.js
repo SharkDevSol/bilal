@@ -4,10 +4,12 @@ const router = express.Router();
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs').promises;
+const { getEndpointPath, API_ENDPOINTS } = require('../config/api.config');
 require('dotenv').config();
 
 // Security middleware
-const { authenticateToken, optionalAuth } = require('../middleware/auth');
+const { optionalAuth } = require('../middleware/auth');
+const { authenticateWithBranch, validateBranchCode } = require('../middleware/branchAuth');
 const { sanitizeInputs } = require('../middleware/inputValidation');
 const { multerFileFilter } = require('../middleware/fileValidation');
 const { uploadLimiter } = require('../middleware/rateLimiter');
@@ -151,7 +153,7 @@ const getAudienceArrayForRole = (role) => {
 };
 
 // POST /api/posts - Create post (protected route with upload rate limiting)
-router.post('/', authenticateToken, uploadLimiter, upload, async (req, res) => {
+router.post('/', authenticateWithBranch, uploadLimiter, upload, async (req, res) => {
   const { title, body, link, author_type, author_id, audiences } = req.body;
   const author_name = req.body.author_name || 'Anonymous User';
   if (!title || !body || !author_type || !author_id) {

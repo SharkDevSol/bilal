@@ -4,6 +4,7 @@ const pool = require('../config/db');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
+const { getEndpointPath, API_ENDPOINTS } = require('../config/api.config');
 const router = express.Router();
 
 // Ensure uploads directory exists

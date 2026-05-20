@@ -3,6 +3,7 @@ const router = express.Router();
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 const cors = require('cors');
+const { getEndpointPath, API_ENDPOINTS } = require('../config/api.config');
 
 // Enable CORS for all finance routes
 router.use(cors({
@@ -15,14 +16,14 @@ router.use(cors({
 }));
 
 // Security middleware
-const { authenticateToken } = require('../middleware/auth');
+const { authenticateWithBranch, validateBranchCode } = require('../middleware/branchAuth');
 const { requirePermission, FINANCE_PERMISSIONS } = require('../middleware/financeAuth');
 
 /**
  * POST /api/finance/fee-structures
  * Create a new fee structure with validation
  */
-router.post('/', authenticateToken, requirePermission(FINANCE_PERMISSIONS.FEE_STRUCTURES_CREATE), async (req, res) => {
+router.post('/', authenticateWithBranch, requirePermission(FINANCE_PERMISSIONS.FEE_STRUCTURES_CREATE), async (req, res) => {
   console.log('\n📥 POST /api/finance/fee-structures - Request received');
   console.log('User:', req.user);
   console.log('Body:', req.body);
@@ -211,7 +212,7 @@ router.post('/', authenticateToken, requirePermission(FINANCE_PERMISSIONS.FEE_ST
  * GET /api/finance/fee-structures
  * List fee structures with filtering
  */
-router.get('/', authenticateToken, requirePermission(FINANCE_PERMISSIONS.FEE_STRUCTURES_VIEW), async (req, res) => {
+router.get('/', authenticateWithBranch, requirePermission(FINANCE_PERMISSIONS.FEE_STRUCTURES_VIEW), async (req, res) => {
   console.log('\n📥 GET /api/finance/fee-structures - Request received');
   console.log('User:', req.user);
   console.log('Query params:', req.query);
@@ -323,7 +324,7 @@ router.get('/', authenticateToken, requirePermission(FINANCE_PERMISSIONS.FEE_STR
  * GET /api/finance/fee-structures/:id
  * Get fee structure details
  */
-router.get('/:id', authenticateToken, requirePermission(FINANCE_PERMISSIONS.FEE_STRUCTURES_VIEW), async (req, res) => {
+router.get('/:id', authenticateWithBranch, requirePermission(FINANCE_PERMISSIONS.FEE_STRUCTURES_VIEW), async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -383,7 +384,7 @@ router.get('/:id', authenticateToken, requirePermission(FINANCE_PERMISSIONS.FEE_
  * PUT /api/finance/fee-structures/:id
  * Update fee structure
  */
-router.put('/:id', authenticateToken, requirePermission(FINANCE_PERMISSIONS.FEE_STRUCTURES_UPDATE), async (req, res) => {
+router.put('/:id', authenticateWithBranch, requirePermission(FINANCE_PERMISSIONS.FEE_STRUCTURES_UPDATE), async (req, res) => {
   try {
     const { id } = req.params;
     const { 
@@ -573,7 +574,7 @@ module.exports = router;
  * DELETE /api/finance/fee-structures/:id
  * Delete a fee structure and all related invoices
  */
-router.delete('/:id', authenticateToken, requirePermission(FINANCE_PERMISSIONS.FEE_STRUCTURES_DELETE), async (req, res) => {
+router.delete('/:id', authenticateWithBranch, requirePermission(FINANCE_PERMISSIONS.FEE_STRUCTURES_DELETE), async (req, res) => {
   try {
     const { id } = req.params;
 

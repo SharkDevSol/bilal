@@ -1,15 +1,10 @@
 /* ========================================
    STAFF PROFILE - ULTRA MODERN DESIGN
    Mobile-First Responsive Design System
-   Staff Theme: Green Gradient
-   ======================================== */
-
-/* ========================================
-   PROFILE TAB
    ======================================== */
 
 .profileTabContainer {
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  background: var(--primary-gradient);
   min-height: 100vh;
   padding: 1rem;
   position: relative;
@@ -42,169 +37,41 @@
   z-index: 1;
 }
 
-/* Fields Stack */
-.fieldsStack {
-  display: flex;
-  flex-direction: column;
-}
-
-.fieldItem {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  padding: 1rem 0;
-  border-bottom: 1px solid #e9ecef;
-  transition: all 0.2s ease;
-}
-
-.fieldItem:last-child {
-  border-bottom: none;
-}
-
-.fieldItem:hover {
-  padding-left: 0.5rem;
-  background: #f8f9fa;
-  margin: 0 -0.5rem;
-  padding-right: 0.5rem;
-  border-radius: 8px;
-}
-
-.fieldLabel {
-  font-size: 0.75rem;
-  color: #777;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.8px;
-}
-
-.fieldValue {
-  font-size: 1.05rem;
-  color: #333;
-  font-weight: 500;
-}
-
-/* ========================================
-   TAB CONTAINERS
-   ======================================== */
-
-.tabTitle {
-  font-size: 1.5rem;
-  font-weight: 800;
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  margin: 0;
-  padding: 1rem 1.25rem 0.5rem;
-  letter-spacing: -0.5px;
-  animation: slideInDown 0.6s ease;
-}
-
-@keyframes slideInDown {
-  from {
-    opacity: 0;
-    transform: translateY(-20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.postsContainer,
-.evaluationsContainer,
-.communicationsContainer,
-.scheduleContainer,
-.markListContainer,
-.classContainer,
-.attendanceContainer,
-.evalBookContainer {
+/* Posts Tab Container */
+.postsTabContainer {
   background: transparent;
   min-height: 100vh;
   padding: 1rem;
   padding-bottom: 5rem;
 }
 
-/* ========================================
-   POSTS TAB
-   ======================================== */
-
-.feedContainer {
-  background: transparent;
-  min-height: 100%;
-}
-
-.postsFeed {
-  padding-top: 0.5rem;
+.postsGrid {
   display: flex;
   flex-direction: column;
   gap: 1rem;
   animation: fadeInUp 0.6s ease;
 }
 
-.emptyFeed,
-.emptyState {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 3rem 2rem;
-  text-align: center;
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(20px);
-  border-radius: 24px;
-  margin: 1rem;
-  box-shadow: 
-    0 8px 32px rgba(0, 0, 0, 0.1),
-    0 0 0 1px rgba(255, 255, 255, 0.5) inset;
-  animation: fadeInUp 0.6s ease;
+/* Evaluations Container */
+.evaluationsContainer {
+  background: transparent;
+  min-height: 100vh;
+  padding: 1rem;
+  padding-bottom: 5rem;
 }
 
-.emptyFeedIcon,
-.emptyIcon {
-  width: 5rem;
-  height: 5rem;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 1.5rem;
-  font-size: 2rem;
-  color: white;
-  box-shadow: 0 8px 24px rgba(16, 185, 129, 0.3);
-  animation: float 3s ease-in-out infinite;
-}
-
-@keyframes float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-10px); }
-}
-
-.emptyFeed h3,
-.emptyState h3 {
-  font-size: 1.25rem;
+.tabTitle {
+  font-size: 1.5rem;
   font-weight: 700;
-  color: var(--text-color);
-  margin: 0 0 0.5rem 0;
-  letter-spacing: -0.3px;
+  background: var(--primary-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin: 0 0 1.5rem 0;
+  letter-spacing: -0.5px;
 }
-
-.emptyFeed p,
-.emptyState p {
-  font-size: 0.925rem;
-  color: var(--text-secondary);
-  margin: 0;
-  line-height: 1.6;
-  max-width: 320px;
-}
-
-/* ========================================
-   EVALUATIONS TAB
-   ======================================== */
 
 .evaluationsList {
-  padding: 0;
   display: flex;
   flex-direction: column;
   gap: 1rem;
@@ -219,6 +86,7 @@
   box-shadow: 
     0 8px 32px rgba(0, 0, 0, 0.12),
     0 0 0 1px rgba(255, 255, 255, 0.5) inset;
+  animation: fadeInUp 0.5s ease;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
   overflow: hidden;
@@ -231,7 +99,7 @@
   left: 0;
   right: 0;
   height: 4px;
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  background: var(--primary-gradient);
   opacity: 0;
   transition: opacity 0.3s ease;
 }
@@ -247,25 +115,35 @@
   opacity: 1;
 }
 
+.evaluationCardCompleted::before {
+  background: linear-gradient(135deg, var(--success-color) 0%, #059669 100%);
+}
+
+.evaluationCardPending::before {
+  background: linear-gradient(135deg, var(--warning-color) 0%, #f59e0b 100%);
+}
+
 .evaluationHeader {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
+  align-items: center;
   margin-bottom: 1rem;
+  padding-bottom: 0.875rem;
+  border-bottom: 2px solid var(--primary-light);
   gap: 0.75rem;
 }
 
 .evaluationName {
   font-size: 1.05rem;
   font-weight: 700;
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  background: var(--primary-gradient);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
   margin: 0;
-  flex: 1;
-  line-height: 1.3;
   letter-spacing: -0.3px;
+  line-height: 1.3;
+  flex: 1;
 }
 
 .statusBadge {
@@ -286,29 +164,21 @@
 }
 
 .statusCompleted {
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  background: linear-gradient(135deg, var(--success-color) 0%, #059669 100%);
   color: white;
 }
 
 .statusPending {
-  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  background: linear-gradient(135deg, var(--warning-color) 0%, #f59e0b 100%);
   color: white;
 }
 
 .statusInProgress {
-  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  background: linear-gradient(135deg, var(--info-color) 0%, #3b82f6 100%);
   color: white;
 }
 
-.statusDefault {
-  background: #f3f4f6;
-  color: #6b7280;
-}
-
 .evaluationDetails {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
   margin-bottom: 1rem;
 }
 
@@ -316,8 +186,17 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0.5rem 0;
+  padding: 0.875rem 0;
   border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  transition: all 0.2s ease;
+}
+
+.evaluationDetail:hover {
+  padding-left: 0.5rem;
+  background: var(--primary-lighter);
+  margin: 0 -0.5rem;
+  padding-right: 0.5rem;
+  border-radius: 8px;
 }
 
 .evaluationDetail:last-child {
@@ -325,20 +204,23 @@
 }
 
 .detailLabel {
-  font-size: 0.8rem;
+  font-size: 0.875rem;
   color: var(--text-secondary);
   font-weight: 500;
+  letter-spacing: 0.2px;
 }
 
 .detailValue {
-  font-size: 0.9rem;
+  font-size: 0.925rem;
   color: var(--text-color);
-  font-weight: 600;
+  font-weight: 700;
+  letter-spacing: -0.2px;
 }
 
 .evaluationActions {
   display: flex;
   gap: 0.75rem;
+  margin-top: 1rem;
 }
 
 .actionButton {
@@ -347,32 +229,83 @@
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  padding: 0.875rem 1rem;
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  padding: 0.75rem 1rem;
   border: none;
   border-radius: 12px;
-  color: white;
-  font-size: 0.85rem;
+  font-size: 0.875rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 4px 16px rgba(16, 185, 129, 0.3);
-  min-height: 44px;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .actionButton:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 .actionButton:active {
   transform: translateY(0);
 }
 
-/* ========================================
-   ERROR & RETRY
-   ======================================== */
+.fillFormBtn {
+  background: var(--primary-gradient);
+  color: white;
+}
 
+.viewReportBtn {
+  background: linear-gradient(135deg, var(--success-color) 0%, #059669 100%);
+  color: white;
+}
+
+/* Empty State */
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 2rem;
+  text-align: center;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  border-radius: 24px;
+  margin: 1rem;
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.1),
+    0 0 0 1px rgba(255, 255, 255, 0.5) inset;
+  animation: fadeInUp 0.6s ease;
+}
+
+.emptyIcon {
+  width: 5rem;
+  height: 5rem;
+  border-radius: 50%;
+  background: var(--primary-gradient);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1.5rem;
+  font-size: 2rem;
+  color: white;
+  box-shadow: 0 8px 24px var(--primary-shadow);
+  animation: float 3s ease-in-out infinite;
+  padding: 1.5rem;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+.emptyState p {
+  font-size: 1rem;
+  color: var(--text-secondary);
+  margin: 0;
+  line-height: 1.6;
+  max-width: 320px;
+}
+
+/* Error Container */
 .errorContainer {
   display: flex;
   flex-direction: column;
@@ -384,35 +317,379 @@
   backdrop-filter: blur(20px);
   border-radius: 24px;
   margin: 1rem;
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.1),
+    0 0 0 1px rgba(255, 255, 255, 0.5) inset;
 }
 
 .errorContainer p {
   font-size: 1rem;
-  color: var(--text-secondary);
-  margin: 0 0 1.5rem;
+  color: var(--error-color);
+  margin-bottom: 1.5rem;
   line-height: 1.6;
 }
 
 .retryButton {
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  padding: 0.75rem 1.5rem;
+  background: var(--primary-gradient);
   color: white;
   border: none;
-  padding: 1rem 2rem;
-  border-radius: 14px;
-  font-size: 1rem;
+  border-radius: 12px;
+  font-size: 0.925rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 4px 16px rgba(16, 185, 129, 0.3);
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 16px var(--primary-shadow);
 }
 
 .retryButton:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+  box-shadow: 0 6px 20px var(--primary-shadow-lg);
 }
 
 .retryButton:active {
   transform: translateY(0);
+}
+
+/* Schedule Tab */
+.scheduleTabContainer {
+  background: transparent;
+  min-height: 100vh;
+  padding: 1rem;
+  padding-bottom: 5rem;
+}
+
+.scheduleGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  animation: fadeInUp 0.6s ease;
+}
+
+.scheduleCard {
+  background: rgba(255, 255, 255, 0.98);
+  backdrop-filter: blur(20px);
+  border-radius: 20px;
+  padding: 1.25rem;
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.12),
+    0 0 0 1px rgba(255, 255, 255, 0.5) inset;
+  animation: fadeInUp 0.5s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.scheduleCard:hover {
+  transform: translateY(-4px);
+  box-shadow: 
+    0 16px 48px rgba(0, 0, 0, 0.18),
+    0 0 0 1px rgba(255, 255, 255, 0.6) inset;
+}
+
+/* Mark List Tab */
+.markListTabContainer {
+  background: transparent;
+  min-height: 100vh;
+  padding: 1rem;
+  padding-bottom: 5rem;
+}
+
+/* Attendance Tab */
+.attendanceTabContainer {
+  background: transparent;
+  min-height: 100vh;
+  padding: 1rem;
+  padding-bottom: 5rem;
+}
+
+/* Communications Tab */
+.communicationsTabContainer {
+  background: transparent;
+  min-height: 100vh;
+  padding: 1rem;
+  padding-bottom: 5rem;
+}
+
+/* ========================================
+   RESPONSIVE BREAKPOINTS - MOBILE FIRST
+   ======================================== */
+
+/* Small Mobile (375px - 479px) */
+@media (min-width: 375px) and (max-width: 479px) {
+  .evaluationCard,
+  .scheduleCard {
+    padding: 1.125rem;
+  }
+
+  .emptyState,
+  .errorContainer {
+    padding: 2.5rem 1.5rem;
+  }
+}
+
+/* Medium Mobile (480px - 639px) */
+@media (min-width: 480px) and (max-width: 639px) {
+  .profileTabContainer,
+  .postsTabContainer,
+  .evaluationsContainer,
+  .scheduleTabContainer,
+  .markListTabContainer,
+  .attendanceTabContainer,
+  .communicationsTabContainer {
+    padding: 1.25rem;
+  }
+
+  .postsGrid,
+  .evaluationsList,
+  .scheduleGrid {
+    gap: 1.25rem;
+  }
+
+  .evaluationCard,
+  .scheduleCard {
+    padding: 1.375rem;
+  }
+}
+
+/* Large Mobile / Small Tablet (640px - 767px) */
+@media (min-width: 640px) and (max-width: 767px) {
+  .profileTabContainer,
+  .postsTabContainer,
+  .evaluationsContainer,
+  .scheduleTabContainer,
+  .markListTabContainer,
+  .attendanceTabContainer,
+  .communicationsTabContainer {
+    padding: 1.5rem;
+  }
+
+  .evaluationsList,
+  .scheduleGrid {
+    gap: 1.25rem;
+  }
+
+  .evaluationCard,
+  .scheduleCard {
+    padding: 1.5rem;
+  }
+
+  .evaluationName {
+    font-size: 1.1rem;
+  }
+
+  .tabTitle {
+    font-size: 1.6rem;
+  }
+}
+
+/* Tablet Portrait (768px - 1023px) */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .profileTabContainer,
+  .postsTabContainer,
+  .evaluationsContainer,
+  .scheduleTabContainer,
+  .markListTabContainer,
+  .attendanceTabContainer,
+  .communicationsTabContainer {
+    padding: 2rem;
+    max-width: 720px;
+    margin: 0 auto;
+  }
+
+  .postsGrid,
+  .evaluationsList,
+  .scheduleGrid {
+    gap: 1.5rem;
+  }
+
+  .evaluationCard,
+  .scheduleCard {
+    padding: 1.75rem;
+    border-radius: 24px;
+  }
+
+  .evaluationName {
+    font-size: 1.15rem;
+  }
+
+  .tabTitle {
+    font-size: 1.75rem;
+  }
+
+  .emptyState,
+  .errorContainer {
+    padding: 4rem 3rem;
+    margin: 1.5rem;
+  }
+
+  .emptyIcon {
+    width: 6rem;
+    height: 6rem;
+    font-size: 2.5rem;
+  }
+
+  .emptyState p {
+    font-size: 1.05rem;
+    max-width: 400px;
+  }
+}
+
+/* Tablet Landscape / Small Desktop (1024px - 1279px) */
+@media (min-width: 1024px) and (max-width: 1279px) {
+  .profileTabContainer,
+  .postsTabContainer,
+  .evaluationsContainer,
+  .scheduleTabContainer,
+  .markListTabContainer,
+  .attendanceTabContainer,
+  .communicationsTabContainer {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 2.5rem;
+  }
+
+  .postsGrid,
+  .evaluationsList,
+  .scheduleGrid {
+    gap: 1.75rem;
+  }
+
+  .evaluationCard,
+  .scheduleCard {
+    padding: 2rem;
+  }
+
+  .evaluationName {
+    font-size: 1.2rem;
+  }
+
+  .tabTitle {
+    font-size: 1.875rem;
+  }
+}
+
+/* Desktop (1280px - 1439px) */
+@media (min-width: 1280px) and (max-width: 1439px) {
+  .profileTabContainer,
+  .postsTabContainer,
+  .evaluationsContainer,
+  .scheduleTabContainer,
+  .markListTabContainer,
+  .attendanceTabContainer,
+  .communicationsTabContainer {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 3rem;
+  }
+
+  .postsGrid,
+  .evaluationsList,
+  .scheduleGrid {
+    gap: 2rem;
+  }
+
+  .evaluationCard,
+  .scheduleCard {
+    padding: 2.25rem;
+  }
+
+  .evaluationName {
+    font-size: 1.25rem;
+  }
+
+  .tabTitle {
+    font-size: 2rem;
+  }
+
+  .emptyState,
+  .errorContainer {
+    padding: 5rem 4rem;
+  }
+}
+
+/* Large Desktop (1440px - 1919px) */
+@media (min-width: 1440px) and (max-width: 1919px) {
+  .profileTabContainer,
+  .postsTabContainer,
+  .evaluationsContainer,
+  .scheduleTabContainer,
+  .markListTabContainer,
+  .attendanceTabContainer,
+  .communicationsTabContainer {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 3.5rem;
+  }
+
+  .postsGrid,
+  .evaluationsList,
+  .scheduleGrid {
+    gap: 2.25rem;
+  }
+
+  .evaluationCard,
+  .scheduleCard {
+    padding: 2.5rem;
+  }
+
+  .evaluationName {
+    font-size: 1.3rem;
+  }
+
+  .tabTitle {
+    font-size: 2.125rem;
+  }
+}
+
+/* Ultra Wide (1920px+) */
+@media (min-width: 1920px) {
+  .profileTabContainer,
+  .postsTabContainer,
+  .evaluationsContainer,
+  .scheduleTabContainer,
+  .markListTabContainer,
+  .attendanceTabContainer,
+  .communicationsTabContainer {
+    max-width: 1600px;
+    margin: 0 auto;
+    padding: 4rem;
+  }
+
+  .postsGrid,
+  .evaluationsList,
+  .scheduleGrid {
+    gap: 2.5rem;
+  }
+
+  .evaluationCard,
+  .scheduleCard {
+    padding: 3rem;
+    border-radius: 28px;
+  }
+
+  .evaluationName {
+    font-size: 1.4rem;
+  }
+
+  .tabTitle {
+    font-size: 2.25rem;
+  }
+
+  .emptyState,
+  .errorContainer {
+    padding: 6rem 5rem;
+    border-radius: 32px;
+  }
+
+  .emptyIcon {
+    width: 7rem;
+    height: 7rem;
+    font-size: 3rem;
+  }
+
+  .emptyState p {
+    font-size: 1.1rem;
+    max-width: 500px;
+  }
 }
 
 /* ========================================
@@ -430,4792 +707,52 @@
   }
 }
 
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-/* ========================================
-   RESPONSIVE BREAKPOINTS
-   ======================================== */
-
-/* Small Mobile (375px - 479px) */
-@media (min-width: 375px) and (max-width: 479px) {
-  .evaluationCard {
-    padding: 1.125rem;
-  }
-
-  .emptyFeed,
-  .emptyState {
-    padding: 2.5rem 1.5rem;
-  }
-}
-
-/* Medium Mobile (480px - 639px) */
-@media (min-width: 480px) and (max-width: 639px) {
-  .profileTabContainer,
-  .postsContainer,
-  .evaluationsContainer,
-  .communicationsContainer {
-    padding: 1.25rem;
-  }
-
-  .evaluationsList,
-  .postsFeed {
-    gap: 1.25rem;
-  }
-
-  .evaluationCard {
-    padding: 1.375rem;
-  }
-}
-
-/* Large Mobile / Small Tablet (640px - 767px) */
-@media (min-width: 640px) and (max-width: 767px) {
-  .profileTabContainer,
-  .postsContainer,
-  .evaluationsContainer {
-    padding: 1.5rem;
-  }
-
-  .evaluationCard {
-    padding: 1.5rem;
-  }
-}
-
-/* Tablet Portrait (768px - 1023px) */
-@media (min-width: 768px) and (max-width: 1023px) {
-  .profileTabContainer,
-  .postsContainer,
-  .evaluationsContainer,
-  .communicationsContainer {
-    padding: 2rem;
-    max-width: 720px;
-    margin: 0 auto;
-  }
-
-  .evaluationsList,
-  .postsFeed {
-    gap: 1.5rem;
-  }
-
-  .evaluationCard {
-    padding: 1.75rem;
-    border-radius: 24px;
-  }
-
-  .evaluationName {
-    font-size: 1.15rem;
-  }
-
-  .emptyFeed,
-  .emptyState {
-    padding: 4rem 3rem;
-    margin: 1.5rem;
-  }
-
-  .emptyFeedIcon,
-  .emptyIcon {
-    width: 6rem;
-    height: 6rem;
-    font-size: 2.5rem;
-  }
-
-  .fieldItem {
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: center;
-  }
-
-  .fieldValue {
-    text-align: right;
-  }
-}
-
-/* Tablet Landscape / Small Desktop (1024px - 1279px) */
-@media (min-width: 1024px) and (max-width: 1279px) {
-  .profileTabContainer,
-  .postsContainer,
-  .evaluationsContainer {
-    max-width: 960px;
-    margin: 0 auto;
-    padding: 2.5rem;
-  }
-
-  .evaluationsList,
-  .postsFeed {
-    gap: 1.75rem;
-  }
-
-  .evaluationCard {
-    padding: 2rem;
-  }
-
-  .evaluationName {
-    font-size: 1.2rem;
-  }
-}
-
-/* Desktop (1280px - 1439px) */
-@media (min-width: 1280px) and (max-width: 1439px) {
-  .profileTabContainer,
-  .postsContainer,
-  .evaluationsContainer {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 3rem;
-  }
-
-  .evaluationsList,
-  .postsFeed {
-    gap: 2rem;
-  }
-
-  .evaluationCard {
-    padding: 2.25rem;
-  }
-
-  .evaluationName {
-    font-size: 1.25rem;
-  }
-
-  .emptyFeed,
-  .emptyState {
-    padding: 5rem 4rem;
-  }
-}
-
-/* Large Desktop (1440px - 1919px) */
-@media (min-width: 1440px) and (max-width: 1919px) {
-  .profileTabContainer,
-  .postsContainer,
-  .evaluationsContainer {
-    max-width: 1400px;
-    margin: 0 auto;
-    padding: 3.5rem;
-  }
-
-  .evaluationsList,
-  .postsFeed {
-    gap: 2.25rem;
-  }
-
-  .evaluationCard {
-    padding: 2.5rem;
-  }
-
-  .evaluationName {
-    font-size: 1.3rem;
-  }
-}
-
-/* Ultra Wide (1920px+) */
-@media (min-width: 1920px) {
-  .profileTabContainer,
-  .postsContainer,
-  .evaluationsContainer {
-    max-width: 1600px;
-    margin: 0 auto;
-    padding: 4rem;
-  }
-
-  .evaluationsList,
-  .postsFeed {
-    gap: 2.5rem;
-  }
-
-  .evaluationCard {
-    padding: 3rem;
-    border-radius: 28px;
-  }
-
-  .evaluationName {
-    font-size: 1.4rem;
-  }
-
-  .emptyFeed,
-  .emptyState {
-    padding: 6rem 5rem;
-    border-radius: 32px;
-  }
-
-  .emptyFeedIcon,
-  .emptyIcon {
-    width: 7rem;
-    height: 7rem;
-    font-size: 3rem;
-  }
-}
-
 /* ========================================
    DARK MODE SUPPORT
    ======================================== */
 
-:global(.darkMode) .fieldsStack,
-:global(body.dark-mode) .fieldsStack {
-  color: #e5e7eb;
-}
+@media (prefers-color-scheme: dark) {
+  .profileTabContainer {
+    background: var(--dark-gradient, linear-gradient(135deg, #1a1a2e 0%, #16213e 100%));
+  }
 
-:global(.darkMode) .fieldLabel,
-:global(body.dark-mode) .fieldLabel {
-  color: rgba(255, 255, 255, 0.6);
-}
+  .evaluationCard,
+  .scheduleCard,
+  .emptyState,
+  .errorContainer {
+    background: rgba(30, 30, 46, 0.98);
+    box-shadow: 
+      0 8px 32px rgba(0, 0, 0, 0.3),
+      0 0 0 1px rgba(255, 255, 255, 0.1) inset;
+  }
 
-:global(.darkMode) .fieldValue,
-:global(body.dark-mode) .fieldValue {
-  color: white;
-}
+  .evaluationCard:hover,
+  .scheduleCard:hover {
+    box-shadow: 
+      0 16px 48px rgba(0, 0, 0, 0.4),
+      0 0 0 1px rgba(255, 255, 255, 0.15) inset;
+  }
 
-:global(.darkMode) .tabTitle,
-:global(body.dark-mode) .tabTitle {
-  color: #f9fafb;
+  .evaluationDetail:hover {
+    background: rgba(255, 255, 255, 0.05);
+  }
 }
-
-:global(.darkMode) .evaluationCard,
-:global(body.dark-mode) .evaluationCard {
-  background: rgba(30, 41, 59, 0.98);
-  border: 1px solid #334155;
-}
-
-:global(.darkMode) .evaluationName,
-:global(body.dark-mode) .evaluationName {
-  color: #10b981;
-}
-
-:global(.darkMode) .detailLabel,
-:global(body.dark-mode) .detailLabel {
-  color: #9ca3af;
-}
-
-:global(.darkMode) .detailValue,
-:global(body.dark-mode) .detailValue {
-  color: #e5e7eb;
-}
-
-:global(.darkMode) .emptyState,
-:global(body.dark-mode) .emptyState,
-:global(.darkMode) .emptyFeed,
-:global(body.dark-mode) .emptyFeed {
-  background: rgba(30, 41, 59, 0.98);
-}
-
-:global(.darkMode) .emptyState h3,
-:global(body.dark-mode) .emptyState h3,
-:global(.darkMode) .emptyFeed h3,
-:global(body.dark-mode) .emptyFeed h3 {
-  color: #f3f4f6;
-}
-
-:global(.darkMode) .emptyState p,
-:global(body.dark-mode) .emptyState p,
-:global(.darkMode) .emptyFeed p,
-:global(body.dark-mode) .emptyFeed p {
-  color: #9ca3af;
-}
-
-:global(.darkMode) .errorContainer,
-:global(body.dark-mode) .errorContainer {
-  background: rgba(30, 41, 59, 0.98);
-}
-
-:global(.darkMode) .errorContainer p,
-:global(body.dark-mode) .errorContainer p {
-  color: #d1d5db;
-}
-
 
 /* ========================================
-   FLOATING ACTION BUTTON (FAB) MENU
-   Modern Speed Dial Design
+   RTL SUPPORT (for Arabic)
    ======================================== */
 
-.fabContainer {
-  position: fixed;
-  bottom: 5rem;
-  right: 1.5rem;
-  z-index: 999;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 1rem;
+[dir="rtl"] .evaluationHeader,
+[dir="rtl"] .evaluationDetail,
+[dir="rtl"] .evaluationActions {
+  direction: rtl;
 }
 
-/* Main FAB Toggle Button */
-.fabMain {
-  width: 64px;
-  height: 64px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-  border: none;
-  box-shadow: 
-    0 8px 24px rgba(16, 185, 129, 0.4),
-    0 0 0 4px rgba(16, 185, 129, 0.1);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  font-size: 1.75rem;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  position: relative;
-  overflow: hidden;
+[dir="rtl"] .actionButton {
+  flex-direction: row-reverse;
 }
 
-.fabMain::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
+[dir="rtl"] .evaluationCard::before {
+  left: auto;
   right: 0;
-  bottom: 0;
-  background: radial-gradient(circle, rgba(255, 255, 255, 0.3) 0%, transparent 70%);
-  opacity: 0;
-  transition: opacity 0.3s ease;
-}
-
-.fabMain:hover::before {
-  opacity: 1;
-}
-
-.fabMain:hover {
-  transform: scale(1.1) rotate(90deg);
-  box-shadow: 
-    0 12px 32px rgba(16, 185, 129, 0.5),
-    0 0 0 6px rgba(16, 185, 129, 0.15);
-}
-
-.fabMain:active {
-  transform: scale(1.05) rotate(90deg);
-}
-
-.fabMainOpen {
-  transform: rotate(45deg);
-  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-  box-shadow: 
-    0 8px 24px rgba(239, 68, 68, 0.4),
-    0 0 0 4px rgba(239, 68, 68, 0.1);
-}
-
-.fabMainOpen:hover {
-  transform: scale(1.1) rotate(45deg);
-  box-shadow: 
-    0 12px 32px rgba(239, 68, 68, 0.5),
-    0 0 0 6px rgba(239, 68, 68, 0.15);
-}
-
-/* FAB Menu Items */
-.fabMenu {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 0.875rem;
-  opacity: 0;
-  pointer-events: none;
-  transform: translateY(20px);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.fabMenuOpen {
-  opacity: 1;
-  pointer-events: all;
-  transform: translateY(0);
-}
-
-.fabItem {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  animation: fabItemSlideIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) backwards;
-}
-
-.fabItem:nth-child(1) { animation-delay: 0.05s; }
-.fabItem:nth-child(2) { animation-delay: 0.1s; }
-.fabItem:nth-child(3) { animation-delay: 0.15s; }
-.fabItem:nth-child(4) { animation-delay: 0.2s; }
-.fabItem:nth-child(5) { animation-delay: 0.25s; }
-
-@keyframes fabItemSlideIn {
-  from {
-    opacity: 0;
-    transform: translateX(30px) scale(0.8);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0) scale(1);
-  }
-}
-
-.fabLabel {
-  background: rgba(255, 255, 255, 0.98);
-  backdrop-filter: blur(10px);
-  padding: 0.625rem 1rem;
-  border-radius: 12px;
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: #1f2937;
-  white-space: nowrap;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  letter-spacing: 0.3px;
-  transition: all 0.2s ease;
-}
-
-.fabButton {
-  width: 56px;
-  height: 56px;
-  border-radius: 50%;
-  background: white;
-  border: none;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #6b7280;
-  font-size: 1.5rem;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  position: relative;
-  overflow: hidden;
-}
-
-.fabButton::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-  opacity: 0;
-  transition: opacity 0.3s ease;
-}
-
-.fabButton svg {
-  position: relative;
-  z-index: 1;
-  transition: all 0.3s ease;
-}
-
-.fabButton:hover {
-  transform: scale(1.15);
-  box-shadow: 0 8px 24px rgba(16, 185, 129, 0.3);
-}
-
-.fabButton:hover::before {
-  opacity: 1;
-}
-
-.fabButton:hover svg {
-  color: white;
-  transform: scale(1.1);
-}
-
-.fabButton:active {
-  transform: scale(1.05);
-}
-
-.fabItem:hover .fabLabel {
-  transform: translateX(-4px);
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
-}
-
-/* Backdrop Overlay */
-.fabBackdrop {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.3);
-  backdrop-filter: blur(2px);
-  z-index: 998;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.3s ease;
-}
-
-.fabBackdropOpen {
-  opacity: 1;
-  pointer-events: all;
-}
-
-/* ========================================
-   RESPONSIVE FAB
-   ======================================== */
-
-/* Small Mobile */
-@media (max-width: 374px) {
-  .fabContainer {
-    bottom: 4.5rem;
-    right: 1rem;
-  }
-
-  .fabMain {
-    width: 56px;
-    height: 56px;
-    font-size: 1.5rem;
-  }
-
-  .fabButton {
-    width: 48px;
-    height: 48px;
-    font-size: 1.25rem;
-  }
-
-  .fabLabel {
-    padding: 0.5rem 0.875rem;
-    font-size: 0.8rem;
-  }
-}
-
-/* Medium Mobile */
-@media (min-width: 375px) and (max-width: 639px) {
-  .fabContainer {
-    bottom: 4.75rem;
-    right: 1.25rem;
-  }
-}
-
-/* Tablet */
-@media (min-width: 768px) and (max-width: 1023px) {
-  .fabContainer {
-    bottom: 6rem;
-    right: 2rem;
-  }
-
-  .fabMain {
-    width: 72px;
-    height: 72px;
-    font-size: 2rem;
-  }
-
-  .fabButton {
-    width: 60px;
-    height: 60px;
-    font-size: 1.625rem;
-  }
-
-  .fabLabel {
-    padding: 0.75rem 1.25rem;
-    font-size: 0.95rem;
-  }
-
-  .fabMenu {
-    gap: 1rem;
-  }
-}
-
-/* Desktop */
-@media (min-width: 1024px) {
-  .fabContainer {
-    bottom: 2rem;
-    right: 2.5rem;
-  }
-
-  .fabMain {
-    width: 72px;
-    height: 72px;
-    font-size: 2rem;
-  }
-
-  .fabButton {
-    width: 64px;
-    height: 64px;
-    font-size: 1.75rem;
-  }
-
-  .fabLabel {
-    padding: 0.875rem 1.5rem;
-    font-size: 1rem;
-  }
-
-  .fabMenu {
-    gap: 1.125rem;
-  }
-}
-
-/* Large Desktop */
-@media (min-width: 1440px) {
-  .fabContainer {
-    bottom: 2.5rem;
-    right: 3rem;
-  }
-
-  .fabMain {
-    width: 80px;
-    height: 80px;
-    font-size: 2.25rem;
-  }
-
-  .fabButton {
-    width: 68px;
-    height: 68px;
-    font-size: 1.875rem;
-  }
-
-  .fabMenu {
-    gap: 1.25rem;
-  }
-}
-
-/* ========================================
-   DARK MODE FAB
-   ======================================== */
-
-:global(.darkMode) .fabLabel,
-:global(body.dark-mode) .fabLabel {
-  background: rgba(30, 41, 59, 0.98);
-  color: #f3f4f6;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-}
-
-:global(.darkMode) .fabButton,
-:global(body.dark-mode) .fabButton {
-  background: #1e293b;
-  color: #94a3b8;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
-}
-
-:global(.darkMode) .fabButton:hover,
-:global(body.dark-mode) .fabButton:hover {
-  box-shadow: 0 8px 24px rgba(16, 185, 129, 0.4);
-}
-
-:global(.darkMode) .fabBackdrop,
-:global(body.dark-mode) .fabBackdrop {
-  background: rgba(0, 0, 0, 0.5);
-}
-
-/* ========================================
-   ACCESSIBILITY
-   ======================================== */
-
-.fabMain:focus-visible,
-.fabButton:focus-visible {
-  outline: 3px solid #10b981;
-  outline-offset: 4px;
-}
-
-/* Reduced Motion */
-@media (prefers-reduced-motion: reduce) {
-  .fabMain,
-  .fabButton,
-  .fabMenu,
-  .fabItem,
-  .fabLabel {
-    animation: none !important;
-    transition: none !important;
-  }
-  
-  .fabMain:hover {
-    transform: scale(1.05);
-  }
-  
-  .fabMainOpen {
-    transform: none;
-  }
-}
-
-/* Mark List Modern Design */
-.markListHeader {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 1rem;
-  background: white;
-  padding: 1rem;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-}
-
-/* Filter Section */
-.markListFilters {
-  background: white;
-  padding: 1rem;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-  margin-bottom: 1rem;
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 0.75rem;
-}
-
-.markListFilters .filterGroup {
-  width: 100%;
-}
-
-.markListFilters .filterGroup label {
-  display: block;
-  margin-bottom: 0.5rem;
-  font-weight: 600;
-  color: #555;
-  font-size: 0.875rem;
-}
-
-.markListFilters .filterGroup select {
-  width: 100%;
-  padding: 0.875rem 1rem;
-  border: 1px solid #e9ecef;
-  border-radius: 10px;
-  background-color: white;
-  font-size: 0.9375rem;
-  box-sizing: border-box;
-  color: #333;
-  cursor: pointer;
-  transition: all 0.2s;
-  appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23666' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 1rem center;
-  padding-right: 2.5rem;
-}
-
-.markListFilters .filterGroup select:focus {
-  outline: none;
-  border-color: #e67e22;
-  box-shadow: 0 0 0 3px rgba(230, 126, 34, 0.1);
-}
-
-.markListFilters .filterGroup select:disabled {
-  background-color: #f8f9fa;
-  color: #999;
-  cursor: not-allowed;
-  opacity: 0.6;
-}
-
-.loadMarkListBtn {
-  width: 100%;
-  padding: 0.875rem 1rem;
-  background: linear-gradient(135deg, #e67e22, #f39c12);
-  border: none;
-  color: white;
-  cursor: pointer;
-  border-radius: 10px;
-  font-size: 0.9375rem;
-  font-weight: 600;
-  transition: all 0.2s;
-  box-shadow: 0 2px 8px rgba(230, 126, 34, 0.2);
-}
-
-.loadMarkListBtn:active {
-  transform: scale(0.98);
-  box-shadow: 0 1px 4px rgba(230, 126, 34, 0.3);
-}
-
-.loadMarkListBtn:disabled {
-  background: #e9ecef;
-  color: #999;
-  cursor: not-allowed;
-  box-shadow: none;
-  opacity: 0.6;
-}
-
-.markListHeaderLeft {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.markListIconWrapper {
-  width: 44px;
-  height: 44px;
-  background: rgba(230, 126, 34, 0.1);
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #e67e22;
-  font-size: 1.25rem;
-  flex-shrink: 0;
-}
-
-.markListTitle {
-  font-size: 1.125rem;
-  font-weight: 700;
-  color: #333;
-  margin: 0;
-}
-
-.markListSubtitle {
-  font-size: 0.8125rem;
-  color: #777;
-  margin: 0.25rem 0 0 0;
-}
-
-/* Stats Grid */
-.markListStatsGrid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 0.75rem;
-  margin-bottom: 1rem;
-}
-
-.markListStatCard {
-  background: white;
-  padding: 1rem;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.markListStatIcon {
-  width: 44px;
-  height: 44px;
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.25rem;
-  flex-shrink: 0;
-}
-
-.markListStatInfo {
-  flex: 1;
-}
-
-.markListStatValue {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: #333;
-  line-height: 1;
-}
-
-.markListStatLabel {
-  font-size: 0.8125rem;
-  color: #777;
-  margin-top: 0.25rem;
-}
-
-/* Search Section */
-.markListSearchSection {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-  margin-bottom: 1rem;
-}
-
-.markListSearchBox {
-  position: relative;
-  width: 100%;
-}
-
-.markListSearchBox input {
-  width: 100%;
-  padding: 0.875rem 1rem 0.875rem 2.75rem;
-  border: 1px solid #e9ecef;
-  border-radius: 10px;
-  font-size: 0.9375rem;
-  box-sizing: border-box;
-  background: white;
-}
-
-.markListSearchBox input:focus {
-  outline: none;
-  border-color: #e67e22;
-  box-shadow: 0 0 0 3px rgba(230, 126, 34, 0.1);
-}
-
-.markListSearchBox .searchIcon {
-  position: absolute;
-  left: 1rem;
-  top: 50%;
-  transform: translateY(-50%);
-  color: #999;
-  font-size: 1.125rem;
-}
-
-/* Progress Info */
-.markListProgressInfo {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.markListProgressBar {
-  height: 8px;
-  background-color: #e9ecef;
-  border-radius: 4px;
-  overflow: hidden;
-}
-
-.markListProgressFill {
-  height: 100%;
-  background: linear-gradient(90deg, #e67e22, #f39c12);
-  border-radius: 4px;
-  transition: width 0.8s ease;
-}
-
-.markListProgressText {
-  font-size: 0.875rem;
-  color: #777;
-  font-weight: 500;
-}
-
-/* Student Cards */
-.markListStudentCard {
-  background: white;
-  border-radius: 10px;
-  padding: 0.625rem 0.75rem;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.07);
-  border: 1.5px solid #f0f0f0;
-  transition: all 0.2s;
-  margin-bottom: 0.5rem;
-}
-
-.markListStudentCard:active {
-  transform: scale(0.99);
-}
-
-.markListStudentHeader {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 0.5rem;
-  gap: 0.5rem;
-}
-
-.markListStudentInfo {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  flex: 1;
-  min-width: 0;
-}
-
-.markListStudentNumber {
-  width: 28px;
-  height: 28px;
-  background: linear-gradient(135deg, #e67e22, #f39c12);
-  color: white;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 700;
-  font-size: 0.8rem;
-  flex-shrink: 0;
-}
-
-.markListStudentName {
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: #333;
-  margin: 0;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.markListStudentMeta {
-  font-size: 0.7rem;
-  color: #aaa;
-  margin: 0;
-}
-
-.markListStudentTotal {
-  text-align: right;
-  flex-shrink: 0;
-}
-
-.markListTotalLabel {
-  font-size: 0.65rem;
-  color: #bbb;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.markListTotalValue {
-  font-size: 1.375rem;
-  font-weight: 700;
-  color: #e67e22;
-  line-height: 1;
-  margin-top: 0.25rem;
-}
-
-/* Scores Grid */
-.markListScoresGrid {
-  display: flex;
-  flex-direction: row;
-  flex-wrap: wrap;
-  gap: 0.375rem;
-  margin-bottom: 0.5rem;
-}
-
-.markListScoreItem {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  flex: 1;
-  min-width: 52px;
-  max-width: 80px;
-}
-
-.markListScoreItem label {
-  font-size: 0.6rem;
-  color: #888;
-  font-weight: 600;
-  text-align: center;
-  margin-bottom: 0.2rem;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  width: 100%;
-}
-
-.markListScoreItem input {
-  width: 100%;
-  padding: 0.4rem 0.25rem;
-  border: 1.5px solid #e9ecef;
-  border-radius: 6px;
-  font-size: 0.95rem;
-  font-weight: 700;
-  text-align: center;
-  box-sizing: border-box;
-  background: #f8f9fa;
-}
-
-.markListScoreItem input:focus {
-  outline: none;
-  border-color: #e67e22;
-  box-shadow: 0 0 0 2px rgba(230, 126, 34, 0.15);
-  background: white;
-}
-
-.markListScoreItem input::placeholder {
-  color: #ccc;
-}
-
-/* Student Footer */
-.markListStudentFooter {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding-top: 0.4rem;
-  border-top: 1px solid #f5f5f5;
-}
-
-.markListStatusBadge {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.375rem;
-  font-size: 0.8125rem;
-  padding: 0.5rem 0.875rem;
-  border-radius: 20px;
-  font-weight: 600;
-}
-
-.markListStatusPass {
-  background: #e8f5e9;
-  color: #2e7d32;
-}
-
-.markListStatusFail {
-  background: #ffebee;
-  color: #c62828;
-}
-
-.markListSaveBtn {
-  background: #e67e22;
-  border: none;
-  color: white;
-  cursor: pointer;
-  padding: 0.625rem 1rem;
-  border-radius: 8px;
-  font-size: 0.875rem;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  gap: 0.375rem;
-  transition: all 0.2s;
-}
-
-.markListSaveBtn:active {
-  transform: scale(0.95);
-  background: #d67019;
-}
-
-.markListSaveBtn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.markListStudentLocked {
-  border-color: #e8f5e9;
-  background: #fafffe;
-}
-
-.markListStudentLocked input {
-  background: #f0f0f0 !important;
-  color: #999 !important;
-  cursor: not-allowed;
-  border-color: #e0e0e0 !important;
-  box-shadow: none !important;
-}
-
-.markListLockedBadge {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.375rem;
-  font-size: 0.8125rem;
-  padding: 0.5rem 0.875rem;
-  border-radius: 20px;
-  font-weight: 600;
-  background: #e8f5e9;
-  color: #2e7d32;
-}
-
-/* Tablet View */
-@media (min-width: 768px) {
-  .markListFilters {
-    grid-template-columns: repeat(3, 1fr) auto;
-    gap: 1rem;
-    padding: 1.5rem;
-    align-items: end;
-  }
-
-  .loadMarkListBtn {
-    width: auto;
-    min-width: 120px;
-  }
-
-  .markListStatsGrid {
-    grid-template-columns: repeat(4, 1fr);
-    gap: 1rem;
-  }
-
-  .markListStatCard {
-    padding: 1.25rem;
-  }
-
-  .markListSearchSection {
-    flex-direction: row;
-    align-items: center;
-    gap: 1rem;
-  }
-
-  .markListSearchBox {
-    flex: 1;
-  }
-
-  .markListProgressInfo {
-    min-width: 200px;
-  }
-
-  .markListScoresGrid {
-    grid-template-columns: repeat(4, 1fr);
-  }
-}
-
-/* Desktop View */
-@media (min-width: 1024px) {
-  .markListHeader {
-    padding: 1.5rem;
-  }
-
-  .markListTitle {
-    font-size: 1.5rem;
-  }
-
-  .markListIconWrapper {
-    width: 52px;
-    height: 52px;
-    font-size: 1.5rem;
-  }
-
-  .markListStatCard {
-    padding: 1.5rem;
-  }
-
-  .markListStatIcon {
-    width: 52px;
-    height: 52px;
-    font-size: 1.5rem;
-  }
-
-  .markListStatValue {
-    font-size: 1.75rem;
-  }
-
-  .markListStudentCard {
-    padding: 1.5rem;
-  }
-
-  .markListStudentNumber {
-    width: 44px;
-    height: 44px;
-    font-size: 1.125rem;
-  }
-
-  .markListStudentName {
-    font-size: 1.125rem;
-  }
-
-  .markListTotalValue {
-    font-size: 1.75rem;
-  }
-}
-
-/* Chat Redirect Card */
-.chatRedirectCard {
-  background: white;
-  border-radius: 16px;
-  padding: 2rem;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
-  text-align: center;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1rem;
-  margin: 1rem;
-}
-
-.chatRedirectIcon {
-  width: 80px;
-  height: 80px;
-  background: linear-gradient(135deg, #10b981, #059669);
-  border-radius: 20px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  font-size: 2.5rem;
-  margin-bottom: 0.5rem;
-}
-
-.chatRedirectTitle {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: #333;
-  margin: 0;
-}
-
-.chatRedirectText {
-  font-size: 1rem;
-  color: #777;
-  line-height: 1.6;
-  max-width: 400px;
-  margin: 0;
-}
-
-.chatRedirectBtn {
-  background: linear-gradient(135deg, #10b981, #059669);
-  border: none;
-  color: white;
-  padding: 1rem 2rem;
-  border-radius: 12px;
-  font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  transition: all 0.2s;
-  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
-  margin-top: 0.5rem;
-}
-
-.chatRedirectBtn:active {
-  transform: scale(0.98);
-  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.4);
-}
-
-@media (min-width: 768px) {
-  .chatRedirectCard {
-    padding: 3rem;
-  }
-
-  .chatRedirectIcon {
-    width: 100px;
-    height: 100px;
-    font-size: 3rem;
-  }
-
-  .chatRedirectTitle {
-    font-size: 1.75rem;
-  }
-
-  .chatRedirectBtn {
-    padding: 1.25rem 2.5rem;
-    font-size: 1.125rem;
-  }
-}
-
-/* ========================================
-   ATTENDANCE TAB - MODERN DESIGN
-   Beautiful, intuitive student attendance
-   ======================================== */
-
-/* Attendance Container */
-.attendanceContainer {
-  background: transparent;
-  min-height: 100vh;
-  padding: 0;
-  padding-bottom: 5rem;
-}
-
-/* Header Section */
-.attHeader {
-  background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
-  padding: 1.5rem 1.25rem;
-  border-radius: 0 0 24px 24px;
-  box-shadow: 0 8px 24px rgba(99, 102, 241, 0.25);
-  margin-bottom: 1.5rem;
-  position: relative;
-  overflow: hidden;
-}
-
-.attHeader::before {
-  content: '';
-  position: absolute;
-  top: -50%;
-  right: -20%;
-  width: 200px;
-  height: 200px;
-  background: radial-gradient(circle, rgba(255, 255, 255, 0.15) 0%, transparent 70%);
-  border-radius: 50%;
-  animation: float 6s ease-in-out infinite;
-}
-
-.attHeaderTop {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1rem;
-  position: relative;
-  z-index: 1;
-}
-
-.attHeaderTop h2 {
-  display: flex;
-  align-items: center;
-  gap: 0.625rem;
-  font-size: 1.375rem;
-  font-weight: 800;
-  color: white;
-  margin: 0;
-  letter-spacing: -0.5px;
-}
-
-.classBadge {
-  background: rgba(255, 255, 255, 0.25);
-  backdrop-filter: blur(10px);
-  color: white;
-  padding: 0.5rem 1rem;
-  border-radius: 20px;
-  font-size: 0.875rem;
-  font-weight: 700;
-  letter-spacing: 0.5px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  border: 1px solid rgba(255, 255, 255, 0.3);
-}
-
-/* Mode Toggle */
-.modeToggle {
-  display: flex;
-  gap: 0.625rem;
-  background: rgba(255, 255, 255, 0.15);
-  backdrop-filter: blur(10px);
-  padding: 0.375rem;
-  border-radius: 16px;
-  position: relative;
-  z-index: 1;
-}
-
-.modeBtn {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  padding: 0.75rem 1.25rem;
-  background: transparent;
-  border: none;
-  border-radius: 12px;
-  color: rgba(255, 255, 255, 0.7);
-  font-size: 0.875rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  white-space: nowrap;
-}
-
-.modeBtnActive {
-  background: white;
-  color: #6366f1;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-}
-
-.modeBtn:active {
-  transform: scale(0.96);
-}
-
-/* Week Row */
-.weekRow {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  padding: 0 1.25rem;
-  margin-bottom: 1rem;
-}
-
-.weekLabel {
-  font-size: 0.875rem;
-  font-weight: 700;
-  color: #6366f1;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.weekSelect {
-  width: 100%;
-  padding: 0.875rem 1rem;
-  border: 2px solid #e9ecef;
-  border-radius: 12px;
-  font-size: 0.9375rem;
-  font-weight: 600;
-  color: #333;
-  background: white;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236366f1' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 1rem center;
-  padding-right: 2.5rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-}
-
-.weekSelect:focus {
-  outline: none;
-  border-color: #6366f1;
-  box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
-}
-
-.noWeeksText {
-  width: 100%;
-  padding: 0.875rem 1rem;
-  background: #f8f9fa;
-  border-radius: 12px;
-  color: #999;
-  font-size: 0.9375rem;
-  font-weight: 500;
-  text-align: center;
-}
-
-.newWeekBtn {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.875rem 1.25rem;
-  background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
-  border: none;
-  border-radius: 12px;
-  color: white;
-  font-size: 0.875rem;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
-  white-space: nowrap;
-}
-
-.newWeekBtn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(99, 102, 241, 0.4);
-}
-
-.newWeekBtn:active {
-  transform: translateY(0);
-}
-
-/* Quick Create Row */
-.quickCreateRow {
-  display: flex;
-  gap: 0.75rem;
-  padding: 0 1.25rem;
-  margin-bottom: 1rem;
-}
-
-.quickCreateBtn,
-.quickCreateBtnAlt {
-  flex: 1;
-  padding: 0.875rem 1rem;
-  border: 2px dashed #6366f1;
-  background: rgba(99, 102, 241, 0.05);
-  border-radius: 12px;
-  color: #6366f1;
-  font-size: 0.875rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.quickCreateBtn:hover,
-.quickCreateBtnAlt:hover {
-  background: rgba(99, 102, 241, 0.1);
-  border-color: #4f46e5;
-}
-
-.quickCreateBtn:active,
-.quickCreateBtnAlt:active {
-  transform: scale(0.98);
-}
-
-.quickCreateBtn:disabled,
-.quickCreateBtnAlt:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-/* Day Tabs */
-.dayTabs {
-  display: flex;
-  gap: 0.5rem;
-  padding: 0 1.25rem;
-  margin-bottom: 1rem;
-  overflow-x: auto;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-}
-
-.dayTabs::-webkit-scrollbar {
-  display: none;
-}
-
-.dayTab {
-  flex-shrink: 0;
-  padding: 0.75rem 1.25rem;
-  background: white;
-  border: 2px solid #e9ecef;
-  border-radius: 12px;
-  color: #666;
-  font-size: 0.875rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
-}
-
-.dayTabActive {
-  background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
-  border-color: #6366f1;
-  color: white;
-  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
-}
-
-.dayTab:active {
-  transform: scale(0.96);
-}
-
-/* Quick Actions Row */
-.quickActionsRow {
-  display: flex;
-  gap: 0.625rem;
-  padding: 0 1.25rem;
-  margin-bottom: 1rem;
-}
-
-.qaBtnP,
-.qaBtnA,
-.qaBtnL,
-.qaBtnE {
-  flex: 1;
-  padding: 0.875rem;
-  border: none;
-  border-radius: 12px;
-  color: white;
-  font-size: 1.125rem;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.qaBtnP {
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-}
-
-.qaBtnA {
-  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-}
-
-.qaBtnL {
-  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-}
-
-.qaBtnE {
-  background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
-}
-
-.qaBtnP:hover,
-.qaBtnA:hover,
-.qaBtnL:hover,
-.qaBtnE:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
-}
-
-.qaBtnP:active,
-.qaBtnA:active,
-.qaBtnL:active,
-.qaBtnE:active {
-  transform: translateY(0);
-}
-
-/* Stats Row */
-.statsRow {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 0.625rem;
-  padding: 0 1.25rem;
-  margin-bottom: 1rem;
-}
-
-.statBox {
-  background: white;
-  padding: 0.875rem;
-  border-radius: 12px;
-  text-align: center;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-  border: 2px solid #f0f0f0;
-  transition: all 0.2s ease;
-}
-
-.statBox:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-
-.statNumP,
-.statNumA,
-.statNumL,
-.statNumE {
-  display: block;
-  font-size: 1.5rem;
-  font-weight: 800;
-  line-height: 1;
-  margin-bottom: 0.375rem;
-}
-
-.statNumP { color: #10b981; }
-.statNumA { color: #ef4444; }
-.statNumL { color: #f59e0b; }
-.statNumE { color: #8b5cf6; }
-
-.statBox small {
-  display: block;
-  font-size: 0.75rem;
-  color: #999;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-/* Student List */
-.studentList {
-  padding: 0 1.25rem;
-  margin-bottom: 1rem;
-}
-
-.studentRow {
-  background: white;
-  padding: 1rem;
-  border-radius: 12px;
-  margin-bottom: 0.75rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-  border: 2px solid #f0f0f0;
-  transition: all 0.2s ease;
-}
-
-.studentRow:hover {
-  border-color: #6366f1;
-  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.15);
-}
-
-.studentInfo {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  margin-bottom: 0.75rem;
-}
-
-.sNum {
-  width: 32px;
-  height: 32px;
-  background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
-  color: white;
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 700;
-  font-size: 0.875rem;
-  flex-shrink: 0;
-}
-
-.sName {
-  font-size: 1rem;
-  font-weight: 600;
-  color: #333;
-  flex: 1;
-}
-
-.markBtns {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 0.5rem;
-}
-
-.mBtn {
-  padding: 0.75rem;
-  border: 2px solid #e9ecef;
-  border-radius: 10px;
-  background: white;
-  color: #999;
-  font-size: 0.875rem;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
-}
-
-.mBtn:active {
-  transform: scale(0.95);
-}
-
-.mBtnP { border-color: #10b981; color: #10b981; }
-.mBtnA { border-color: #ef4444; color: #ef4444; }
-.mBtnL { border-color: #f59e0b; color: #f59e0b; }
-.mBtnE { border-color: #8b5cf6; color: #8b5cf6; }
-
-.mBtnActive {
-  color: white !important;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-}
-
-.mBtnP.mBtnActive {
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-  border-color: #10b981;
-}
-
-.mBtnA.mBtnActive {
-  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-  border-color: #ef4444;
-}
-
-.mBtnL.mBtnActive {
-  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-  border-color: #f59e0b;
-}
-
-.mBtnE.mBtnActive {
-  background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
-  border-color: #8b5cf6;
-}
-
-/* Save Section */
-.saveSection {
-  padding: 0 1.25rem;
-  margin-bottom: 1rem;
-}
-
-.saveBtn {
-  width: 100%;
-  padding: 1.125rem;
-  background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
-  border: none;
-  border-radius: 14px;
-  color: white;
-  font-size: 1rem;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 6px 20px rgba(99, 102, 241, 0.35);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.625rem;
-}
-
-.saveBtn:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 8px 24px rgba(99, 102, 241, 0.45);
-}
-
-.saveBtn:active {
-  transform: translateY(0);
-}
-
-.saveBtn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-  transform: none;
-}
-
-/* Report View */
-.reportHeader {
-  padding: 0 1.25rem;
-  margin-bottom: 1rem;
-}
-
-.reportHeader h3 {
-  font-size: 1.125rem;
-  font-weight: 700;
-  color: #333;
-  margin: 0;
-}
-
-.reportTable {
-  padding: 0 1.25rem;
-  margin-bottom: 1rem;
-}
-
-.reportHeaderRow {
-  display: grid;
-  grid-template-columns: 2fr repeat(5, 1fr) 0.75fr;
-  gap: 0.5rem;
-  padding: 0.75rem 1rem;
-  background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
-  border-radius: 12px 12px 0 0;
-  font-size: 0.75rem;
-  font-weight: 700;
-  color: white;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.reportColName,
-.reportColDay,
-.reportColRate {
-  text-align: center;
-}
-
-.reportColName {
-  text-align: left;
-}
-
-.reportRow {
-  display: grid;
-  grid-template-columns: 2fr repeat(5, 1fr) 0.75fr;
-  gap: 0.5rem;
-  padding: 0.875rem 1rem;
-  background: white;
-  border-bottom: 1px solid #f0f0f0;
-  font-size: 0.875rem;
-  align-items: center;
-  transition: all 0.2s ease;
-}
-
-.reportRow:last-child {
-  border-radius: 0 0 12px 12px;
-  border-bottom: none;
-}
-
-.reportRow:hover {
-  background: #f8f9fa;
-}
-
-.reportRow .reportColName {
-  display: flex;
-  align-items: center;
-  gap: 0.625rem;
-  font-weight: 600;
-  color: #333;
-}
-
-.reportNum {
-  width: 28px;
-  height: 28px;
-  background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
-  color: white;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.75rem;
-  font-weight: 700;
-  flex-shrink: 0;
-}
-
-.reportColDay {
-  text-align: center;
-  font-size: 1.125rem;
-}
-
-.reportColRate {
-  text-align: center;
-  font-weight: 700;
-  font-size: 0.9375rem;
-}
-
-.rateGood { color: #10b981; }
-.rateWarn { color: #f59e0b; }
-.rateBad { color: #ef4444; }
-
-/* Status Icons */
-.statusIconP,
-.statusIconA,
-.statusIconL,
-.statusIconE,
-.statusIconEmpty {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
-  border-radius: 8px;
-  font-weight: 700;
-  font-size: 0.875rem;
-}
-
-.statusIconP {
-  background: #e8f5e9;
-  color: #10b981;
-}
-
-.statusIconA {
-  background: #ffebee;
-  color: #ef4444;
-}
-
-.statusIconL {
-  background: #fff3e0;
-  color: #f59e0b;
-}
-
-.statusIconE {
-  background: #f3e8ff;
-  color: #8b5cf6;
-}
-
-.statusIconEmpty {
-  background: #f8f9fa;
-  color: #ccc;
-}
-
-/* Report Summary */
-.reportSummary {
-  padding: 0 1.25rem;
-  margin-bottom: 1rem;
-}
-
-.reportSummary h4 {
-  font-size: 1rem;
-  font-weight: 700;
-  color: #333;
-  margin: 0 0 0.875rem 0;
-}
-
-.summaryGrid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 0.75rem;
-}
-
-.summaryItem {
-  background: white;
-  padding: 1rem;
-  border-radius: 12px;
-  text-align: center;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-  border: 2px solid #f0f0f0;
-}
-
-.summaryLabel {
-  display: block;
-  font-size: 0.75rem;
-  color: #999;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin-bottom: 0.5rem;
-}
-
-.summaryValue {
-  display: block;
-  font-size: 1.5rem;
-  font-weight: 800;
-  color: #6366f1;
-  line-height: 1;
-}
-
-/* Modal */
-.modalOverlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  backdrop-filter: blur(4px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-  padding: 1rem;
-  animation: fadeIn 0.2s ease;
-}
-
-.modal {
-  background: white;
-  border-radius: 20px;
-  padding: 1.5rem;
-  max-width: 400px;
-  width: 100%;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-  animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-@keyframes slideUp {
-  from {
-    opacity: 0;
-    transform: translateY(30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.modal h3 {
-  font-size: 1.25rem;
-  font-weight: 700;
-  color: #333;
-  margin: 0 0 0.5rem 0;
-}
-
-.modal p {
-  font-size: 0.9375rem;
-  color: #666;
-  line-height: 1.6;
-  margin: 0 0 1.25rem 0;
-}
-
-.modalLabel {
-  display: block;
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: #555;
-  margin-bottom: 0.5rem;
-}
-
-.modalInput {
-  width: 100%;
-  padding: 0.875rem 1rem;
-  border: 2px solid #e9ecef;
-  border-radius: 12px;
-  font-size: 1rem;
-  box-sizing: border-box;
-  transition: all 0.2s ease;
-}
-
-.modalInput:focus {
-  outline: none;
-  border-color: #6366f1;
-  box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
-}
-
-.modalButtons {
-  display: flex;
-  gap: 0.75rem;
-  margin-top: 1.5rem;
-}
-
-.modalCancelBtn,
-.modalCreateBtn {
-  flex: 1;
-  padding: 0.875rem;
-  border: none;
-  border-radius: 12px;
-  font-size: 0.9375rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.modalCancelBtn {
-  background: #f3f4f6;
-  color: #666;
-}
-
-.modalCancelBtn:hover {
-  background: #e5e7eb;
-}
-
-.modalCreateBtn {
-  background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
-  color: white;
-  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
-}
-
-.modalCreateBtn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(99, 102, 241, 0.4);
-}
-
-.modalCreateBtn:active {
-  transform: translateY(0);
-}
-
-.modalCreateBtn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-  transform: none;
-}
-
-/* Responsive Design */
-@media (min-width: 640px) {
-  .attHeader {
-    padding: 2rem 1.5rem;
-  }
-
-  .attHeaderTop h2 {
-    font-size: 1.5rem;
-  }
-
-  .modeToggle {
-    padding: 0.5rem;
-  }
-
-  .modeBtn {
-    padding: 0.875rem 1.5rem;
-    font-size: 0.9375rem;
-  }
-
-  .weekRow,
-  .quickCreateRow,
-  .dayTabs,
-  .quickActionsRow,
-  .statsRow,
-  .studentList,
-  .saveSection,
-  .reportHeader,
-  .reportTable,
-  .reportSummary {
-    padding: 0 1.5rem;
-  }
-
-  .statsRow {
-    gap: 0.875rem;
-  }
-
-  .studentRow {
-    padding: 1.25rem;
-  }
-
-  .markBtns {
-    gap: 0.625rem;
-  }
-
-  .summaryGrid {
-    gap: 1rem;
-  }
-}
-
-@media (min-width: 768px) {
-  .attendanceContainer {
-    max-width: 720px;
-    margin: 0 auto;
-  }
-
-  .attHeader {
-    border-radius: 24px;
-    margin: 1.5rem;
-  }
-
-  .reportHeaderRow,
-  .reportRow {
-    grid-template-columns: 2.5fr repeat(5, 1fr) 1fr;
-  }
-}
-
-@media (min-width: 1024px) {
-  .attendanceContainer {
-    max-width: 960px;
-  }
-
-  .attHeader {
-    padding: 2.5rem 2rem;
-  }
-
-  .attHeaderTop h2 {
-    font-size: 1.75rem;
-  }
-
-  .classBadge {
-    font-size: 1rem;
-    padding: 0.625rem 1.25rem;
-  }
-
-  .weekRow,
-  .quickCreateRow,
-  .dayTabs,
-  .quickActionsRow,
-  .statsRow,
-  .studentList,
-  .saveSection,
-  .reportHeader,
-  .reportTable,
-  .reportSummary {
-    padding: 0 2rem;
-  }
-
-  .statsRow {
-    grid-template-columns: repeat(4, 1fr);
-    gap: 1rem;
-  }
-
-  .studentRow {
-    padding: 1.5rem;
-  }
-
-  .studentInfo {
-    margin-bottom: 1rem;
-  }
-
-  .sNum {
-    width: 40px;
-    height: 40px;
-    font-size: 1rem;
-  }
-
-  .sName {
-    font-size: 1.125rem;
-  }
-
-  .markBtns {
-    gap: 0.75rem;
-  }
-
-  .mBtn {
-    padding: 1rem;
-    font-size: 1rem;
-  }
-}
-
-/* Dark Mode */
-:global(.darkMode) .attHeader,
-:global(body.dark-mode) .attHeader {
-  background: linear-gradient(135deg, #4338ca 0%, #3730a3 100%);
-}
-
-:global(.darkMode) .weekSelect,
-:global(body.dark-mode) .weekSelect,
-:global(.darkMode) .studentRow,
-:global(body.dark-mode) .studentRow,
-:global(.darkMode) .statBox,
-:global(body.dark-mode) .statBox,
-:global(.darkMode) .summaryItem,
-:global(body.dark-mode) .summaryItem {
-  background: #1e293b;
-  border-color: #334155;
-  color: #e5e7eb;
-}
-
-:global(.darkMode) .sName,
-:global(body.dark-mode) .sName,
-:global(.darkMode) .reportRow .reportColName,
-:global(body.dark-mode) .reportRow .reportColName {
-  color: #f3f4f6;
-}
-
-:global(.darkMode) .modal,
-:global(body.dark-mode) .modal {
-  background: #1e293b;
-}
-
-:global(.darkMode) .modal h3,
-:global(body.dark-mode) .modal h3 {
-  color: #f3f4f6;
-}
-
-:global(.darkMode) .modal p,
-:global(body.dark-mode) .modal p {
-  color: #cbd5e1;
-}
-
-:global(.darkMode) .modalInput,
-:global(body.dark-mode) .modalInput {
-  background: #0f172a;
-  border-color: #334155;
-  color: #f3f4f6;
-}
-
-:global(.darkMode) .modalCancelBtn,
-:global(body.dark-mode) .modalCancelBtn {
-  background: #334155;
-  color: #cbd5e1;
-}
-
-/* ========================================
-   EVALUATION FORM & REPORT STYLES
-   Modern Design for Inline Evaluation Forms
-   ======================================== */
-
-/* Evaluation Form Header */
-.evalFormHeader {
-  background: rgba(255, 255, 255, 0.98);
-  backdrop-filter: blur(20px);
-  padding: 1rem 1.25rem;
-  border-radius: 20px 20px 0 0;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  margin-bottom: 1rem;
-  position: sticky;
-  top: 0;
-  z-index: 10;
-}
-
-.backBtn {
-  background: rgba(16, 185, 129, 0.1);
-  border: none;
-  color: #10b981;
-  padding: 0.75rem 1rem;
-  border-radius: 12px;
-  font-size: 0.9rem;
-  font-weight: 600;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  white-space: nowrap;
-}
-
-.backBtn:hover {
-  background: rgba(16, 185, 129, 0.2);
-  transform: translateX(-4px);
-}
-
-.backBtn:active {
-  transform: translateX(-2px);
-}
-
-.evalFormTitle {
-  flex: 1;
-  min-width: 0;
-}
-
-.evalFormTitle h2 {
-  font-size: 1.125rem;
-  font-weight: 700;
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  margin: 0 0 0.25rem 0;
-  letter-spacing: -0.3px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.evalFormMeta {
-  display: flex;
-  gap: 1rem;
-  font-size: 0.8rem;
-  color: #6b7280;
-  flex-wrap: wrap;
-}
-
-.evalFormMeta span {
-  display: flex;
-  align-items: center;
-  gap: 0.375rem;
-}
-
-/* Evaluation Form Error/Success Messages */
-.formErrorState,
-.evalFormError,
-.evalFormSuccess {
-  padding: 1rem 1.25rem;
-  border-radius: 16px;
-  margin-bottom: 1rem;
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  font-size: 0.9rem;
-  font-weight: 500;
-  animation: slideInDown 0.4s ease;
-}
-
-.formErrorState,
-.evalFormError {
-  background: rgba(239, 68, 68, 0.1);
-  color: #dc2626;
-  border: 1px solid rgba(239, 68, 68, 0.2);
-}
-
-.evalFormSuccess {
-  background: rgba(16, 185, 129, 0.1);
-  color: #059669;
-  border: 1px solid rgba(16, 185, 129, 0.2);
-}
-
-.formErrorState svg,
-.evalFormError svg,
-.evalFormSuccess svg {
-  font-size: 1.25rem;
-  flex-shrink: 0;
-}
-
-/* Evaluation Areas */
-.evalFormAreas {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-  padding: 0 0.5rem;
-}
-
-.evalAreaCard {
-  background: rgba(255, 255, 255, 0.98);
-  backdrop-filter: blur(20px);
-  border-radius: 20px;
-  padding: 1.5rem;
-  box-shadow: 
-    0 8px 32px rgba(0, 0, 0, 0.08),
-    0 0 0 1px rgba(255, 255, 255, 0.5) inset;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  animation: fadeInUp 0.5s ease backwards;
-}
-
-.evalAreaCard:nth-child(1) { animation-delay: 0.1s; }
-.evalAreaCard:nth-child(2) { animation-delay: 0.2s; }
-.evalAreaCard:nth-child(3) { animation-delay: 0.3s; }
-.evalAreaCard:nth-child(4) { animation-delay: 0.4s; }
-
-.evalAreaCard:hover {
-  transform: translateY(-2px);
-  box-shadow: 
-    0 12px 40px rgba(0, 0, 0, 0.12),
-    0 0 0 1px rgba(255, 255, 255, 0.6) inset;
-}
-
-.evalAreaHeader {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  margin-bottom: 1.25rem;
-  padding-bottom: 1rem;
-  border-bottom: 2px solid rgba(16, 185, 129, 0.1);
-}
-
-.evalAreaIcon {
-  width: 48px;
-  height: 48px;
-  border-radius: 14px;
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  font-size: 1.5rem;
-  box-shadow: 0 4px 16px rgba(16, 185, 129, 0.3);
-  flex-shrink: 0;
-}
-
-.evalAreaName {
-  font-size: 1.125rem;
-  font-weight: 700;
-  color: #1f2937;
-  margin: 0;
-  letter-spacing: -0.3px;
-}
-
-/* Student Evaluation Cards */
-.evalStudentsList {
-  display: flex;
-  flex-direction: column;
-  gap: 1.25rem;
-}
-
-.evalStudentCard {
-  background: #f9fafb;
-  border-radius: 16px;
-  padding: 1.25rem;
-  border: 2px solid transparent;
-  transition: all 0.3s ease;
-}
-
-.evalStudentCard:hover {
-  border-color: rgba(16, 185, 129, 0.2);
-  background: white;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
-}
-
-.evalStudentHeader {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  margin-bottom: 1rem;
-  padding-bottom: 0.75rem;
-  border-bottom: 1px solid #e5e7eb;
-}
-
-.evalStudentNumber {
-  width: 40px;
-  height: 40px;
-  border-radius: 12px;
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 700;
-  font-size: 1rem;
-  flex-shrink: 0;
-  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
-}
-
-.evalStudentName {
-  font-size: 1rem;
-  font-weight: 600;
-  color: #1f2937;
-  margin: 0;
-  flex: 1;
-}
-
-/* Criteria Grid */
-.evalCriteriaGrid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 1rem;
-}
-
-.evalCriterionItem {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.evalCriterionLabel {
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: #4b5563;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.evalCriterionMax {
-  font-size: 0.75rem;
-  color: #9ca3af;
-  font-weight: 500;
-  background: #f3f4f6;
-  padding: 0.25rem 0.625rem;
-  border-radius: 8px;
-}
-
-.evalScoreInput {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.evalScoreInput input[type="number"] {
-  flex: 1;
-  padding: 0.875rem 1rem;
-  border: 2px solid #e5e7eb;
-  border-radius: 12px;
-  font-size: 1.125rem;
-  font-weight: 600;
-  text-align: center;
-  background: white;
-  transition: all 0.3s ease;
-  color: #1f2937;
-}
-
-.evalScoreInput input[type="number"]:focus {
-  outline: none;
-  border-color: #10b981;
-  box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1);
-  transform: scale(1.02);
-}
-
-.evalScoreInput input[type="number"]::placeholder {
-  color: #d1d5db;
-}
-
-/* Select Dropdowns in Evaluation Form */
-.evalScoreInput select,
-.evalCriterionItem select,
-.evalScoreSelect {
-  flex: 1;
-  padding: 0.875rem 1rem;
-  border: 2px solid #e5e7eb;
-  border-radius: 12px;
-  font-size: 1rem;
-  font-weight: 600;
-  background: white;
-  color: #1f2937;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Cpath fill='%2310b981' d='M8 11L3 6h10z'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 1rem center;
-  padding-right: 3rem;
-}
-
-.evalScoreInput select:focus,
-.evalCriterionItem select:focus,
-.evalScoreSelect:focus {
-  outline: none;
-  border-color: #10b981;
-  box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1);
-  transform: scale(1.02);
-}
-
-.evalScoreInput select:hover,
-.evalCriterionItem select:hover,
-.evalScoreSelect:hover {
-  border-color: #10b981;
-  background-color: #f9fafb;
-}
-
-/* Text Inputs in Evaluation Form */
-.evalScoreInput input[type="text"],
-.evalCriterionItem input[type="text"],
-.evalNotesInput[type="text"] {
-  flex: 1;
-  padding: 0.875rem 1rem;
-  border: 2px solid #e5e7eb;
-  border-radius: 12px;
-  font-size: 0.9rem;
-  font-weight: 500;
-  background: white;
-  color: #1f2937;
-  transition: all 0.3s ease;
-  width: 100%;
-  box-sizing: border-box;
-}
-
-.evalScoreInput input[type="text"]:focus,
-.evalCriterionItem input[type="text"]:focus,
-.evalNotesInput[type="text"]:focus {
-  outline: none;
-  border-color: #10b981;
-  box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1);
-  transform: scale(1.02);
-}
-
-.evalScoreInput input[type="text"]::placeholder,
-.evalCriterionItem input[type="text"]::placeholder,
-.evalNotesInput[type="text"]::placeholder {
-  color: #9ca3af;
-  font-weight: 400;
-}
-
-.evalNotesInput {
-  margin-top: 0.5rem;
-}
-
-/* Additional Evaluation Form Styles */
-.evalFormStudents {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-  padding: 0 0.5rem;
-  margin-bottom: 2rem;
-}
-
-.evalStudentCard {
-  background: rgba(255, 255, 255, 0.98);
-  backdrop-filter: blur(20px);
-  border-radius: 20px;
-  padding: 1.5rem;
-  box-shadow: 
-    0 8px 32px rgba(0, 0, 0, 0.08),
-    0 0 0 1px rgba(255, 255, 255, 0.5) inset;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  animation: fadeInUp 0.5s ease backwards;
-}
-
-.evalStudentCard:nth-child(1) { animation-delay: 0.1s; }
-.evalStudentCard:nth-child(2) { animation-delay: 0.15s; }
-.evalStudentCard:nth-child(3) { animation-delay: 0.2s; }
-.evalStudentCard:nth-child(4) { animation-delay: 0.25s; }
-.evalStudentCard:nth-child(5) { animation-delay: 0.3s; }
-
-.evalStudentCard:hover {
-  transform: translateY(-2px);
-  box-shadow: 
-    0 12px 40px rgba(0, 0, 0, 0.12),
-    0 0 0 1px rgba(255, 255, 255, 0.6) inset;
-}
-
-.evalStudentHeader {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1.5rem;
-  padding-bottom: 1rem;
-  border-bottom: 2px solid rgba(16, 185, 129, 0.1);
-}
-
-.evalStudentInfo {
-  display: flex;
-  align-items: center;
-  gap: 0.875rem;
-}
-
-.evalStudentNum {
-  width: 44px;
-  height: 44px;
-  border-radius: 12px;
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 700;
-  font-size: 1.125rem;
-  flex-shrink: 0;
-  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
-}
-
-.evalStudentName {
-  font-size: 1.125rem;
-  font-weight: 700;
-  color: #1f2937;
-  margin: 0 0 0.25rem 0;
-  letter-spacing: -0.3px;
-}
-
-.evalStudentDetails {
-  font-size: 0.8rem;
-  color: #6b7280;
-  font-weight: 500;
-}
-
-.evalStudentTotal {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 1.375rem;
-  font-weight: 800;
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-.evalStudentTotal svg {
-  color: #10b981;
-  font-size: 1.25rem;
-}
-
-/* Criteria List */
-.evalCriteriaList {
-  display: flex;
-  flex-direction: column;
-  gap: 1.25rem;
-}
-
-.evalAreaSection {
-  display: flex;
-  flex-direction: column;
-  gap: 0.875rem;
-}
-
-.evalAreaName {
-  font-size: 1rem;
-  font-weight: 700;
-  color: #10b981;
-  margin: 0 0 0.5rem 0;
-  padding-bottom: 0.5rem;
-  border-bottom: 2px solid rgba(16, 185, 129, 0.2);
-  letter-spacing: -0.2px;
-}
-
-.evalCriterionRow {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-  padding: 1rem;
-  background: #f9fafb;
-  border-radius: 12px;
-  border: 2px solid transparent;
-  transition: all 0.3s ease;
-}
-
-.evalCriterionRow:hover {
-  background: white;
-  border-color: rgba(16, 185, 129, 0.2);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-}
-
-.evalCriterionInfo {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.evalCriterionName {
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: #374151;
-  flex: 1;
-}
-
-.evalCriterionMax {
-  font-size: 0.75rem;
-  color: #6b7280;
-  font-weight: 600;
-  background: #e5e7eb;
-  padding: 0.375rem 0.75rem;
-  border-radius: 8px;
-  white-space: nowrap;
-}
-
-.evalCriterionInputs {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-.evalNotesInput {
-  margin-top: 0.5rem;
-}
-
-.evalNotesInput textarea {
-  width: 100%;
-  padding: 0.875rem 1rem;
-  border: 2px solid #e5e7eb;
-  border-radius: 12px;
-  font-size: 0.9rem;
-  font-family: inherit;
-  resize: vertical;
-  min-height: 80px;
-  background: white;
-  transition: all 0.3s ease;
-  color: #1f2937;
-}
-
-.evalNotesInput textarea:focus {
-  outline: none;
-  border-color: #10b981;
-  box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1);
-}
-
-.evalNotesInput textarea::placeholder {
-  color: #9ca3af;
-}
-
-/* Form Actions */
-.evalFormActions {
-  position: sticky;
-  bottom: 0;
-  background: rgba(255, 255, 255, 0.98);
-  backdrop-filter: blur(20px);
-  padding: 1.25rem;
-  border-radius: 0 0 20px 20px;
-  box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.08);
-  display: flex;
-  gap: 0.75rem;
-  margin-top: 2rem;
-  z-index: 10;
-}
-
-.evalFormActions button {
-  flex: 1;
-  padding: 1rem;
-  border: none;
-  border-radius: 14px;
-  font-size: 0.95rem;
-  font-weight: 600;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  min-height: 52px;
-}
-
-.evalFormActions button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-  transform: none !important;
-}
-
-.evalFormActions button:not(:disabled):hover {
-  transform: translateY(-2px);
-}
-
-.evalFormActions button:not(:disabled):active {
-  transform: translateY(0);
-}
-
-.evalSaveBtn {
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-  color: white;
-  box-shadow: 0 4px 16px rgba(16, 185, 129, 0.3);
-}
-
-.evalSaveBtn:not(:disabled):hover {
-  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
-}
-
-.evalSubmitBtn {
-  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-  color: white;
-  box-shadow: 0 4px 16px rgba(59, 130, 246, 0.3);
-}
-
-.evalSubmitBtn:not(:disabled):hover {
-  box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
-}
-
-/* Evaluation Report View */
-.evalReportContainer {
-  padding: 1rem;
-  padding-bottom: 5rem;
-}
-
-.evalReportHeader {
-  background: rgba(255, 255, 255, 0.98);
-  backdrop-filter: blur(20px);
-  padding: 1.5rem;
-  border-radius: 20px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
-  margin-bottom: 1.5rem;
-  animation: fadeInUp 0.5s ease;
-}
-
-.evalReportHeader h2 {
-  font-size: 1.375rem;
-  font-weight: 800;
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  margin: 0 0 0.75rem 0;
-  letter-spacing: -0.5px;
-}
-
-.evalReportMeta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1rem;
-  font-size: 0.875rem;
-  color: #6b7280;
-}
-
-.evalReportMeta span {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-/* Report Summary Cards */
-.evalReportSummary {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 1rem;
-  margin-bottom: 1.5rem;
-}
-
-.evalReportSummaryCard {
-  background: rgba(255, 255, 255, 0.98);
-  backdrop-filter: blur(20px);
-  padding: 1.25rem;
-  border-radius: 16px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
-  text-align: center;
-  transition: all 0.3s ease;
-  animation: fadeInUp 0.5s ease backwards;
-}
-
-.evalReportSummaryCard:nth-child(1) { animation-delay: 0.1s; }
-.evalReportSummaryCard:nth-child(2) { animation-delay: 0.2s; }
-.evalReportSummaryCard:nth-child(3) { animation-delay: 0.3s; }
-.evalReportSummaryCard:nth-child(4) { animation-delay: 0.4s; }
-
-.evalReportSummaryCard:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
-}
-
-.evalReportSummaryValue {
-  font-size: 2rem;
-  font-weight: 800;
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  line-height: 1;
-  margin-bottom: 0.5rem;
-}
-
-.evalReportSummaryLabel {
-  font-size: 0.8rem;
-  color: #6b7280;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-/* Report Student List */
-.evalReportStudentsList {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.evalReportStudentCard {
-  background: rgba(255, 255, 255, 0.98);
-  backdrop-filter: blur(20px);
-  border-radius: 20px;
-  padding: 1.5rem;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
-  transition: all 0.3s ease;
-  animation: fadeInUp 0.5s ease backwards;
-}
-
-.evalReportStudentCard:nth-child(1) { animation-delay: 0.1s; }
-.evalReportStudentCard:nth-child(2) { animation-delay: 0.15s; }
-.evalReportStudentCard:nth-child(3) { animation-delay: 0.2s; }
-.evalReportStudentCard:nth-child(4) { animation-delay: 0.25s; }
-.evalReportStudentCard:nth-child(5) { animation-delay: 0.3s; }
-
-.evalReportStudentCard:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
-}
-
-.evalReportStudentHeader {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1.25rem;
-  padding-bottom: 1rem;
-  border-bottom: 2px solid rgba(16, 185, 129, 0.1);
-}
-
-.evalReportStudentInfo {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.evalReportStudentName {
-  font-size: 1.125rem;
-  font-weight: 700;
-  color: #1f2937;
-  margin: 0;
-}
-
-.evalReportTotalScore {
-  text-align: right;
-}
-
-.evalReportTotalLabel {
-  font-size: 0.75rem;
-  color: #9ca3af;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin-bottom: 0.25rem;
-}
-
-.evalReportTotalValue {
-  font-size: 1.75rem;
-  font-weight: 800;
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  line-height: 1;
-}
-
-/* Report Criteria Details */
-.evalReportCriteriaList {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-.evalReportCriterionItem {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0.875rem 1rem;
-  background: #f9fafb;
-  border-radius: 12px;
-  transition: all 0.2s ease;
-}
-
-.evalReportCriterionItem:hover {
-  background: #f3f4f6;
-  transform: translateX(4px);
-}
-
-.evalReportCriterionName {
-  font-size: 0.9rem;
-  color: #4b5563;
-  font-weight: 500;
-  flex: 1;
-}
-
-.evalReportCriterionScore {
-  font-size: 1.125rem;
-  font-weight: 700;
-  color: #10b981;
-  display: flex;
-  align-items: center;
-  gap: 0.375rem;
-}
-
-.evalReportCriterionMax {
-  font-size: 0.875rem;
-  color: #9ca3af;
-  font-weight: 500;
-}
-
-.evalReportNotes {
-  margin-top: 1rem;
-  padding: 1rem;
-  background: rgba(16, 185, 129, 0.05);
-  border-left: 4px solid #10b981;
-  border-radius: 0 12px 12px 0;
-}
-
-.evalReportNotesLabel {
-  font-size: 0.75rem;
-  color: #059669;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin-bottom: 0.5rem;
-}
-
-.evalReportNotesText {
-  font-size: 0.9rem;
-  color: #1f2937;
-  line-height: 1.6;
-  margin: 0;
-}
-
-/* ========================================
-   RESPONSIVE EVALUATION STYLES
-   ======================================== */
-
-/* Tablet */
-@media (min-width: 768px) {
-  .evalFormHeader {
-    padding: 1.5rem 2rem;
-  }
-
-  .evalFormTitle h2 {
-    font-size: 1.375rem;
-  }
-
-  .evalAreaCard {
-    padding: 2rem;
-  }
-
-  .evalCriteriaGrid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 1.25rem;
-  }
-
-  .evalFormActions {
-    padding: 1.5rem 2rem;
-  }
-
-  .evalReportSummary {
-    grid-template-columns: repeat(4, 1fr);
-  }
-
-  .evalReportStudentCard {
-    padding: 2rem;
-  }
-}
-
-/* Desktop */
-@media (min-width: 1024px) {
-  .evaluationsContainer {
-    max-width: 1200px;
-    margin: 0 auto;
-  }
-
-  .evalFormAreas {
-    padding: 0 1rem;
-  }
-
-  .evalCriteriaGrid {
-    grid-template-columns: repeat(3, 1fr);
-  }
-
-  .evalReportContainer {
-    max-width: 1200px;
-    margin: 0 auto;
-  }
-}
-
-/* ========================================
-   DARK MODE EVALUATION STYLES
-   ======================================== */
-
-:global(.darkMode) .evalFormHeader,
-:global(body.dark-mode) .evalFormHeader {
-  background: rgba(30, 41, 59, 0.98);
-}
-
-:global(.darkMode) .evalFormTitle h2,
-:global(body.dark-mode) .evalFormTitle h2 {
-  color: #10b981;
-}
-
-:global(.darkMode) .evalAreaCard,
-:global(body.dark-mode) .evalAreaCard {
-  background: rgba(30, 41, 59, 0.98);
-  border: 1px solid #334155;
-}
-
-:global(.darkMode) .evalAreaName,
-:global(body.dark-mode) .evalAreaName {
-  color: #f3f4f6;
-}
-
-:global(.darkMode) .evalStudentCard,
-:global(body.dark-mode) .evalStudentCard {
-  background: #1e293b;
-}
-
-:global(.darkMode) .evalStudentCard:hover,
-:global(body.dark-mode) .evalStudentCard:hover {
-  background: #334155;
-}
-
-:global(.darkMode) .evalStudentName,
-:global(body.dark-mode) .evalStudentName {
-  color: #f3f4f6;
-}
-
-:global(.darkMode) .evalCriterionLabel,
-:global(body.dark-mode) .evalCriterionLabel {
-  color: #d1d5db;
-}
-
-:global(.darkMode) .evalScoreInput input,
-:global(body.dark-mode) .evalScoreInput input,
-:global(.darkMode) .evalNotesInput textarea,
-:global(body.dark-mode) .evalNotesInput textarea,
-:global(.darkMode) .evalScoreInput select,
-:global(body.dark-mode) .evalScoreInput select,
-:global(.darkMode) .evalCriterionItem select,
-:global(body.dark-mode) .evalCriterionItem select,
-:global(.darkMode) .evalScoreSelect,
-:global(body.dark-mode) .evalScoreSelect,
-:global(.darkMode) .evalNotesInput[type="text"],
-:global(body.dark-mode) .evalNotesInput[type="text"] {
-  background: #1e293b;
-  border-color: #475569;
-  color: #f3f4f6;
-}
-
-:global(.darkMode) .evalScoreInput select,
-:global(body.dark-mode) .evalScoreInput select,
-:global(.darkMode) .evalCriterionItem select,
-:global(body.dark-mode) .evalCriterionItem select,
-:global(.darkMode) .evalScoreSelect,
-:global(body.dark-mode) .evalScoreSelect {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Cpath fill='%2310b981' d='M8 11L3 6h10z'/%3E%3C/svg%3E");
-}
-
-:global(.darkMode) .evalScoreInput select:hover,
-:global(body.dark-mode) .evalScoreInput select:hover,
-:global(.darkMode) .evalCriterionItem select:hover,
-:global(body.dark-mode) .evalCriterionItem select:hover,
-:global(.darkMode) .evalScoreSelect:hover,
-:global(body.dark-mode) .evalScoreSelect:hover {
-  background-color: #334155;
-}
-
-:global(.darkMode) .evalStudentCard,
-:global(body.dark-mode) .evalStudentCard {
-  background: rgba(30, 41, 59, 0.98);
-  border: 1px solid #334155;
-}
-
-:global(.darkMode) .evalStudentName,
-:global(body.dark-mode) .evalStudentName {
-  color: #f3f4f6;
-}
-
-:global(.darkMode) .evalStudentDetails,
-:global(body.dark-mode) .evalStudentDetails {
-  color: #9ca3af;
-}
-
-:global(.darkMode) .evalAreaName,
-:global(body.dark-mode) .evalAreaName {
-  color: #10b981;
-}
-
-:global(.darkMode) .evalCriterionRow,
-:global(body.dark-mode) .evalCriterionRow {
-  background: #1e293b;
-}
-
-:global(.darkMode) .evalCriterionRow:hover,
-:global(body.dark-mode) .evalCriterionRow:hover {
-  background: #334155;
-}
-
-:global(.darkMode) .evalCriterionName,
-:global(body.dark-mode) .evalCriterionName {
-  color: #e5e7eb;
-}
-
-:global(.darkMode) .evalCriterionMax,
-:global(body.dark-mode) .evalCriterionMax {
-  background: #475569;
-  color: #d1d5db;
-}
-
-:global(.darkMode) .evalFormActions,
-:global(body.dark-mode) .evalFormActions {
-  background: rgba(30, 41, 59, 0.98);
-}
-
-:global(.darkMode) .evalReportHeader,
-:global(body.dark-mode) .evalReportHeader,
-:global(.darkMode) .evalReportSummaryCard,
-:global(body.dark-mode) .evalReportSummaryCard,
-:global(.darkMode) .evalReportStudentCard,
-:global(body.dark-mode) .evalReportStudentCard {
-  background: rgba(30, 41, 59, 0.98);
-  border: 1px solid #334155;
-}
-
-:global(.darkMode) .evalReportStudentName,
-:global(body.dark-mode) .evalReportStudentName,
-:global(.darkMode) .evalReportCriterionName,
-:global(body.dark-mode) .evalReportCriterionName {
-  color: #f3f4f6;
-}
-
-:global(.darkMode) .evalReportCriterionItem,
-:global(body.dark-mode) .evalReportCriterionItem {
-  background: #1e293b;
-}
-
-:global(.darkMode) .evalReportCriterionItem:hover,
-:global(body.dark-mode) .evalReportCriterionItem:hover {
-  background: #334155;
-}
-
-:global(.darkMode) .evalReportNotes,
-:global(body.dark-mode) .evalReportNotes {
-  background: rgba(16, 185, 129, 0.1);
-}
-
-:global(.darkMode) .evalReportNotesText,
-:global(body.dark-mode) .evalReportNotesText {
-  color: #e5e7eb;
-}
-
-
-/* ========================================
-   FAULTS TAB
-   ======================================== */
-
-.faultsContainer {
-  padding: 1rem;
-  background: #f8f9fa;
-  min-height: 100vh;
-}
-
-.faultsHeader {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1.5rem;
-  flex-wrap: wrap;
-  gap: 1rem;
-}
-
-.faultsTitle {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: #1f2937;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.faultsTitle svg {
-  color: #ef4444;
-}
-
-.faultViewToggle {
-  display: flex;
-  gap: 0.5rem;
-  background: white;
-  padding: 0.25rem;
-  border-radius: 0.5rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-
-.faultViewBtn {
-  padding: 0.5rem 1rem;
-  border: none;
-  background: transparent;
-  color: #6b7280;
-  font-weight: 500;
-  border-radius: 0.375rem;
-  cursor: pointer;
-  transition: all 0.2s;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.875rem;
-}
-
-.faultViewBtn:hover {
-  background: #f3f4f6;
-}
-
-.faultViewBtn.active {
-  background: #ef4444;
-  color: white;
-}
-
-.faultFormCard {
-  background: white;
-  border-radius: 0.75rem;
-  padding: 1.5rem;
-  margin-bottom: 1rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-
-.faultFormTitle {
-  font-size: 1.125rem;
-  font-weight: 600;
-  color: #1f2937;
-  margin-bottom: 1.5rem;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.faultForm {
-  display: flex;
-  flex-direction: column;
-  gap: 1.25rem;
-}
-
-.faultFormGroup {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.faultFormLabel {
-  font-weight: 500;
-  color: #374151;
-  font-size: 0.875rem;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.faultFormLabel svg {
-  color: #6b7280;
-}
-
-.required {
-  color: #ef4444;
-}
-
-.faultSelect {
-  padding: 0.75rem;
-  border: 1px solid #d1d5db;
-  border-radius: 0.5rem;
-  font-size: 0.875rem;
-  color: #1f2937;
-  background: white;
-  transition: all 0.2s;
-}
-
-.faultSelect:focus {
-  outline: none;
-  border-color: #ef4444;
-  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
-}
-
-.faultSelect:disabled {
-  background: #f3f4f6;
-  cursor: not-allowed;
-}
-
-.faultTextarea {
-  padding: 0.75rem;
-  border: 1px solid #d1d5db;
-  border-radius: 0.5rem;
-  font-size: 0.875rem;
-  color: #1f2937;
-  font-family: inherit;
-  resize: vertical;
-  transition: all 0.2s;
-}
-
-.faultTextarea:focus {
-  outline: none;
-  border-color: #ef4444;
-  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
-}
-
-.faultFormActions {
-  display: flex;
-  justify-content: flex-end;
-  margin-top: 0.5rem;
-}
-
-.faultSubmitBtn {
-  padding: 0.75rem 1.5rem;
-  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-  color: white;
-  border: none;
-  border-radius: 0.5rem;
-  font-weight: 600;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  transition: all 0.2s;
-  box-shadow: 0 4px 6px rgba(239, 68, 68, 0.2);
-}
-
-.faultSubmitBtn:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 12px rgba(239, 68, 68, 0.3);
-}
-
-.faultSubmitBtn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-  transform: none;
-}
-
-.spinning {
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-}
-
-/* Fault History */
-.faultHistoryCard {
-  background: white;
-  border-radius: 0.75rem;
-  padding: 1.5rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-
-.faultsLoading {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 3rem;
-  gap: 1rem;
-}
-
-.faultsLoadingSpinner {
-  width: 40px;
-  height: 40px;
-  border: 4px solid #f3f4f6;
-  border-top-color: #ef4444;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-}
-
-.faultsEmptyState {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 3rem;
-  color: #6b7280;
-  text-align: center;
-}
-
-.faultsEmptyState svg {
-  font-size: 4rem;
-  color: #d1d5db;
-  margin-bottom: 1rem;
-}
-
-.faultsEmptyState h3 {
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: #374151;
-  margin-bottom: 0.5rem;
-}
-
-.faultsEmptyState p {
-  color: #6b7280;
-  font-size: 0.875rem;
-}
-
-.faultsList {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-}
-
-.studentFaultGroup {
-  background: #f9fafb;
-  border-radius: 0.75rem;
-  overflow: hidden;
-  border: 1px solid #e5e7eb;
-}
-
-.studentGroupHeader {
-  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-  color: white;
-  padding: 1rem 1.5rem;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.studentInfo {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.groupStudentName {
-  font-size: 1.125rem;
-  font-weight: 600;
-  margin: 0;
-}
-
-.totalOffenses {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-}
-
-.offenseCount {
-  font-size: 1.5rem;
-  font-weight: 700;
-}
-
-.offenseLabel {
-  font-size: 0.75rem;
-  opacity: 0.9;
-}
-
-.studentFaultsList {
-  padding: 1rem;
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.faultItem {
-  background: white;
-  border-radius: 0.5rem;
-  padding: 1rem;
-  border-left: 4px solid #ef4444;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-
-.faultItemHeader {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 0.75rem;
-}
-
-.offenseNumber {
-  font-weight: 600;
-  color: #ef4444;
-  font-size: 0.875rem;
-}
-
-.faultDate {
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
-  color: #6b7280;
-  font-size: 0.875rem;
-}
-
-.faultType {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin-bottom: 0.75rem;
-  font-weight: 600;
-  color: #1f2937;
-}
-
-.faultType svg {
-  color: #ef4444;
-}
-
-.faultLevel {
-  padding: 0.25rem 0.5rem;
-  border-radius: 0.25rem;
-  font-size: 0.75rem;
-  font-weight: 600;
-  margin-left: auto;
-}
-
-.levelMinor {
-  background: #fef3c7;
-  color: #92400e;
-}
-
-.levelMajor {
-  background: #fee2e2;
-  color: #991b1b;
-}
-
-.levelSevere {
-  background: #fecaca;
-  color: #7f1d1d;
-}
-
-.faultDescription {
-  color: #4b5563;
-  font-size: 0.875rem;
-  line-height: 1.5;
-  margin-bottom: 0.75rem;
-}
-
-.faultItemFooter {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding-top: 0.75rem;
-  border-top: 1px solid #e5e7eb;
-}
-
-.reportedBy {
-  font-size: 0.75rem;
-  color: #6b7280;
-  font-style: italic;
-}
-
-/* Responsive Design */
-@media (max-width: 640px) {
-  .faultsHeader {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .faultViewToggle {
-    width: 100%;
-  }
-
-  .faultViewBtn {
-    flex: 1;
-    justify-content: center;
-  }
-
-  .studentGroupHeader {
-    flex-direction: column;
-    gap: 0.75rem;
-    align-items: flex-start;
-  }
-
-  .totalOffenses {
-    align-items: flex-start;
-  }
-}
-
-
-/* ========================================
-   MODERN ATTENDANCE TAB - MOBILE FIRST
-   ======================================== */
-
-.modernAttendanceContainer {
-  padding: 1rem;
-  max-width: 1200px;
-  margin: 0 auto;
-  background: #f8fafc;
-  min-height: 100vh;
-}
-
-/* Header Card */
-.attendanceHeader {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border-radius: 20px;
-  padding: 1.5rem;
-  margin-bottom: 1.5rem;
-  box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
-  color: white;
-}
-
-.headerContent {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  margin-bottom: 1rem;
-}
-
-.headerIcon {
-  width: 48px;
-  height: 48px;
-  background: rgba(255, 255, 255, 0.2);
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  backdrop-filter: blur(10px);
-}
-
-.headerText h2 {
-  margin: 0;
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: white;
-}
-
-.headerText p {
-  margin: 0.25rem 0 0 0;
-  font-size: 0.95rem;
-  opacity: 0.9;
-  color: rgba(255, 255, 255, 0.95);
-}
-
-.classSelector {
-  margin: 0.25rem 0 0 0;
-  font-size: 0.95rem;
-  color: white;
-  background: rgba(255, 255, 255, 0.2);
-  border: 1px solid rgba(255, 255, 255, 0.4);
-  border-radius: 8px;
-  padding: 0.3rem 0.6rem;
-  cursor: pointer;
-  outline: none;
-  font-weight: 600;
-}
-
-.classSelector option {
-  color: #333;
-  background: white;
-}
-
-.headerDate {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 1rem;
-  background: rgba(255, 255, 255, 0.15);
-  border-radius: 10px;
-  backdrop-filter: blur(10px);
-  font-size: 0.9rem;
-  width: fit-content;
-}
-
-/* Stats Grid */
-.statsGrid {
-  display: grid !important;
-  grid-template-columns: repeat(4, 1fr) !important;
-  gap: 0.4rem !important;
-  margin-bottom: 0.75rem;
-}
-
-.statCard {
-  background: white;
-  border-radius: 12px !important;
-  padding: 0.5rem 0.3rem !important;
-  display: flex !important;
-  flex-direction: column !important;
-  align-items: center !important;
-  justify-content: center !important;
-  gap: 0.2rem !important;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.07);
-  transition: all 0.3s ease;
-  min-width: 0;
-}
-
-.statCard:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
-}
-
-.statIcon {
-  width: 30px !important;
-  height: 30px !important;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  flex-shrink: 0;
-}
-
-.statContent {
-  display: flex;
-  flex-direction: column;
-  gap: 0.1rem;
-  align-items: center;
-  min-width: 0;
-}
-
-.statLabel {
-  font-size: 0.58rem !important;
-  color: #64748b;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.3px;
-  text-align: center;
-}
-
-.statValue {
-  font-size: 1.2rem !important;
-  font-weight: 700;
-  color: #1e293b;
-  line-height: 1;
-}
-
-/* Action Button */
-.attendanceActions {
-  margin-bottom: 1.5rem;
-}
-
-.primaryActionBtn {
-  width: 100%;
-  padding: 1rem 1.5rem;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  border: none;
-  border-radius: 14px;
-  font-size: 1rem;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.75rem;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.3);
-}
-
-.primaryActionBtn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
-}
-
-.primaryActionBtn:active {
-  transform: translateY(0);
-}
-
-/* Students Section */
-.studentsSection {
-  background: white;
-  border-radius: 20px;
-  padding: 1.5rem;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
-  margin-bottom: 1.5rem;
-}
-
-.sectionHeader {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 1.5rem;
-  padding-bottom: 1rem;
-  border-bottom: 2px solid #f1f5f9;
-}
-
-.sectionHeader h3 {
-  margin: 0;
-  font-size: 1.25rem;
-  font-weight: 700;
-  color: #1e293b;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.badge {
-  padding: 0.375rem 0.875rem;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  border-radius: 20px;
-  font-size: 0.8rem;
-  font-weight: 600;
-}
-
-/* Empty State */
-.emptyState {
-  text-align: center;
-  padding: 3rem 1rem;
-  color: #94a3b8;
-}
-
-.emptyState svg {
-  margin-bottom: 1rem;
-  opacity: 0.5;
-}
-
-.emptyState h3 {
-  margin: 0 0 0.5rem 0;
-  font-size: 1.25rem;
-  color: #64748b;
-}
-
-.emptyState p {
-  margin: 0;
-  font-size: 0.95rem;
-}
-
-/* Students List */
-.studentsList {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-/* Attendance student card - single row: name left, buttons right */
-.attendanceStudentCard {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0.5rem 0.75rem;
-  background: #f0f4ff;
-  border-radius: 12px;
-  border: 1.5px solid #c7d2fe;
-  gap: 0.5rem;
-  min-height: 44px;
-}
-
-.attendanceStudentName {
-  font-size: 0.82rem;
-  font-weight: 600;
-  color: #1f2937;
-  flex: 1;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.attendanceMarkBtns {
-  display: flex;
-  flex-direction: row;
-  gap: 0.25rem;
-  flex-shrink: 0;
-}
-
-/* Small attendance buttons */
-.attBtn {
-  width: 28px;
-  height: 28px;
-  border-radius: 7px;
-  border: 1.5px solid;
-  background: white;
-  font-size: 0.72rem;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.15s ease;
-}
-
-.attBtnP  { border-color: #22c55e; color: #22c55e; }
-.attBtnL  { border-color: #f59e0b; color: #f59e0b; }
-.attBtnA  { border-color: #ef4444; color: #ef4444; }
-.attBtnE  { border-color: #8b5cf6; color: #8b5cf6; }
-
-.attBtnPActive { border-color: #22c55e; background: #22c55e; color: white; }
-.attBtnLActive { border-color: #f59e0b; background: #f59e0b; color: white; }
-.attBtnAActive { border-color: #ef4444; background: #ef4444; color: white; }
-.attBtnEActive { border-color: #8b5cf6; background: #8b5cf6; color: white; }
-
-.studentCard {
-  display: flex !important;
-  flex-direction: column !important;
-  padding: 0.625rem 0.75rem !important;
-  background: #f8fafc;
-  border-radius: 14px;
-  transition: all 0.3s ease;
-  border: 2px solid transparent;
-  gap: 0.5rem !important;
-}
-
-.studentCard:hover {
-  background: #f1f5f9;
-  border-color: #e2e8f0;
-  transform: translateX(4px);
-}
-
-.studentInfo {
-  display: flex;
-  align-items: center;
-  gap: 0.625rem;
-  flex: 1;
-  min-width: 0;
-}
-
-.studentAvatar {
-  width: 48px;
-  height: 48px;
-  border-radius: 12px;
-  overflow: hidden;
-  flex-shrink: 0;
-  position: relative;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-}
-
-.studentAvatar img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.avatarFallback {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  font-weight: 700;
-  font-size: 1.25rem;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-}
-
-.studentDetails {
-  flex: 1;
-  min-width: 0;
-}
-
-.studentDetails h4 {
-  margin: 0 0 0.375rem 0;
-  font-size: 1rem;
-  font-weight: 600;
-  color: #1e293b;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.studentMeta {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  flex-wrap: wrap;
-}
-
-.metaItem {
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
-  font-size: 0.8rem;
-  color: #64748b;
-}
-
-/* Attendance Status */
-.attendanceStatus {
-  flex-shrink: 0;
-}
-
-.statusBadge {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.375rem;
-  padding: 0.5rem 0.875rem;
-  border-radius: 10px;
-  font-size: 0.8rem;
-  font-weight: 600;
-  white-space: nowrap;
-}
-
-.statusPresent {
-  background: #dcfce7;
-  color: #16a34a;
-}
-
-.statusLate {
-  background: #fef3c7;
-  color: #d97706;
-}
-
-.statusAbsent {
-  background: #fee2e2;
-  color: #dc2626;
-}
-
-.statusUnmarked {
-  background: #f1f5f9;
-  color: #64748b;
-}
-
-/* School Days Card */
-.schoolDaysCard {
-  background: white;
-  border-radius: 20px;
-  padding: 1.5rem;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
-}
-
-.schoolDaysHeader {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin-bottom: 1rem;
-  color: #1e293b;
-}
-
-.schoolDaysHeader h4 {
-  margin: 0;
-  font-size: 1.1rem;
-  font-weight: 700;
-}
-
-.schoolDaysList {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  margin-bottom: 1rem;
-}
-
-.dayBadge {
-  padding: 0.5rem 1rem;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  border-radius: 10px;
-  font-size: 0.85rem;
-  font-weight: 600;
-}
-
-.schoolDaysNote {
-  margin: 0;
-  font-size: 0.85rem;
-  color: #64748b;
-  font-style: italic;
-}
-
-/* Mobile Responsive */
-@media (max-width: 768px) {
-  .modernAttendanceContainer {
-    padding: 0.75rem;
-  }
-
-  .attendanceHeader {
-    padding: 1.25rem;
-    border-radius: 16px;
-  }
-
-  .headerText h2 {
-    font-size: 1.25rem;
-  }
-
-  .headerText p {
-    font-size: 0.85rem;
-  }
-
-  .statsGrid {
-    grid-template-columns: repeat(4, 1fr);
-    gap: 0.4rem;
-    margin-bottom: 0.75rem;
-  }
-
-  .statCard {
-    padding: 0.5rem 0.4rem;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.2rem;
-    border-radius: 10px;
-    text-align: center;
-  }
-
-  .statIcon {
-    width: 28px;
-    height: 28px;
-    border-radius: 8px;
-  }
-
-  .statContent {
-    gap: 0.1rem;
-  }
-
-  .statLabel {
-    font-size: 0.6rem;
-    letter-spacing: 0;
-  }
-
-  .statValue {
-    font-size: 1.1rem;
-  }
-
-  .attendanceToolbar {
-    padding: 0.5rem 0.75rem;
-    margin: 0 0 0.75rem;
-    gap: 0.5rem;
-  }
-
-  .daySelector {
-    gap: 0.25rem;
-    width: 100%;
-  }
-
-  .dayBtn {
-    flex: 1;
-    padding: 0.35rem 0.25rem;
-    font-size: 0.7rem;
-    border-radius: 10px;
-  }
-
-  .dayBtnEthDate {
-    font-size: 0.55rem;
-  }
-
-  .toolbarActions {
-    width: 100%;
-    display: flex;
-    gap: 0.5rem;
-  }
-
-  .markAllBtn, .saveAllBtn {
-    flex: 1;
-    font-size: 0.75rem;
-    padding: 0.4rem 0.5rem;
-  }
-
-  .studentsSection {
-    padding: 1.25rem;
-    border-radius: 16px;
-  }
-
-  .sectionHeader {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.75rem;
-  }
-
-  .studentCard {
-    padding: 0.625rem 0.75rem;
-    flex-direction: row;
-    align-items: center;
-    gap: 0.5rem;
-  }
-
-  .studentInfo {
-    flex: 1;
-    min-width: 0;
-  }
-
-  .attendanceStatus {
-    width: auto;
-  }
-
-  .statusBadge {
-    width: auto;
-    justify-content: center;
-  }
-
-  .schoolDaysCard {
-    padding: 1.25rem;
-    border-radius: 16px;
-  }
-
-  .dayBadge {
-    padding: 0.4rem 0.75rem;
-    font-size: 0.8rem;
-  }
-}
-
-@media (max-width: 480px) {
-  .modernAttendanceContainer {
-    padding: 0.5rem;
-  }
-
-  .attendanceHeader {
-    padding: 1rem;
-  }
-
-  .headerContent {
-    gap: 0.75rem;
-  }
-
-  .headerIcon {
-    width: 40px;
-    height: 40px;
-  }
-
-  .headerText h2 {
-    font-size: 1.1rem;
-  }
-
-  .statsGrid {
-    gap: 0.5rem;
-  }
-
-  .statCard {
-    padding: 0.875rem;
-  }
-
-  .studentAvatar {
-    width: 36px;
-    height: 36px;
-    border-radius: 9px;
-  }
-
-  .avatarFallback {
-    font-size: 0.875rem;
-  }
-
-  .studentDetails h4 {
-    font-size: 0.85rem;
-  }
-
-  .metaItem {
-    font-size: 0.7rem;
-  }
-}
-
-/* ========================================
-   ATTENDANCE INLINE MARKING
-   ======================================== */
-
-.attendanceToolbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
-  padding: 0.75rem 1rem;
-  background: white;
-  border-radius: 14px;
-  margin: 0 1rem 1rem;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-  flex-wrap: wrap;
-}
-
-.daySelector {
-  display: flex;
-  gap: 0.375rem;
-  flex-wrap: wrap;
-}
-
-.dayBtn {
-  padding: 0.4rem 0.75rem;
-  border-radius: 20px;
-  border: 1.5px solid #e0e0e0;
-  background: #f8f9fa;
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: #666;
-  cursor: pointer;
-  transition: all 0.2s;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.1rem;
-}
-
-.dayBtnEthDate {
-  font-size: 0.65rem;
-  font-weight: 400;
-  opacity: 0.75;
-  line-height: 1;
-}
-
-.dayBtnActive .dayBtnEthDate {
-  opacity: 0.9;
-}
-
-.ethDateBadge {
-  display: inline-block;
-  margin-left: 0.5rem;
-  background: rgba(102, 126, 234, 0.15);
-  color: #667eea;
-  border-radius: 12px;
-  padding: 0.15rem 0.5rem;
-  font-size: 0.75rem;
-  font-weight: 600;
-}
-
-.dayBtnReadOnly {
-  cursor: default;
-  pointer-events: none;
-}
-
-.dayBtnReadOnly:not(.dayBtnActive) {
-  opacity: 0.55;
-}
-
-.toolbarActions {
-  display: flex;
-  gap: 0.5rem;
-  align-items: center;
-}
-
-.markAllBtn {
-  padding: 0.5rem 0.875rem;
-  border-radius: 20px;
-  border: none;
-  background: #e8f5e9;
-  color: #2e7d32;
-  font-size: 0.8rem;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.saveAllBtn {
-  display: flex;
-  align-items: center;
-  gap: 0.375rem;
-  padding: 0.5rem 0.875rem;
-  border-radius: 20px;
-  border: none;
-  background: linear-gradient(135deg, #667eea, #764ba2);
-  color: white;
-  font-size: 0.8rem;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.inlineMarkBtns {
-  display: flex;
-  gap: 0.375rem;
-  flex-shrink: 0;
-}
-
-.markBtn {
-  width: 36px;
-  height: 36px;
-  border-radius: 9px;
-  border: 2px solid #e0e0e0;
-  background: #f8f9fa;
-  font-size: 0.875rem;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.15s;
-  font-weight: 700;
-  color: #999;
-}
-
-.markBtn:active { transform: scale(0.92); }
-
-.markBtnP { border-color: #a5d6a7; color: #388e3c; }
-.markBtnP.markBtnActive { background: #388e3c; border-color: #388e3c; color: white; }
-
-.markBtnL { border-color: #ffe082; color: #f57f17; }
-.markBtnL.markBtnActive { background: #f57f17; border-color: #f57f17; color: white; }
-
-.markBtnA { border-color: #ef9a9a; color: #c62828; }
-.markBtnA.markBtnActive { background: #c62828; border-color: #c62828; color: white; }
-
-.markBtnE { border-color: #b39ddb; color: #512da8; }
-.markBtnE.markBtnActive { background: #512da8; border-color: #512da8; color: white; }
-
-.noWeekBanner {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  background: #fff8e1;
-  border: 1px solid #ffe082;
-  border-radius: 10px;
-  padding: 0.75rem 1rem;
-  margin: 0 1rem 1rem;
-  font-size: 0.875rem;
-  color: #f57f17;
-  flex-wrap: wrap;
-}
-
-.createWeekBtn {
-  background: #f57f17;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  padding: 0.375rem 0.75rem;
-  font-size: 0.8rem;
-  font-weight: 600;
-  cursor: pointer;
-  margin-left: auto;
-}
-
-.floatingSaveBar {
-  position: fixed;
-  bottom: 5rem;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 100;
-}
-
-.floatingSaveBtn {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.875rem 2rem;
-  background: linear-gradient(135deg, #667eea, #764ba2);
-  color: white;
-  border: none;
-  border-radius: 30px;
-  font-size: 1rem;
-  font-weight: 700;
-  cursor: pointer;
-  box-shadow: 0 8px 24px rgba(102, 126, 234, 0.45);
-  white-space: nowrap;
-}
-
-.floatingSaveBtn:disabled {
-  opacity: 0.7;
-  cursor: not-allowed;
-}
-
-.dayBtnActive {
-  background: linear-gradient(135deg, #667eea, #764ba2);
-  border-color: transparent;
-  color: white;
-}
-
-/* ========================================
-   MARK LIST - COMPACT CARD (attendance style)
-   ======================================== */
-
-.mlCard {
-  background: white;
-  border-radius: 14px;
-  padding: 0.75rem 0.875rem;
-  margin-bottom: 0.5rem;
-  border: 1.5px solid #f0f0f0;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.05);
-}
-
-.markListStudentLocked .mlCard,
-.mlCard.markListStudentLocked {
-  background: #f9fafb;
-  border-color: #e8f5e9;
-}
-
-.mlRow {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.mlAvatar {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #667eea, #764ba2);
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 700;
-  font-size: 1rem;
-  flex-shrink: 0;
-}
-
-.mlName {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-  flex: 1;
-}
-
-.mlName span:first-child {
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: #333;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.mlTotal {
-  font-size: 0.7rem !important;
-  color: #e67e22 !important;
-  font-weight: 700 !important;
-}
-
-.mlInputs {
-  display: flex;
-  gap: 0.3rem;
-  flex-shrink: 0;
-}
-
-.mlInputWrap {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.15rem;
-}
-
-.mlLabel {
-  font-size: 0.55rem;
-  color: #aaa;
-  font-weight: 600;
-  text-transform: uppercase;
-  white-space: nowrap;
-}
-
-.mlInput {
-  width: 44px;
-  height: 36px;
-  border: 1.5px solid #e0e0e0;
-  border-radius: 8px;
-  font-size: 0.9rem;
-  font-weight: 700;
-  text-align: center;
-  background: #f8f9fa;
-  color: #333;
-  padding: 0;
-}
-
-.mlInput:focus {
-  outline: none;
-  border-color: #667eea;
-  background: white;
-  box-shadow: 0 0 0 2px rgba(102,126,234,0.15);
-}
-
-.mlInput:disabled {
-  background: #f0f0f0;
-  color: #aaa;
-}
-
-.mlSaveBtn {
-  width: 36px;
-  height: 36px;
-  border-radius: 10px;
-  border: none;
-  background: linear-gradient(135deg, #e67e22, #f39c12);
-  color: white;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.mlSaveBtn:disabled {
-  opacity: 0.5;
-}
-
-.mlSaved {
-  width: 36px;
-  height: 36px;
-  border-radius: 10px;
-  background: #e8f5e9;
-  color: #2e7d32;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
 }

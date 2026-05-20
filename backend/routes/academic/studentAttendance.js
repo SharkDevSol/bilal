@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const pool = require('../../config/db');
 const { getEthiopianDayOfWeek, getCurrentEthiopianDate } = require('../../utils/ethiopianCalendar');
+const { getEndpointPath, API_ENDPOINTS } = require('../../config/api.config');
 
 // Helper function to calculate week number from day
 const getWeekNumber = (day) => {
@@ -9,7 +10,7 @@ const getWeekNumber = (day) => {
 };
 
 // Get all students from all class tables
-const getAllStudents = async (className = null) => {
+const getAllStudents = async (className = null, studentType = null) => {
   try {
     // Get all class tables
     const tablesResult = await pool.query(`
@@ -35,21 +36,58 @@ const getAllStudents = async (className = null) => {
         FROM information_schema.columns 
         WHERE table_schema = 'classes_schema' 
           AND table_name = $1 
-          AND column_name = 'is_active'
+          AND column_name IN ('is_active', 'student_type', 'is_kg', 'is_evening_class')
       `, [tableName]);
       
-      const hasIsActive = columnCheck.rows.length > 0;
-      const whereClause = hasIsActive ? 'WHERE is_active = TRUE OR is_active IS NULL' : '';
+      const hasIsActive = columnCheck.rows.some(row => row.column_name === 'is_active');
+      const hasStudentType = columnCheck.rows.some(row => row.column_name === 'student_type');
+      const hasIsKg = columnCheck.rows.some(row => row.column_name === 'is_kg');
+      const hasIsEvening = columnCheck.rows.some(row => row.column_name === 'is_evening_class');
+
+      let whereClause = hasIsActive ? 'WHERE (is_active = TRUE OR is_active IS NULL)' : 'WHERE 1=1';
+
+      // Apply student type filter if provided
+      if (studentType && studentType !== 'all') {
+        if (hasStudentType) {
+          whereClause += ` AND student_type = '${studentType}'`;
+        } else if (hasIsKg && hasIsEvening) {
+          // Fallback to individual columns
+          if (studentType === 'kg') {
+            whereClause += ` AND is_kg = TRUE AND is_evening_class = FALSE`;
+          } else if (studentType === 'evening') {
+            whereClause += ` AND is_evening_class = TRUE AND is_kg = FALSE`;
+          } else if (studentType === 'kg_evening') {
+            whereClause += ` AND is_kg = TRUE AND is_evening_class = TRUE`;
+          } else if (studentType === 'regular') {
+            whereClause += ` AND (is_kg = FALSE OR is_kg IS NULL) AND (is_evening_class = FALSE OR is_evening_class IS NULL)`;
+          }
+        }
+      }
+
+      // Build SELECT clause with optional columns
+      let selectClause = `
+        CAST(school_id AS VARCHAR) as student_id,
+        CAST(class_id AS VARCHAR) as class_id,
+        student_name,
+        smachine_id,
+        age,
+        gender
+      `;
+
+      if (hasStudentType) {
+        selectClause += `, student_type`;
+      }
+      if (hasIsKg) {
+        selectClause += `, is_kg`;
+      }
+      if (hasIsEvening) {
+        selectClause += `, is_evening_class`;
+      }
 
       // Get students with all their details
       const studentsResult = await pool.query(`
         SELECT 
-          CAST(school_id AS VARCHAR) as student_id,
-          CAST(class_id AS VARCHAR) as class_id,
-          student_name,
-          smachine_id,
-          age,
-          gender,
+          ${selectClause},
           '${tableName}' as class_name
         FROM classes_schema."${tableName}"
         ${whereClause}
@@ -292,9 +330,9 @@ router.get('/summary', async (req, res) => {
 // Get all students for a specific class or all classes
 router.get('/students', async (req, res) => {
   try {
-    const { class: className } = req.query;
+    const { class: className, studentType } = req.query;
 
-    const students = await getAllStudents(className);
+    const students = await getAllStudents(className, studentType);
 
     res.json({
       success: true,

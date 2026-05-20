@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
-const API_URL = import.meta.env.VITE_API_URL || 'https://iqrab3.skoolific.com';
+const API_URL = import.meta.env.VITE_API_URL || 'https://iqrab3.skoolific.com/api';
 
 const AddRetentionBenefitModal = ({ staff, onClose }) => {
   const [retentionBenefitTypes, setRetentionBenefitTypes] = useState([]);
@@ -22,7 +22,7 @@ const AddRetentionBenefitModal = ({ staff, onClose }) => {
   const fetchRetentionBenefitTypes = async () => {
     try {
       const token = localStorage.getItem('authToken') || localStorage.getItem('token');
-      const response = await axios.get(`${API_URL}/api/hr/salary/retention-benefit-types`, {
+      const response = await axios.get(`${API_URL}/hr/salary/retention-benefit-types`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (response.data.success) {
@@ -41,7 +41,7 @@ const AddRetentionBenefitModal = ({ staff, onClose }) => {
     try {
       const token = localStorage.getItem('authToken') || localStorage.getItem('token');
       const response = await axios.post(
-        `${API_URL}/api/hr/salary/staff/${staff.id}/retention-benefits`,
+        `${API_URL}/hr/salary/staff/${staff.id}/retention-benefits`,
         formData,
         { headers: { Authorization: `Bearer ${token}` } }
       );

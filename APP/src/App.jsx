@@ -2,6 +2,11 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import LoadingScreen from "./COMPONENTS/LoadingScreen";
+import { ThemeProvider } from "./contexts/ThemeContext";
+import { LanguageProvider } from "./contexts/LanguageContext";
+import "./i18n/config"; // Initialize i18n
+import "./styles/theme.css"; // Import theme CSS
+import ComponentShowcase from "./pages/ComponentShowcase"; // UI Component Showcase
 import Home from "./PAGE/Home";
 import CreateRegisterStaff from "./PAGE/CreateRegister/CreateRegisterStaff/CreateRegisterStaff";
 import CreateRegisterStudent from "./PAGE/CreateRegister/CreateRegisterStudent/CreateRegisterStudent";
@@ -19,6 +24,7 @@ import ErrorBoundary from "./COMPONENTS/ErrorBoundary";
 import MarkListView from "./PAGE/MarkListView/MarkListView";
 import StudentAttendanceSystem from "./PAGE/Academic/StudentAttendanceSystem";
 import StudentAttendanceTimeSettings from "./PAGE/Academic/StudentAttendanceTimeSettings";
+import AITestGenerator from "./PAGE/Academic/AITestGenerator";
 // Counsellor removed - not used
 import Post from "./PAGE/Post/Post";
 import MarkListSystem from "./PAGE/CreateMarklist/CreateMarklist/CreateMarklist";
@@ -47,6 +53,7 @@ import PostStudents from "./Students/PostStudents/PostStudents";
 import ClassStudents from "./Students/ClassStudents/ClassStudents";
 import CommunicationStudents from "./Students/CommunicationStudents/CommunicationStudents";
 import ProfileStudents from "./Students/ProfileStudents/ProfileStudents";
+import AboutUs from "./PAGE/AboutUs/AboutUs";
 import POSTS from "./Staff/POSTS/POSTS";
 import PF from "./Staff/PF/PF";
 import MRLIST from "./Staff/MRLIST/MRLIST";
@@ -54,6 +61,7 @@ import EVA from "./Staff/EVA/EVA";
 import PV from "./Staff/PV/PV";
 import COMSTA from "./Staff/COMSTA/COMSTA";
 import TeacherClassAttendance from "./Staff/ATTENDANCE/TeacherClassAttendance";
+import ExamCreationStaff from "./Staff/EXAM/ExamCreationStaff";
 import ClassTeacherAssignment from "./PAGE/AttendanceView/ClassTeacherAssignment";
 import LiveAttendanceMonitor from "./PAGE/LiveAttendanceMonitor";
 import StaffLogin from "./COMPONENTS/StaffLogin";
@@ -72,6 +80,7 @@ import { Provider } from 'react-redux';
 import { store } from '../src/PAGE/store';
 import InitialRedirect from "./COMPONENTS/InitialRedirect";  
 import ProtectedRoute from "./COMPONENTS/ProtectedRoute";
+import RoleProtectedRoute from "./COMPONENTS/RoleProtectedRoute";
 import Login from "./PAGE/Login/Login";
 import TaskPage from "./PAGE/TaskPage";  
 import TaskDetail from "./PAGE/TaskDetail";  
@@ -93,7 +102,6 @@ import GuardianNotificationsPage from "./Guardian/GuardianNotifications/Guardian
 import FinanceDashboard from "./PAGE/Finance/FinanceDashboard";
 import ChartOfAccounts from "./PAGE/Finance/ChartOfAccounts/ChartOfAccounts";
 import FeeManagement from "./PAGE/Finance/FeeManagement/FeeManagement";
-import FeeTypeManagement from "./PAGE/Finance/FeeTypeManagement";
 import InvoiceManagement from "./PAGE/Finance/InvoiceManagement";
 import FeePaymentManagement from "./PAGE/Finance/FeePaymentManagement";
 import ExpenseManagement from "./PAGE/Finance/ExpenseManagement";
@@ -160,11 +168,17 @@ function App() {
   }
 
   return (
-    <div>
-      <Provider store={store}>
-        <Routes>
-          {/* Public Route - Login */}
+    <ThemeProvider>
+      <LanguageProvider>
+        <div>
+          <Provider store={store}>
+            <Routes>
+          {/* Public Routes */}
           <Route path="/login" element={<Login />} />
+          <Route path="/about-us" element={<AboutUs />} />
+          
+          {/* UI Component Showcase - Public for testing */}
+          <Route path="/showcase" element={<ComponentShowcase />} />
           
           {/* Protected Routes */}
           <Route path="/" element={
@@ -226,6 +240,7 @@ function App() {
               <Route path="mark-list-view" element={<MarkListView />} />
               <Route path="student-attendance-system" element={<StudentAttendanceSystem />} />
               <Route path="student-attendance-time-settings" element={<StudentAttendanceTimeSettings />} />
+              <Route path="ai-test-generator" element={<AITestGenerator />} />
               <Route path="class-teacher-assignment" element={<ClassTeacherAssignment />} />
               <Route path="live-attendance" element={<LiveAttendanceMonitor />} />
               <Route path="communication" element={<AdminChat />} />
@@ -254,7 +269,6 @@ function App() {
               <Route path="finance" element={<FinanceDashboard />} />
               <Route path="finance/accounts" element={<ChartOfAccounts />} />
               <Route path="finance/fee-management" element={<FeeManagement />} />
-              <Route path="finance/fee-types" element={<FeeTypeManagement />} />
               <Route path="finance/invoices" element={<InvoiceManagement />} />
               <Route path="finance/payments" element={<FeePaymentManagement />} />
               <Route path="finance/monthly-payments" element={<MonthlyPayments />} />
@@ -314,7 +328,21 @@ function App() {
               <Route path="post-staff-new" element={<POSTS />} />
               {/* OLD ATTENDANCE REMOVED - Use /app/staff profile instead */}
               {/* <Route path="attendance-staff" element={<TeacherClassAttendance />} /> */}
-              <Route path="mark-list-staff" element={<MRLIST />} />
+              <Route path="attendance-staff" element={
+                <RoleProtectedRoute requiredFeature="attendance">
+                  <TeacherClassAttendance />
+                </RoleProtectedRoute>
+              } />
+              <Route path="mark-list-staff" element={
+                <RoleProtectedRoute requiredFeature="mark-lists">
+                  <MRLIST />
+                </RoleProtectedRoute>
+              } />
+              <Route path="exam-creation-staff" element={
+                <RoleProtectedRoute requiredFeature="exam-creation">
+                  <ExamCreationStaff />
+                </RoleProtectedRoute>
+              } />
               <Route path="evaluation-staff-control" element={<EVA />} />
               {/* OLD PROFILE ROUTE REMOVED - Use /app/staff (index) instead */}
               <Route path="communication-staff" element={<COMSTA />} />
@@ -358,8 +386,10 @@ function App() {
             <Route path="/guardian-profile/:username" element={<GuardianProfileRedirect />} />
             <Route path="/staff-profile" element={<Navigate to="/app/staff" replace />} />
           </Routes>
-      </Provider>
-    </div>
+        </Provider>
+      </div>
+    </LanguageProvider>
+  </ThemeProvider>
   );
 }
 

@@ -2,7 +2,8 @@ const express = require('express');
 const router = express.Router();
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
-const { authenticateToken } = require('../../middleware/auth');
+const { authenticateWithBranch } = require('../../middleware/branchAuth');
+const { getEndpointPath, API_ENDPOINTS } = require('../../config/api.config');
 
 // Generate payroll number
 async function generatePayrollNumber(month, year) {
@@ -14,7 +15,7 @@ async function generatePayrollNumber(month, year) {
 }
 
 // Get all payrolls
-router.get('/', authenticateToken, async (req, res) => {
+router.get('/', authenticateWithBranch, async (req, res) => {
   try {
     const { year, month, status } = req.query;
     
@@ -44,7 +45,7 @@ router.get('/', authenticateToken, async (req, res) => {
 });
 
 // Get single payroll
-router.get('/:id', authenticateToken, async (req, res) => {
+router.get('/:id', authenticateWithBranch, async (req, res) => {
   try {
     const payroll = await prisma.payroll.findUnique({
       where: { id: req.params.id },
@@ -74,7 +75,7 @@ router.get('/:id', authenticateToken, async (req, res) => {
 });
 
 // Process payroll
-router.post('/process', authenticateToken, async (req, res) => {
+router.post('/process', authenticateWithBranch, async (req, res) => {
   try {
     const { month, year, staffIds } = req.body;
     
@@ -207,7 +208,7 @@ router.post('/process', authenticateToken, async (req, res) => {
 });
 
 // Approve payroll
-router.post('/:id/approve', authenticateToken, async (req, res) => {
+router.post('/:id/approve', authenticateWithBranch, async (req, res) => {
   try {
     const payroll = await prisma.payroll.update({
       where: { id: req.params.id },
@@ -226,7 +227,7 @@ router.post('/:id/approve', authenticateToken, async (req, res) => {
 });
 
 // Mark payroll as paid
-router.post('/:id/mark-paid', authenticateToken, async (req, res) => {
+router.post('/:id/mark-paid', authenticateWithBranch, async (req, res) => {
   try {
     const result = await prisma.$transaction(async (tx) => {
       const payroll = await tx.payroll.update({
@@ -289,7 +290,7 @@ router.post('/:id/mark-paid', authenticateToken, async (req, res) => {
 });
 
 // Get payslip for staff
-router.get('/:payrollId/payslip/:staffId', authenticateToken, async (req, res) => {
+router.get('/:payrollId/payslip/:staffId', authenticateWithBranch, async (req, res) => {
   try {
     const payrollItem = await prisma.payrollItem.findFirst({
       where: {
@@ -317,7 +318,7 @@ router.get('/:payrollId/payslip/:staffId', authenticateToken, async (req, res) =
 });
 
 // Salary structures
-router.get('/salary-structures', authenticateToken, async (req, res) => {
+router.get('/salary-structures', authenticateWithBranch, async (req, res) => {
   try {
     const structures = await prisma.salaryStructure.findMany({
       where: { isActive: true },
@@ -336,7 +337,7 @@ router.get('/salary-structures', authenticateToken, async (req, res) => {
 });
 
 // Create salary structure
-router.post('/salary-structures', authenticateToken, async (req, res) => {
+router.post('/salary-structures', authenticateWithBranch, async (req, res) => {
   try {
     const { name, staffCategory, baseSalary, components } = req.body;
     

@@ -5,6 +5,7 @@ const prisma = new PrismaClient();
 const { authenticateToken } = require('../../middleware/auth');
 const pool = require('../../config/db');
 const axios = require('axios');
+const { getEndpointPath, API_ENDPOINTS } = require('../../config/api.config');
 
 // Helper function to sanitize staff type to schema name
 function sanitizeStaffTypeToSchema(staffType) {

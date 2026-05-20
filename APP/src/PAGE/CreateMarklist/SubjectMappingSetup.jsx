@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import styles from './CreateMarklist/CreateMarklist.module.css';
 
-const API_BASE_URL = 'https://iqrab3.skoolific.com/api';
+const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
 
 const SubjectConfiguration = ({ onSubjectsConfigured }) => {
   const [subjects, setSubjects] = useState([]);
@@ -185,11 +185,21 @@ const SubjectConfiguration = ({ onSubjectsConfigured }) => {
         </div>
       )}
 
+      {/* V2 Enhancement: Separate navigation button */}
       {subjects.length > 0 && (
-        <div className={styles.buttonGroup}>
-          <button onClick={() => onSubjectsConfigured && onSubjectsConfigured()} className={styles.primaryButton}>
-            Next: Class Mapping →
-          </button>
+        <div style={{ marginTop: '1.5rem', paddingTop: '1.5rem', borderTop: '2px solid #e5e7eb' }}>
+          <div className={styles.buttonGroup}>
+            <button 
+              onClick={() => onSubjectsConfigured && onSubjectsConfigured()} 
+              className={styles.primaryButton}
+              style={{ width: '100%', padding: '1rem', fontSize: '1rem', fontWeight: '600' }}
+            >
+              Next: Class Mapping →
+            </button>
+          </div>
+          <p style={{ textAlign: 'center', marginTop: '0.75rem', color: '#6b7280', fontSize: '0.9rem' }}>
+            You have {subjects.length} subject{subjects.length !== 1 ? 's' : ''} configured. Click above to proceed to class mapping.
+          </p>
         </div>
       )}
     </div>

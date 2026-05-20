@@ -1,7 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const pool = require('../config/db');
-const { authenticateToken } = require('../middleware/auth');
+const { authenticateWithBranch, validateBranchCode } = require('../middleware/branchAuth');
+const { getEndpointPath, API_ENDPOINTS } = require('../config/api.config');
 
 // Initialize expenses table
 const initializeExpensesTable = async () => {
@@ -96,7 +97,7 @@ const generateExpenseNumber = async () => {
  * GET /api/finance/expenses
  * Get all expenses with filtering
  */
-router.get('/', authenticateToken, async (req, res) => {
+router.get('/', authenticateWithBranch, async (req, res) => {
   console.log('\n📥 GET /api/finance/expenses - Request received');
   
   try {
@@ -220,7 +221,7 @@ router.get('/', authenticateToken, async (req, res) => {
  * POST /api/finance/expenses
  * Create a new expense
  */
-router.post('/', authenticateToken, async (req, res) => {
+router.post('/', authenticateWithBranch, async (req, res) => {
   console.log('\n📥 POST /api/finance/expenses - Request received');
   console.log('Body:', req.body);
   
@@ -333,7 +334,7 @@ router.post('/', authenticateToken, async (req, res) => {
  * PUT /api/finance/expenses/:id
  * Update expense status
  */
-router.put('/:id', authenticateToken, async (req, res) => {
+router.put('/:id', authenticateWithBranch, async (req, res) => {
   console.log('\n📥 PUT /api/finance/expenses/:id - Request received');
   
   try {
@@ -397,7 +398,7 @@ router.put('/:id', authenticateToken, async (req, res) => {
  * DELETE /api/finance/expenses/:id
  * Delete an expense
  */
-router.delete('/:id', authenticateToken, async (req, res) => {
+router.delete('/:id', authenticateWithBranch, async (req, res) => {
   console.log('\n📥 DELETE /api/finance/expenses/:id - Request received');
   
   try {
@@ -436,7 +437,7 @@ router.delete('/:id', authenticateToken, async (req, res) => {
  * GET /api/finance/expenses/summary/by-category
  * Get expense summary by category
  */
-router.get('/summary/by-category', authenticateToken, async (req, res) => {
+router.get('/summary/by-category', authenticateWithBranch, async (req, res) => {
   console.log('\n📥 GET /api/finance/expenses/summary/by-category - Request received');
   
   try {
@@ -487,7 +488,7 @@ router.get('/summary/by-category', authenticateToken, async (req, res) => {
  * PUT /api/finance/expenses/:id/approve
  * Approve an expense
  */
-router.put('/:id/approve', authenticateToken, async (req, res) => {
+router.put('/:id/approve', authenticateWithBranch, async (req, res) => {
   console.log('\n📥 PUT /api/finance/expenses/:id/approve - Request received');
   
   try {
@@ -531,7 +532,7 @@ router.put('/:id/approve', authenticateToken, async (req, res) => {
  * PUT /api/finance/expenses/:id/reject
  * Reject an expense
  */
-router.put('/:id/reject', authenticateToken, async (req, res) => {
+router.put('/:id/reject', authenticateWithBranch, async (req, res) => {
   console.log('\n📥 PUT /api/finance/expenses/:id/reject - Request received');
   
   try {
@@ -577,7 +578,7 @@ router.put('/:id/reject', authenticateToken, async (req, res) => {
  * PUT /api/finance/expenses/:id/mark-paid
  * Mark expense as paid and update budget utilization
  */
-router.put('/:id/mark-paid', authenticateToken, async (req, res) => {
+router.put('/:id/mark-paid', authenticateWithBranch, async (req, res) => {
   console.log('\n📥 PUT /api/finance/expenses/:id/mark-paid - Request received');
   
   try {

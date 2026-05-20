@@ -1,16 +1,17 @@
 const express = require('express');
 const router = express.Router();
 const pool = require('../config/db');
+const { getEndpointPath, API_ENDPOINTS } = require('../config/api.config');
 
 // Security middleware
-const { authenticateToken } = require('../middleware/auth');
+const { authenticateWithBranch, validateBranchCode } = require('../middleware/branchAuth');
 const { requirePermission, FINANCE_PERMISSIONS } = require('../middleware/financeAuth');
 
 /**
  * GET /api/finance/classes
  * Get all available classes
  */
-router.get('/classes', authenticateToken, requirePermission(FINANCE_PERMISSIONS.FEE_STRUCTURES_VIEW), async (req, res) => {
+router.get('/classes', authenticateWithBranch, requirePermission(FINANCE_PERMISSIONS.FEE_STRUCTURES_VIEW), async (req, res) => {
   try {
     // Get classes from school_schema_points.classes
     const result = await pool.query(`
@@ -40,7 +41,7 @@ router.get('/classes', authenticateToken, requirePermission(FINANCE_PERMISSIONS.
  * GET /api/finance/classes/:className/students
  * Get all students in a specific class
  */
-router.get('/classes/:className/students', authenticateToken, requirePermission(FINANCE_PERMISSIONS.FEE_STRUCTURES_VIEW), async (req, res) => {
+router.get('/classes/:className/students', authenticateWithBranch, requirePermission(FINANCE_PERMISSIONS.FEE_STRUCTURES_VIEW), async (req, res) => {
   const { className } = req.params;
   
   try {
@@ -107,7 +108,7 @@ router.get('/classes/:className/students', authenticateToken, requirePermission(
  * GET /api/finance/classes/:className/student-count
  * Get student count for a specific class
  */
-router.get('/classes/:className/student-count', authenticateToken, requirePermission(FINANCE_PERMISSIONS.FEE_STRUCTURES_VIEW), async (req, res) => {
+router.get('/classes/:className/student-count', authenticateWithBranch, requirePermission(FINANCE_PERMISSIONS.FEE_STRUCTURES_VIEW), async (req, res) => {
   const { className } = req.params;
   
   try {
@@ -150,7 +151,7 @@ router.get('/classes/:className/student-count', authenticateToken, requirePermis
  * GET /api/finance/all-students
  * Get all students across all classes
  */
-router.get('/all-students', authenticateToken, requirePermission(FINANCE_PERMISSIONS.FEE_STRUCTURES_VIEW), async (req, res) => {
+router.get('/all-students', authenticateWithBranch, requirePermission(FINANCE_PERMISSIONS.FEE_STRUCTURES_VIEW), async (req, res) => {
   try {
     // Get all class names
     const classesResult = await pool.query(`

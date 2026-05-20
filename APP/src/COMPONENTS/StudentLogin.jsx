@@ -1,100 +1,177 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { FiUser, FiLock, FiLogIn } from 'react-icons/fi';
+import { Building2, User as UserIcon, Lock } from 'lucide-react';
 import styles from './StudentLogin.module.css';
+import Input from './Input/Input';
+import Button from './Button/Button';
+import ThemeToggle from './ThemeToggle/ThemeToggle';
+import LanguageSelector from './LanguageSelector/LanguageSelector';
+import Toast from './Toast/Toast';
 
 const StudentLogin = () => {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const [credentials, setCredentials] = useState({ username: '', password: '', branchCode: '' });
+  const [errors, setErrors] = useState({});
+  const [touched, setTouched] = useState({});
+  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
+  const [toastType, setToastType] = useState('error');
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
+  // Load saved branch code from localStorage on mount
+  React.useEffect(() => {
+    const savedBranchCode = localStorage.getItem('branchCode');
+    if (savedBranchCode) {
+      setCredentials(prev => ({ ...prev, branchCode: savedBranchCode }));
+    }
+  }, []);
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setCredentials(prev => ({ ...prev, [name]: value }));
+    
+    // Clear error for this field when user starts typing
+    if (errors[name]) {
+      setErrors(prev => ({ ...prev, [name]: '' }));
+    }
+  };
+
+  const handleBlur = (field) => {
+    setTouched(prev => ({ ...prev, [field]: true }));
+  };
+
   const handleLogin = async (e) => {
     e.preventDefault();
+    
+    // Mark all fields as touched
+    setTouched({ username: true, password: true, branchCode: true });
+    
+    // Validate all fields
+    const newErrors = {};
+    if (!credentials.branchCode) newErrors.branchCode = 'Branch code is required';
+    if (!credentials.username) newErrors.username = 'Username is required';
+    if (!credentials.password) newErrors.password = 'Password is required';
+    
+    setErrors(newErrors);
+    
+    if (Object.keys(newErrors).length > 0) {
+      setToastMessage('Please fill in all required fields');
+      setToastType('error');
+      setShowToast(true);
+      return;
+    }
+
     setIsLoading(true);
-    setError('');
 
     try {
-      const response = await axios.post('/api/students/login', {
-        username,
-        password,
+      const response = await axios.post('/api/v2/auth/login', {
+        ...credentials,
+        userType: 'student'
       });
+      
       const { role, student } = response.data;
+      
       if (role === 'student') {
+        localStorage.setItem('branchCode', credentials.branchCode);
         navigate(`/app/student/${student.username}`);
       } else {
-        setError('Please use the Guardian Login page for guardian accounts.');
+        setToastMessage('Please use the Guardian Login page for guardian accounts.');
+        setToastType('error');
+        setShowToast(true);
       }
     } catch (err) {
-      setError(err.response?.data?.error || 'Login failed. Please try again.');
+      setToastMessage(err.response?.data?.error || 'Login failed. Please try again.');
+      setToastType('error');
+      setShowToast(true);
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className={styles.loginContainer}>
-      <motion.div
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.5 }}
-        className={styles.loginCard}
-      >
-        <img src="/skoolific-icon.png" alt="Skoolific" className={styles.logo} />
-        <h2 className={styles.title}>Student Portal Login</h2>
-        <p className={styles.subtitle}>Access your student profile</p>
-        {error && <p className={styles.errorMessage}>{error}</p>}
-        <form onSubmit={handleLogin} className={styles.loginForm}>
-          <div className={styles.formGroup}>
-            <label htmlFor="username" className={styles.label}>
-              <FiUser className={styles.icon} /> Username
-            </label>
-            <input
-              type="text"
-              id="username"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
+    <div className={styles.container}>
+      <div className={styles.headerControls}>
+        <LanguageSelector />
+        <ThemeToggle />
+      </div>
+
+      <div className={styles.content}>
+        <div className={styles.loginCard}>
+          <div className={styles.logoSection}>
+            <img src="/skoolific-icon.png" alt="Skoolific" className={styles.logo} />
+            <h1 className={styles.title}>Student Portal</h1>
+            <p className={styles.subtitle}>Access your student profile</p>
+          </div>
+          
+          <form onSubmit={handleLogin} className={styles.form}>
+            <Input
+              label="Branch Code"
+              name="branchCode"
+              value={credentials.branchCode}
+              onChange={handleInputChange}
+              onBlur={() => handleBlur('branchCode')}
+              icon={<Building2 size={20} />}
+              placeholder="Enter branch code"
+              error={touched.branchCode && errors.branchCode}
+              disabled={isLoading}
               required
-              className={styles.input}
+            />
+            
+            <Input
+              label="Username"
+              name="username"
+              value={credentials.username}
+              onChange={handleInputChange}
+              onBlur={() => handleBlur('username')}
+              icon={<UserIcon size={20} />}
               placeholder="Enter your username"
+              error={touched.username && errors.username}
               disabled={isLoading}
-              aria-describedby="username-error"
-            />
-          </div>
-          <div className={styles.formGroup}>
-            <label htmlFor="password" className={styles.label}>
-              <FiLock className={styles.icon} /> Password
-            </label>
-            <input
-              type="password"
-              id="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              autoComplete="username"
               required
-              className={styles.input}
-              placeholder="Enter your password"
-              disabled={isLoading}
-              aria-describedby="password-error"
             />
+            
+            <Input
+              label="Password"
+              type="password"
+              name="password"
+              value={credentials.password}
+              onChange={handleInputChange}
+              onBlur={() => handleBlur('password')}
+              icon={<Lock size={20} />}
+              placeholder="Enter your password"
+              error={touched.password && errors.password}
+              disabled={isLoading}
+              autoComplete="current-password"
+              required
+            />
+            
+            <Button 
+              type="submit" 
+              variant="primary"
+              size="lg"
+              loading={isLoading}
+              className={styles.loginButton}
+            >
+              Sign In
+            </Button>
+          </form>
+          
+          <div className={styles.footer}>
+            <p>Need help? Contact your school administrator</p>
           </div>
-          <motion.button
-            type="submit"
-            className={styles.submitButton}
-            disabled={isLoading}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            <FiLogIn className={styles.buttonIcon} />
-            {isLoading ? 'Logging in...' : 'Login'}
-          </motion.button>
-        </form>
-        <p className={styles.footerText}>
-          Need help? Contact your school administrator.
-        </p>
-      </motion.div>
+        </div>
+      </div>
+
+      <Toast
+        isOpen={showToast}
+        onClose={() => setShowToast(false)}
+        message={toastMessage}
+        type={toastType}
+        duration={5000}
+        position="top-right"
+      />
     </div>
   );
 };

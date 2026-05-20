@@ -361,6 +361,11 @@ const Home = () => {
           label: t('createMarklist'),
         },
         {
+          path: "/ai-test-generator",
+          icon: <FiRefreshCw className={styles.navIcon} />,
+          label: 'AI Test Generator',
+        },
+        {
           path: "/report-card",
           icon: <FiAward className={styles.navIcon} />,
           label: t('reportCard'),

@@ -6,10 +6,12 @@ const router = express.Router();
 const path = require('path');
 const multer = require('multer');
 const fs = require('fs').promises;
+const { getEndpointPath, API_ENDPOINTS } = require('../config/api.config');
 require('dotenv').config();
 
 // Security middleware
-const { authenticateToken, authorizeRoles } = require('../middleware/auth');
+const { authorizeRoles } = require('../middleware/auth');
+const { authenticateWithBranch, validateBranchCode } = require('../middleware/branchAuth');
 const { generateToken } = require('../middleware/jwtValidator');
 const { validate, schemas, sanitizeInputs } = require('../middleware/inputValidation');
 const { fileValidator, multerFileFilter } = require('../middleware/fileValidation');
@@ -26,6 +28,29 @@ const {
 router.use(express.json());
 router.use(express.urlencoded({ extended: true }));
 router.use(sanitizeInputs);
+
+// ---------------------------------------------------------------------
+// Helper function to safely create schema
+// ---------------------------------------------------------------------
+const createSchemaIfNotExists = async (client, schemaName) => {
+  try {
+    const schemaCheck = await client.query(`
+      SELECT schema_name 
+      FROM information_schema.schemata 
+      WHERE schema_name = $1
+    `, [schemaName]);
+
+    if (schemaCheck.rows.length === 0) {
+      await client.query(`CREATE SCHEMA ${schemaName}`);
+      console.log(`Created schema: ${schemaName}`);
+    } else {
+      console.log(`Schema already exists: ${schemaName}`);
+    }
+  } catch (error) {
+    console.error(`Error creating schema ${schemaName}:`, error.message);
+    throw error;
+  }
+};
 
 // ---------------------------------------------------------------------
 // 1. Multer â€“ file uploads (dynamic fields for custom uploads)
@@ -88,7 +113,7 @@ const getNextGlobalStaffId = async () => {
 // ---------------------------------------------------------------------
 const ensureScheduleSchemaColumns = async (client) => {
   try {
-    await client.query('CREATE SCHEMA IF NOT EXISTS schedule_schema');
+    await createSchemaIfNotExists(client, 'schedule_schema');
 
     await client.query(`
       CREATE TABLE IF NOT EXISTS schedule_schema.teachers (
@@ -168,7 +193,19 @@ const initializeScheduleSchema = async () => {
 // ---------------------------------------------------------------------
 const initializeSchoolSchemaPoints = async () => {
   try {
-    await pool.query('CREATE SCHEMA IF NOT EXISTS school_schema_points');
+    // Check if schema exists first
+    const schemaCheck = await pool.query(`
+      SELECT schema_name 
+      FROM information_schema.schemata 
+      WHERE schema_name = 'school_schema_points'
+    `);
+
+    if (schemaCheck.rows.length === 0) {
+      await pool.query('CREATE SCHEMA school_schema_points');
+      console.log('Created school_schema_points schema');
+    } else {
+      console.log('school_schema_points schema already exists');
+    }
 
     await pool.query(`
       CREATE TABLE IF NOT EXISTS school_schema_points.teachers (
@@ -239,7 +276,7 @@ const addTeacherToSchoolSchemaPoints = async (
 // ---------------------------------------------------------------------
 const initializeTeachersPeriodTable = async () => {
   try {
-    await pool.query('CREATE SCHEMA IF NOT EXISTS school_schema_points');
+    await createSchemaIfNotExists(pool, 'school_schema_points');
 
     await pool.query(`
       CREATE TABLE IF NOT EXISTS school_schema_points.teachers_period (
@@ -264,7 +301,7 @@ const initializeTeachersPeriodTable = async () => {
 // ---------------------------------------------------------------------
 const initializeFormMetadata = async () => {
   try {
-    await pool.query('CREATE SCHEMA IF NOT EXISTS form_metadata');
+    await createSchemaIfNotExists(pool, 'form_metadata');
     
     await pool.query(`
       CREATE TABLE IF NOT EXISTS form_metadata.field_types (
@@ -1365,7 +1402,7 @@ router.post('/login', async (req, res) => {
 });
 
 // 7.10 PROFILE BY USERNAME (protected route)
-router.get('/profile/:username', authenticateToken, async (req, res) => {
+router.get('/profile/:username', authenticateWithBranch, async (req, res) => {
   const { username } = req.params;
   try {
     const { rows } = await pool.query(
@@ -1944,7 +1981,7 @@ router.post('/migrate-schedule-schema', async (req, res) => {
 });
 
 // 7.18 GET STAFF PROFILE BY ID (authenticated)
-router.get('/profile-by-id/:globalStaffId', authenticateToken, async (req, res) => {
+router.get('/profile-by-id/:globalStaffId', authenticateWithBranch, async (req, res) => {
   try {
     const { globalStaffId } = req.params;
     const { staffType, className } = req.query;
@@ -1967,7 +2004,7 @@ router.get('/profile-by-id/:globalStaffId', authenticateToken, async (req, res) 
 });
 
 // 7.19 GET ALL STAFF (for dropdowns and lists)
-router.get('/', authenticateToken, async (req, res) => {
+router.get('/', authenticateWithBranch, async (req, res) => {
   console.log('\nðŸ“¥ GET /api/staff - Request received');
   
   try {

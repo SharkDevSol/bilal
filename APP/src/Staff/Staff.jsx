@@ -13,26 +13,66 @@ import {
   FaPlus,
   FaBell,
   FaSearch,
-  FaUserCheck
+  FaUserCheck,
+  FaFileAlt
 } from 'react-icons/fa';
 import { FiLogOut } from 'react-icons/fi';
+import { hasFeatureAccess } from '../utils/roleBasedAccess';
 import styles from './Staff.module.css';
 
 const Staff = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("");
   const [isScrolled, setIsScrolled] = useState(false);
+  const [user, setUser] = useState(null);
   const location = useLocation();
 
-  const navItems = [
-    { path: "", icon: <FaHome />, label: "Home" },
-    { path: "post-staff-new", icon: <FaPenAlt />, label: "Post" },
-    // Attendance is now in the profile - removed old attendance route
-    // { path: "attendance-staff", icon: <FaUserCheck />, label: "Student Attendance" },
-    { path: "mark-list-staff", icon: <FaClipboardList />, label: "Marks" },
-    { path: "evaluation-staff-control", icon: <FaChartLine />, label: "Evaluation" },
-    // Profile removed - use Home page instead (path: "")
-  ];
+  // Load user data from localStorage to get staffType
+  useEffect(() => {
+    const storedUser = localStorage.getItem('staffUser');
+    if (storedUser) {
+      try {
+        const userData = JSON.parse(storedUser);
+        setUser(userData);
+        console.log('Staff Navigation: Loaded user data:', { 
+          username: userData.username, 
+          staffType: userData.staffType 
+        });
+      } catch (error) {
+        console.error('Staff Navigation: Error parsing user data:', error);
+      }
+    }
+  }, []);
+
+  // Build navigation items based on user role
+  const getNavItems = () => {
+    const baseItems = [
+      { path: "", icon: <FaHome />, label: "Home" },
+      { path: "post-staff-new", icon: <FaPenAlt />, label: "Post" }
+    ];
+
+    // Only show mark lists for Teacher role
+    if (user && hasFeatureAccess(user.staffType, 'mark-lists')) {
+      baseItems.push({ path: "mark-list-staff", icon: <FaClipboardList />, label: "Marks" });
+    }
+
+    // Only show attendance for Teacher role
+    if (user && hasFeatureAccess(user.staffType, 'attendance')) {
+      baseItems.push({ path: "attendance-staff", icon: <FaUserCheck />, label: "Attendance" });
+    }
+
+    // Only show exam creation for Teacher role
+    if (user && hasFeatureAccess(user.staffType, 'exam-creation')) {
+      baseItems.push({ path: "exam-creation-staff", icon: <FaFileAlt />, label: "Create Exam" });
+    }
+
+    // Add evaluation for all staff (existing functionality)
+    baseItems.push({ path: "evaluation-staff-control", icon: <FaChartLine />, label: "Evaluation" });
+
+    return baseItems;
+  };
+
+  const navItems = getNavItems();
 
   useEffect(() => {
     const currentPath = location.pathname.split('/').pop() || "";

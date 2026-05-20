@@ -1,17 +1,33 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { motion } from 'framer-motion';
-import { FiUser, FiLock, FiLogIn } from 'react-icons/fi';
+import { Building2, User as UserIcon, Lock } from 'lucide-react';
 import styles from './StaffLogin.module.css';
+import Input from './Input/Input';
+import Button from './Button/Button';
+import ThemeToggle from './ThemeToggle/ThemeToggle';
+import LanguageSelector from './LanguageSelector/LanguageSelector';
+import Toast from './Toast/Toast';
 
 const StaffLogin = () => {
-  const [credentials, setCredentials] = useState({ username: '', password: '' });
-  const [message, setMessage] = useState('');
+  const [credentials, setCredentials] = useState({ username: '', password: '', branchCode: '' });
+  const [errors, setErrors] = useState({});
+  const [touched, setTouched] = useState({});
+  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
+  const [toastType, setToastType] = useState('error');
   const [isLoading, setIsLoading] = useState(false);
   const [lockoutSeconds, setLockoutSeconds] = useState(0);
   const timerRef = useRef(null);
   const navigate = useNavigate();
+
+  // Load saved branch code from localStorage on mount
+  useEffect(() => {
+    const savedBranchCode = localStorage.getItem('branchCode');
+    if (savedBranchCode) {
+      setCredentials(prev => ({ ...prev, branchCode: savedBranchCode }));
+    }
+  }, []);
 
   // Countdown timer
   useEffect(() => {
@@ -20,7 +36,8 @@ const StaffLogin = () => {
         setLockoutSeconds(s => {
           if (s <= 1) {
             clearInterval(timerRef.current);
-            setMessage('');
+            setToastMessage('');
+            setShowToast(false);
             return 0;
           }
           return s - 1;
@@ -33,34 +50,67 @@ const StaffLogin = () => {
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setCredentials(prev => ({ ...prev, [name]: value }));
+    
+    // Clear error for this field when user starts typing
+    if (errors[name]) {
+      setErrors(prev => ({ ...prev, [name]: '' }));
+    }
+  };
+
+  const handleBlur = (field) => {
+    setTouched(prev => ({ ...prev, [field]: true }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (lockoutSeconds > 0) return;
-    if (!credentials.username || !credentials.password) {
-      setMessage('Please enter both username and password');
+    
+    // Mark all fields as touched
+    setTouched({ username: true, password: true, branchCode: true });
+    
+    // Validate all fields
+    const newErrors = {};
+    if (!credentials.branchCode) newErrors.branchCode = 'Branch code is required';
+    if (!credentials.username) newErrors.username = 'Username is required';
+    if (!credentials.password) newErrors.password = 'Password is required';
+    
+    setErrors(newErrors);
+    
+    if (Object.keys(newErrors).length > 0) {
+      setToastMessage('Please fill in all required fields');
+      setToastType('error');
+      setShowToast(true);
       return;
     }
+    
     setIsLoading(true);
-    setMessage('');
+    
     try {
-      const response = await axios.post('/api/staff/login', credentials);
+      const response = await axios.post('/api/v2/auth/login', {
+        ...credentials,
+        userType: 'staff'
+      });
+      
       if (response.data.message === 'Login successful') {
         if (response.data.token) localStorage.setItem('authToken', response.data.token);
         localStorage.setItem('staffUser', JSON.stringify(response.data.user));
         localStorage.setItem('staffProfile', JSON.stringify(response.data.profile));
         localStorage.setItem('isLoggedIn', 'true');
         localStorage.setItem('userType', 'staff');
+        localStorage.setItem('branchCode', credentials.branchCode);
         navigate('/app/staff');
       }
     } catch (error) {
       if (error.response?.status === 429) {
         const seconds = error.response?.data?.retryAfter || 60;
         setLockoutSeconds(seconds);
-        setMessage(`Too many attempts. Please wait ${seconds} seconds.`);
+        setToastMessage(`Too many attempts. Please wait ${seconds} seconds.`);
+        setToastType('error');
+        setShowToast(true);
       } else {
-        setMessage(error.response?.data?.error || 'Login failed. Please try again.');
+        setToastMessage(error.response?.data?.error || 'Login failed. Please try again.');
+        setToastType('error');
+        setShowToast(true);
       }
     } finally {
       setIsLoading(false);
@@ -71,79 +121,95 @@ const StaffLogin = () => {
 
   return (
     <div className={styles.container}>
-      <motion.div
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.5 }}
-        className={styles.loginCard}
-      >
-        <img src="/skoolific-icon.png" alt="Skoolific" className={styles.logo} />
-        <h2 className={styles.title}>Staff Portal Login</h2>
-        <p className={styles.subtitle}>Access your staff profile and resources</p>
-        
-        {message && (
-          <div className={`${styles.message} ${isLocked ? styles.error : message.includes('successful') ? styles.success : styles.error}`}>
-            {message}
-            {isLocked && (
-              <div style={{ fontSize: '1.5rem', fontWeight: 700, marginTop: '0.5rem', color: '#dc2626' }}>
-                {lockoutSeconds}s
-              </div>
-            )}
+      <div className={styles.headerControls}>
+        <LanguageSelector />
+        <ThemeToggle />
+      </div>
+
+      <div className={styles.content}>
+        <div className={styles.loginCard}>
+          <div className={styles.logoSection}>
+            <img src="/skoolific-icon.png" alt="Skoolific" className={styles.logo} />
+            <h1 className={styles.title}>Staff Portal</h1>
+            <p className={styles.subtitle}>Access your staff profile and resources</p>
           </div>
-        )}
-        
-        <form onSubmit={handleSubmit} className={styles.form}>
-          <div className={styles.inputGroup}>
-            <label htmlFor="username" className={styles.label}>
-              <FiUser style={{ display: 'inline', marginRight: '8px', verticalAlign: 'middle' }} />
-              Username
-            </label>
-            <input
-              type="text"
-              id="username"
+          
+          {isLocked && (
+            <div className={styles.lockoutBanner}>
+              <p>Too many login attempts</p>
+              <div className={styles.lockoutTimer}>{lockoutSeconds}s</div>
+            </div>
+          )}
+          
+          <form onSubmit={handleSubmit} className={styles.form}>
+            <Input
+              label="Branch Code"
+              name="branchCode"
+              value={credentials.branchCode}
+              onChange={handleInputChange}
+              onBlur={() => handleBlur('branchCode')}
+              icon={<Building2 size={20} />}
+              placeholder="Enter branch code"
+              error={touched.branchCode && errors.branchCode}
+              disabled={isLoading || isLocked}
+              required
+            />
+            
+            <Input
+              label="Username"
               name="username"
               value={credentials.username}
               onChange={handleInputChange}
-              className={styles.input}
+              onBlur={() => handleBlur('username')}
+              icon={<UserIcon size={20} />}
               placeholder="Enter your username"
+              error={touched.username && errors.username}
               disabled={isLoading || isLocked}
+              autoComplete="username"
+              required
             />
-          </div>
-          
-          <div className={styles.inputGroup}>
-            <label htmlFor="password" className={styles.label}>
-              <FiLock style={{ display: 'inline', marginRight: '8px', verticalAlign: 'middle' }} />
-              Password
-            </label>
-            <input
+            
+            <Input
+              label="Password"
               type="password"
-              id="password"
               name="password"
               value={credentials.password}
               onChange={handleInputChange}
-              className={styles.input}
+              onBlur={() => handleBlur('password')}
+              icon={<Lock size={20} />}
               placeholder="Enter your password"
+              error={touched.password && errors.password}
               disabled={isLoading || isLocked}
+              autoComplete="current-password"
+              required
             />
-          </div>
+            
+            <Button 
+              type="submit" 
+              variant="primary"
+              size="lg"
+              loading={isLoading}
+              disabled={isLocked}
+              className={styles.loginButton}
+            >
+              {isLocked ? `Wait ${lockoutSeconds}s` : 'Sign In'}
+            </Button>
+          </form>
           
-          <motion.button
-            type="submit"
-            className={styles.loginButton}
-            disabled={isLoading || isLocked}
-            whileHover={{ scale: isLocked ? 1 : 1.05 }}
-            whileTap={{ scale: isLocked ? 1 : 0.95 }}
-            style={isLocked ? { opacity: 0.6, cursor: 'not-allowed' } : {}}
-          >
-            <FiLogIn style={{ fontSize: '1.2rem' }} />
-            {isLocked ? `Wait ${lockoutSeconds}s` : isLoading ? 'Logging in...' : 'Login'}
-          </motion.button>
-        </form>
-        
-        <div className={styles.footer}>
-          <p>Need help? Contact your administrator</p>
+          <div className={styles.footer}>
+            <p>Need help? Contact your administrator</p>
+          </div>
         </div>
-      </motion.div>
+      </div>
+
+      <Toast
+        isOpen={showToast}
+        onClose={() => setShowToast(false)}
+        message={toastMessage}
+        type={toastType}
+        duration={5000}
+        position="top-right"
+      />
     </div>
   );
 };

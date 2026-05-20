@@ -1,10 +1,11 @@
 const express = require('express');
 const router = express.Router();
 const { PrismaClient } = require('@prisma/client');
+const { getEndpointPath, API_ENDPOINTS } = require('../config/api.config');
 const prisma = new PrismaClient();
 
 // Security middleware
-const { authenticateToken } = require('../middleware/auth');
+const { authenticateWithBranch, validateBranchCode } = require('../middleware/branchAuth');
 const { requirePermission, FINANCE_PERMISSIONS } = require('../middleware/financeAuth');
 
 // Invoice service
@@ -14,7 +15,7 @@ const invoiceService = require('../services/invoiceService');
  * POST /api/finance/invoices
  * Create a single invoice
  */
-router.post('/', authenticateToken, requirePermission(FINANCE_PERMISSIONS.INVOICES_CREATE), async (req, res) => {
+router.post('/', authenticateWithBranch, requirePermission(FINANCE_PERMISSIONS.INVOICES_CREATE), async (req, res) => {
   try {
     const {
       studentId,
@@ -88,7 +89,7 @@ router.post('/', authenticateToken, requirePermission(FINANCE_PERMISSIONS.INVOIC
  * POST /api/finance/invoices/generate
  * Generate invoices in bulk for multiple students
  */
-router.post('/generate', authenticateToken, requirePermission(FINANCE_PERMISSIONS.INVOICES_CREATE), async (req, res) => {
+router.post('/generate', authenticateWithBranch, requirePermission(FINANCE_PERMISSIONS.INVOICES_CREATE), async (req, res) => {
   try {
     const {
       studentIds,
@@ -170,7 +171,7 @@ router.post('/generate', authenticateToken, requirePermission(FINANCE_PERMISSION
  * GET /api/finance/invoices
  * List invoices with filters
  */
-router.get('/', authenticateToken, requirePermission(FINANCE_PERMISSIONS.INVOICES_VIEW), async (req, res) => {
+router.get('/', authenticateWithBranch, requirePermission(FINANCE_PERMISSIONS.INVOICES_VIEW), async (req, res) => {
   try {
     const {
       studentId,
@@ -251,7 +252,7 @@ router.get('/', authenticateToken, requirePermission(FINANCE_PERMISSIONS.INVOICE
  * GET /api/finance/invoices/:id
  * Get invoice details
  */
-router.get('/:id', authenticateToken, requirePermission(FINANCE_PERMISSIONS.INVOICES_VIEW), async (req, res) => {
+router.get('/:id', authenticateWithBranch, requirePermission(FINANCE_PERMISSIONS.INVOICES_VIEW), async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -296,7 +297,7 @@ router.get('/:id', authenticateToken, requirePermission(FINANCE_PERMISSIONS.INVO
  * PUT /api/finance/invoices/:id
  * Update invoice (limited fields)
  */
-router.put('/:id', authenticateToken, requirePermission(FINANCE_PERMISSIONS.INVOICES_UPDATE), async (req, res) => {
+router.put('/:id', authenticateWithBranch, requirePermission(FINANCE_PERMISSIONS.INVOICES_UPDATE), async (req, res) => {
   try {
     const { id } = req.params;
     const { dueDate, status } = req.body;
@@ -383,7 +384,7 @@ router.put('/:id', authenticateToken, requirePermission(FINANCE_PERMISSIONS.INVO
  * POST /api/finance/invoices/:id/adjust
  * Adjust invoice amounts (discounts, late fees)
  */
-router.post('/:id/adjust', authenticateToken, requirePermission(FINANCE_PERMISSIONS.INVOICES_ADJUST), async (req, res) => {
+router.post('/:id/adjust', authenticateWithBranch, requirePermission(FINANCE_PERMISSIONS.INVOICES_ADJUST), async (req, res) => {
   try {
     const { id } = req.params;
     const { additionalDiscount, additionalLateFee } = req.body;
@@ -430,7 +431,7 @@ router.post('/:id/adjust', authenticateToken, requirePermission(FINANCE_PERMISSI
  * POST /api/finance/invoices/:id/reverse
  * Reverse an invoice (create credit note)
  */
-router.post('/:id/reverse', authenticateToken, requirePermission(FINANCE_PERMISSIONS.INVOICES_REVERSE), async (req, res) => {
+router.post('/:id/reverse', authenticateWithBranch, requirePermission(FINANCE_PERMISSIONS.INVOICES_REVERSE), async (req, res) => {
   try {
     const { id } = req.params;
     const { reason } = req.body;

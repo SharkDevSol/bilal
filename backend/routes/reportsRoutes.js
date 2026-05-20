@@ -1,13 +1,14 @@
 const express = require('express');
 const router = express.Router();
 const pool = require('../config/db');
+const { getEndpointPath, API_ENDPOINTS } = require('../config/api.config');
 require('dotenv').config();
 
 // Security middleware
-const { authenticateToken } = require('../middleware/auth');
+const { authenticateWithBranch, validateBranchCode } = require('../middleware/branchAuth');
 
 // All report routes require authentication
-router.use(authenticateToken);
+router.use(authenticateWithBranch);
 
 // ============================================================
 // OVERVIEW REPORTS

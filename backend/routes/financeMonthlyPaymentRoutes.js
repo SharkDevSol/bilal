@@ -1,17 +1,18 @@
 const express = require('express');
 const router = express.Router();
 const { PrismaClient } = require('@prisma/client');
+const { getEndpointPath, API_ENDPOINTS } = require('../config/api.config');
 const prisma = new PrismaClient();
 
 // Security middleware
-const { authenticateToken } = require('../middleware/auth');
+const { authenticateWithBranch, validateBranchCode } = require('../middleware/branchAuth');
 const { requirePermission, FINANCE_PERMISSIONS } = require('../middleware/financeAuth');
 
 /**
  * GET /api/finance/monthly-payments/overview
  * Get monthly payment overview for all classes
  */
-router.get('/overview', authenticateToken, requirePermission(FINANCE_PERMISSIONS.INVOICES_VIEW), async (req, res) => {
+router.get('/overview', authenticateWithBranch, requirePermission(FINANCE_PERMISSIONS.INVOICES_VIEW), async (req, res) => {
   try {
     const { month, year, campusId } = req.query;
 
@@ -123,7 +124,7 @@ router.get('/overview', authenticateToken, requirePermission(FINANCE_PERMISSIONS
  * GET /api/finance/monthly-payments/class/:className
  * Get detailed payment status for a specific class
  */
-router.get('/class/:className', authenticateToken, requirePermission(FINANCE_PERMISSIONS.INVOICES_VIEW), async (req, res) => {
+router.get('/class/:className', authenticateWithBranch, requirePermission(FINANCE_PERMISSIONS.INVOICES_VIEW), async (req, res) => {
   try {
     const { className } = req.params;
     const { month, year, campusId } = req.query;
@@ -219,7 +220,7 @@ router.get('/class/:className', authenticateToken, requirePermission(FINANCE_PER
  * POST /api/finance/monthly-payments/record-payment
  * Record a payment for a student's monthly fee
  */
-router.post('/record-payment', authenticateToken, requirePermission(FINANCE_PERMISSIONS.PAYMENTS_CREATE), async (req, res) => {
+router.post('/record-payment', authenticateWithBranch, requirePermission(FINANCE_PERMISSIONS.PAYMENTS_CREATE), async (req, res) => {
   try {
     const {
       invoiceId,
@@ -352,7 +353,7 @@ router.post('/record-payment', authenticateToken, requirePermission(FINANCE_PERM
  * GET /api/finance/monthly-payments/unpaid-report
  * Get report of all unpaid students
  */
-router.get('/unpaid-report', authenticateToken, requirePermission(FINANCE_PERMISSIONS.REPORTS_VIEW), async (req, res) => {
+router.get('/unpaid-report', authenticateWithBranch, requirePermission(FINANCE_PERMISSIONS.REPORTS_VIEW), async (req, res) => {
   try {
     const { month, year, campusId, className } = req.query;
 
@@ -436,7 +437,7 @@ router.get('/unpaid-report', authenticateToken, requirePermission(FINANCE_PERMIS
  * GET /api/finance/monthly-payments/paid-report
  * Get report of all paid students
  */
-router.get('/paid-report', authenticateToken, requirePermission(FINANCE_PERMISSIONS.REPORTS_VIEW), async (req, res) => {
+router.get('/paid-report', authenticateWithBranch, requirePermission(FINANCE_PERMISSIONS.REPORTS_VIEW), async (req, res) => {
   try {
     const { month, year, campusId } = req.query;
 

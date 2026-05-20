@@ -2,13 +2,14 @@ const express = require('express');
 const router = express.Router();
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
-const { authenticateToken } = require('../../middleware/auth');
+const { authenticateWithBranch } = require('../../middleware/branchAuth');
+const { getEndpointPath, API_ENDPOINTS } = require('../../config/api.config');
 
 // Note: Inventory models need to be added to Prisma schema
 // This is a template implementation
 
 // Get all items
-router.get('/', authenticateToken, async (req, res) => {
+router.get('/', authenticateWithBranch, async (req, res) => {
   try {
     const { category, isActive, search, page = 1, limit = 20 } = req.query;
     
@@ -30,7 +31,7 @@ router.get('/', authenticateToken, async (req, res) => {
 });
 
 // Get single item
-router.get('/:id', authenticateToken, async (req, res) => {
+router.get('/:id', authenticateWithBranch, async (req, res) => {
   try {
     res.json({
       success: true,
@@ -44,7 +45,7 @@ router.get('/:id', authenticateToken, async (req, res) => {
 });
 
 // Create item
-router.post('/', authenticateToken, async (req, res) => {
+router.post('/', authenticateWithBranch, async (req, res) => {
   try {
     const {
       itemCode,
@@ -70,7 +71,7 @@ router.post('/', authenticateToken, async (req, res) => {
 });
 
 // Update item
-router.put('/:id', authenticateToken, async (req, res) => {
+router.put('/:id', authenticateWithBranch, async (req, res) => {
   try {
     res.json({
       success: true,
@@ -84,7 +85,7 @@ router.put('/:id', authenticateToken, async (req, res) => {
 });
 
 // Get stock levels for item
-router.get('/:id/stock-levels', authenticateToken, async (req, res) => {
+router.get('/:id/stock-levels', authenticateWithBranch, async (req, res) => {
   try {
     res.json({
       success: true,

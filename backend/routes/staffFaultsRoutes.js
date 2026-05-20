@@ -4,13 +4,14 @@ const pool = require('../config/db');
 const path = require('path');
 const multer = require('multer');
 const fs = require('fs').promises;
+const { getEndpointPath, API_ENDPOINTS } = require('../config/api.config');
 require('dotenv').config();
 
-const { authenticateToken } = require('../middleware/auth');
+const { authenticateWithBranch, validateBranchCode } = require('../middleware/branchAuth');
 const { sanitizeInputs } = require('../middleware/inputValidation');
 
 router.use(sanitizeInputs);
-router.use(authenticateToken);
+router.use(authenticateWithBranch);
 
 // Multer setup
 const uploadDir = path.join(__dirname, '../uploads');

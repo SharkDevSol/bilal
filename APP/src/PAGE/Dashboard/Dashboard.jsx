@@ -3,34 +3,38 @@ import { useNavigate } from 'react-router-dom';
 import { useApp } from '../../context/AppContext';
 import styles from './Dashboard.module.css';
 import api from '../../utils/api';
+import StatCard from '../../components/StatCard/StatCard';
 import {
-  FaUsers,
-  FaChalkboardTeacher,
-  FaUserGraduate,
-  FaExclamationTriangle,
-  FaChartLine,
-  FaCalendarCheck,
-  FaClipboardList,
-  FaMoneyBillWave,
-  FaBullhorn,
-  FaBook,
-  FaClock,
-  FaTrophy,
-  FaArrowUp,
-  FaArrowDown,
-  FaEye,
-  FaSync,
-  FaChartBar,
-  FaChartPie,
-  FaFileAlt,
-  FaUserClock,
-  FaExclamationCircle,
-  FaCheckCircle,
-  FaTimesCircle,
-  FaGraduationCap,
-  FaClipboardCheck,
-  FaHistory,
-  FaTasks
+  Users,
+  UserCheck,
+  GraduationCap,
+  AlertTriangle,
+  TrendingUp,
+  Calendar,
+  ClipboardList,
+  DollarSign,
+  Megaphone,
+  BookOpen,
+  Clock,
+  Trophy,
+  Eye,
+  RefreshCw,
+  BarChart3,
+  PieChart,
+  FileText,
+  AlertCircle,
+  CheckCircle,
+  XCircle,
+  ClipboardCheck,
+  History,
+  ListTodo
+} from 'lucide-react';
+import { 
+  FaGraduationCap, 
+  FaChartLine, 
+  FaCheckCircle, 
+  FaTimesCircle, 
+  FaUserClock 
 } from 'react-icons/fa';
 
 const Dashboard = () => {
@@ -283,33 +287,13 @@ const Dashboard = () => {
     ]);
   };
 
-  // Stat Card Component
-  const StatCard = ({ icon: Icon, title, value, subtitle, color, trend, onClick }) => (
-    <div className={styles.statCard} onClick={onClick} style={{ cursor: onClick ? 'pointer' : 'default' }}>
-      <div className={styles.statIcon} style={{ background: `${color}15`, color: color }}>
-        <Icon />
-      </div>
-      <div className={styles.statInfo}>
-        <span className={styles.statTitle}>{title}</span>
-        <span className={styles.statValue}>{value}</span>
-        {subtitle && <span className={styles.statSubtitle}>{subtitle}</span>}
-      </div>
-      {trend !== undefined && trend !== null && (
-        <div className={`${styles.statTrend} ${trend >= 0 ? styles.up : styles.down}`}>
-          {trend >= 0 ? <FaArrowUp /> : <FaArrowDown />}
-          <span>{Math.abs(trend)}%</span>
-        </div>
-      )}
-    </div>
-  );
-
   // Report Card Component
   const ReportCard = ({ title, icon: Icon, children, viewAllLink, viewAllText = 'View All' }) => (
     <div className={styles.card}>
       <div className={styles.cardHeader}>
         <h3><Icon /> {title}</h3>
         {viewAllLink && (
-          <a href={viewAllLink} className={styles.viewAll}><FaEye /> {viewAllText}</a>
+          <a href={viewAllLink} className={styles.viewAll}><Eye /> {viewAllText}</a>
         )}
       </div>
       <div className={styles.cardContent}>
@@ -320,19 +304,19 @@ const Dashboard = () => {
 
   // Tab Navigation
   const tabs = [
-    { id: 'overview', label: 'Overview', icon: FaChartPie },
-    { id: 'academic', label: 'Academic Reports', icon: FaGraduationCap },
-    { id: 'marklist', label: 'Mark Lists & Grades', icon: FaClipboardCheck },
-    { id: 'behavior', label: 'Behavior Reports', icon: FaExclamationTriangle },
-    { id: 'attendance', label: 'Attendance', icon: FaCalendarCheck },
-    { id: 'finance', label: 'Finance Reports', icon: FaMoneyBillWave },
-    { id: 'inventory', label: 'Inventory & Stock', icon: FaClipboardList },
-    { id: 'hr', label: 'HR & Staff', icon: FaUserClock },
-    { id: 'assets', label: 'Asset Management', icon: FaFileAlt },
-    { id: 'evaluations', label: 'Evaluations', icon: FaTasks },
-    { id: 'posts', label: 'Posts & Announcements', icon: FaBullhorn },
-    { id: 'schedule', label: 'Schedule & Timetable', icon: FaClock },
-    { id: 'activity', label: 'Recent Activity', icon: FaHistory }
+    { id: 'overview', label: 'Overview', icon: PieChart },
+    { id: 'academic', label: 'Academic Reports', icon: GraduationCap },
+    { id: 'marklist', label: 'Mark Lists & Grades', icon: ClipboardCheck },
+    { id: 'behavior', label: 'Behavior Reports', icon: AlertTriangle },
+    { id: 'attendance', label: 'Attendance', icon: Calendar },
+    { id: 'finance', label: 'Finance Reports', icon: DollarSign },
+    { id: 'inventory', label: 'Inventory & Stock', icon: ClipboardList },
+    { id: 'hr', label: 'HR & Staff', icon: Clock },
+    { id: 'assets', label: 'Asset Management', icon: FileText },
+    { id: 'evaluations', label: 'Evaluations', icon: ListTodo },
+    { id: 'posts', label: 'Posts & Announcements', icon: Megaphone },
+    { id: 'schedule', label: 'Schedule & Timetable', icon: Clock },
+    { id: 'activity', label: 'Recent Activity', icon: History }
   ];
 
   if (loading) {
@@ -355,10 +339,10 @@ const Dashboard = () => {
         </div>
         <div className={styles.headerRight}>
           <span className={styles.lastUpdate}>
-            <FaClock /> Last updated: {lastUpdated.toLocaleTimeString()}
+            <Clock size={16} /> Last updated: {lastUpdated.toLocaleTimeString()}
           </span>
           <button className={styles.refreshBtn} onClick={fetchAllData}>
-            <FaSync /> Refresh
+            <RefreshCw size={16} /> Refresh
           </button>
         </div>
       </div>
@@ -371,7 +355,7 @@ const Dashboard = () => {
             className={`${styles.tabBtn} ${activeTab === tab.id ? styles.activeTab : ''}`}
             onClick={() => setActiveTab(tab.id)}
           >
-            <tab.icon /> {tab.label}
+            <tab.icon size={16} /> {tab.label}
           </button>
         ))}
       </div>
@@ -382,74 +366,74 @@ const Dashboard = () => {
           {/* Main Stats Grid */}
           <div className={styles.statsGrid}>
             <StatCard
-              icon={FaUserGraduate}
+              icon={<GraduationCap size={24} />}
               title="Total Students"
               value={stats.students.total}
               subtitle={`${stats.students.male} Male • ${stats.students.female} Female`}
-              color={theme?.primaryColor || '#667eea'}
-              trend={5}
+              variant="primary"
+              trend={{ value: 5, label: "vs last month" }}
             />
             <StatCard
-              icon={FaChalkboardTeacher}
+              icon={<UserCheck size={24} />}
               title="Staff Members"
               value={stats.staff.total}
               subtitle={`${stats.staff.teachers} Teachers`}
-              color="#10B981"
+              variant="secondary"
             />
             <StatCard
-              icon={FaBook}
+              icon={<BookOpen size={24} />}
               title="Classes"
               value={stats.classes.total}
               subtitle="Active classes"
-              color="#F59E0B"
+              variant="warning"
             />
             <StatCard
-              icon={FaCalendarCheck}
+              icon={<Calendar size={24} />}
               title="Attendance Rate"
               value={`${stats.attendance.rate}%`}
               subtitle="Today's attendance"
-              color="#3B82F6"
-              trend={2}
+              variant="success"
+              trend={{ value: 2, label: "vs yesterday" }}
             />
           </div>
 
           {/* Secondary Stats */}
           <div className={styles.statsGrid}>
             <StatCard
-              icon={FaExclamationTriangle}
+              icon={<AlertTriangle size={24} />}
               title="Student Faults"
               value={stats.faults.total}
               subtitle={`${stats.faults.uniqueStudents} students • ${stats.faults.critical} critical`}
-              color="#EF4444"
+              variant="error"
             />
             <StatCard
-              icon={FaChartLine}
+              icon={<TrendingUp size={24} />}
               title="Average Score"
               value={`${stats.marks.avgScore}%`}
               subtitle={`Pass rate: ${stats.marks.passRate}%`}
-              color="#8B5CF6"
-              trend={3}
+              variant="primary"
+              trend={{ value: 3, label: "vs last term" }}
             />
             <StatCard
-              icon={FaClipboardCheck}
+              icon={<ClipboardCheck size={24} />}
               title="Evaluations"
               value={stats.evaluations.total}
               subtitle={`${stats.evaluations.completed} completed • ${stats.evaluations.pending} pending`}
-              color="#EC4899"
+              variant="secondary"
             />
             <StatCard
-              icon={FaBullhorn}
+              icon={<Megaphone size={24} />}
               title="Posts & Announcements"
               value={stats.posts.total}
               subtitle={`${stats.posts.thisWeek} this week`}
-              color="#06B6D4"
+              variant="success"
             />
             <StatCard
-              icon={FaTasks}
+              icon={<ListTodo size={24} />}
               title={t('tasksDashboard') || 'Tasks Dashboard'}
               value="Setup"
               subtitle="Manage setup tasks"
-              color={theme?.primaryColor || '#6F56FF'}
+              variant="primary"
               onClick={() => navigate('/tasks')}
             />
           </div>
@@ -457,7 +441,7 @@ const Dashboard = () => {
           {/* Content Grid */}
           <div className={styles.contentGrid}>
             {/* Top Performers */}
-            <ReportCard title="Top Performers" icon={FaTrophy} viewAllLink="/mark-list-view">
+            <ReportCard title="Top Performers" icon={Trophy} viewAllLink="/mark-list-view">
               {topStudents.length > 0 ? (
                 <div className={styles.performersList}>
                   {topStudents.map((student, index) => (
@@ -481,7 +465,7 @@ const Dashboard = () => {
             </ReportCard>
 
             {/* Class Performance */}
-            <ReportCard title="Class Performance" icon={FaChartLine} viewAllLink="/report-card">
+            <ReportCard title="Class Performance" icon={TrendingUp} viewAllLink="/report-card">
               {classPerformance.length > 0 ? (
                 <div className={styles.barChart}>
                   {classPerformance.slice(0, 5).map((cls, index) => (
@@ -506,7 +490,7 @@ const Dashboard = () => {
             </ReportCard>
 
             {/* Recent Faults */}
-            <ReportCard title="Recent Faults" icon={FaExclamationTriangle} viewAllLink="/student-faults">
+            <ReportCard title="Recent Faults" icon={AlertTriangle} viewAllLink="/student-faults">
               {recentFaults.length > 0 ? (
                 <div className={styles.faultsList}>
                   {recentFaults.map((fault, index) => (
@@ -530,7 +514,7 @@ const Dashboard = () => {
             </ReportCard>
 
             {/* Quick Summary */}
-            <ReportCard title="Quick Summary" icon={FaFileAlt}>
+            <ReportCard title="Quick Summary" icon={FileText}>
               <div className={styles.summaryGrid}>
                 <div className={styles.summaryItem}>
                   <span className={styles.summaryLabel}>Total Classes</span>
@@ -561,7 +545,7 @@ const Dashboard = () => {
             {/* Gender Distribution */}
             <div className={styles.card}>
               <div className={styles.cardHeader}>
-                <h3><FaUsers /> Student Distribution</h3>
+                <h3><Users size={20} /> Student Distribution</h3>
               </div>
               <div className={styles.cardContent}>
                 <div className={styles.distributionChart}>
@@ -597,7 +581,7 @@ const Dashboard = () => {
             {/* Attendance Overview */}
             <div className={styles.card}>
               <div className={styles.cardHeader}>
-                <h3><FaCalendarCheck /> Today's Attendance</h3>
+                <h3><Calendar size={20} /> Today's Attendance</h3>
               </div>
               <div className={styles.cardContent}>
                 <div className={styles.attendanceChart}>
@@ -636,13 +620,13 @@ const Dashboard = () => {
             {/* Staff Overview */}
             <div className={styles.card}>
               <div className={styles.cardHeader}>
-                <h3><FaChalkboardTeacher /> Staff Overview</h3>
+                <h3><UserCheck size={20} /> Staff Overview</h3>
               </div>
               <div className={styles.cardContent}>
                 <div className={styles.staffChart}>
                   <div className={styles.staffItem}>
                     <div className={styles.staffIcon} style={{ background: '#3B82F6' }}>
-                      <FaChalkboardTeacher />
+                      <UserCheck size={20} />
                     </div>
                     <div className={styles.staffInfo}>
                       <span className={styles.staffCount}>{stats.staff.teachers}</span>
@@ -651,7 +635,7 @@ const Dashboard = () => {
                   </div>
                   <div className={styles.staffItem}>
                     <div className={styles.staffIcon} style={{ background: '#8B5CF6' }}>
-                      <FaUsers />
+                      <Users size={20} />
                     </div>
                     <div className={styles.staffInfo}>
                       <span className={styles.staffCount}>{stats.staff.admin}</span>
@@ -660,7 +644,7 @@ const Dashboard = () => {
                   </div>
                   <div className={styles.staffItem}>
                     <div className={styles.staffIcon} style={{ background: '#10B981' }}>
-                      <FaUsers />
+                      <Users size={20} />
                     </div>
                     <div className={styles.staffInfo}>
                       <span className={styles.staffCount}>{stats.staff.support}</span>

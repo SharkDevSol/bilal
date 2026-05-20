@@ -1,17 +1,18 @@
 const express = require('express');
 const router = express.Router();
 const { PrismaClient } = require('@prisma/client');
+const { getEndpointPath, API_ENDPOINTS } = require('../config/api.config');
 const prisma = new PrismaClient();
 
 // Security middleware
-const { authenticateToken } = require('../middleware/auth');
+const { authenticateWithBranch, validateBranchCode } = require('../middleware/branchAuth');
 const { requirePermission, FINANCE_PERMISSIONS } = require('../middleware/financeAuth');
 
 /**
  * POST /api/finance/scholarships
  * Create a new scholarship with validation
  */
-router.post('/', authenticateToken, requirePermission(FINANCE_PERMISSIONS.SCHOLARSHIPS_MANAGE), async (req, res) => {
+router.post('/', authenticateWithBranch, requirePermission(FINANCE_PERMISSIONS.SCHOLARSHIPS_MANAGE), async (req, res) => {
   try {
     const { name, discountId, eligibilityCriteria, maxRecipients, academicYearId, approvalWorkflowId } = req.body;
 
@@ -97,7 +98,7 @@ router.post('/', authenticateToken, requirePermission(FINANCE_PERMISSIONS.SCHOLA
  * GET /api/finance/scholarships
  * List scholarships with filtering
  */
-router.get('/', authenticateToken, requirePermission(FINANCE_PERMISSIONS.SCHOLARSHIPS_VIEW), async (req, res) => {
+router.get('/', authenticateWithBranch, requirePermission(FINANCE_PERMISSIONS.SCHOLARSHIPS_VIEW), async (req, res) => {
   try {
     const { academicYearId, isActive, search, page = 1, limit = 50 } = req.query;
 
@@ -143,7 +144,7 @@ router.get('/', authenticateToken, requirePermission(FINANCE_PERMISSIONS.SCHOLAR
  * GET /api/finance/scholarships/:id
  * Get scholarship details
  */
-router.get('/:id', authenticateToken, requirePermission(FINANCE_PERMISSIONS.SCHOLARSHIPS_VIEW), async (req, res) => {
+router.get('/:id', authenticateWithBranch, requirePermission(FINANCE_PERMISSIONS.SCHOLARSHIPS_VIEW), async (req, res) => {
   try {
     const { id } = req.params;
     const scholarship = await prisma.scholarship.findUnique({

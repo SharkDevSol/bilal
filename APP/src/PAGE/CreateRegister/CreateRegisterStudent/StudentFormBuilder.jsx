@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { FiPlus, FiTrash2, FiChevronDown, FiType, FiEdit2, FiCalendar, FiCheckSquare, FiUpload, FiGlobe } from 'react-icons/fi';
 import axios from 'axios';
@@ -22,6 +22,32 @@ const StudentFormBuilder = ({ onSuccess }) => {
   });
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  
+  // V2 Enhancement: Task1 configuration state
+  const [task1Config, setTask1Config] = useState(null);
+  const [classConfigs, setClassConfigs] = useState({}); // { className: { isKG: bool, isEvening: bool, shift: number } }
+
+  // V2 Enhancement: Fetch Task1 configuration on component mount
+  useEffect(() => {
+    const fetchTask1Config = async () => {
+      try {
+        const response = await axios.get(`${import.meta.env.VITE_API_URL}/schedule/config`);
+        if (response.data) {
+          setTask1Config(response.data);
+          console.log('Task1 Config loaded:', response.data);
+        }
+      } catch (error) {
+        console.error('Error fetching Task1 config:', error);
+        // Set default config if fetch fails
+        setTask1Config({
+          has_kg: false,
+          has_evening_class: false,
+          total_shifts: 1
+        });
+      }
+    };
+    fetchTask1Config();
+  }, []);
 
   const fieldTypes = [
     { value: 'text', label: 'Text', icon: <FiType /> },
@@ -37,13 +63,45 @@ const StudentFormBuilder = ({ onSuccess }) => {
   const handleClassCountChange = (e) => {
     const count = parseInt(e.target.value) || 0;
     setClassCount(count);
-    setClasses(Array.from({ length: count }, (_, i) => `Class ${i + 1}`));
+    const newClasses = Array.from({ length: count }, (_, i) => `Class ${i + 1}`);
+    setClasses(newClasses);
+    
+    // V2 Enhancement: Initialize class configs
+    const newConfigs = {};
+    newClasses.forEach(className => {
+      newConfigs[className] = {
+        isKG: false,
+        isEvening: false,
+        shift: 1
+      };
+    });
+    setClassConfigs(newConfigs);
   };
 
   const handleClassNameChange = (index, value) => {
+    const oldName = classes[index];
     const newClasses = [...classes];
     newClasses[index] = value;
     setClasses(newClasses);
+    
+    // V2 Enhancement: Update class config key when name changes
+    if (oldName !== value && classConfigs[oldName]) {
+      const newConfigs = { ...classConfigs };
+      newConfigs[value] = newConfigs[oldName];
+      delete newConfigs[oldName];
+      setClassConfigs(newConfigs);
+    }
+  };
+
+  // V2 Enhancement: Handle class configuration changes
+  const handleClassConfigChange = (className, field, value) => {
+    setClassConfigs(prev => ({
+      ...prev,
+      [className]: {
+        ...prev[className],
+        [field]: value
+      }
+    }));
   };
 
   const handleAddField = () => {
@@ -157,7 +215,8 @@ const StudentFormBuilder = ({ onSuccess }) => {
       await axios.post(`${import.meta.env.VITE_API_URL}/students/create-form`, {
         classCount,
         classes,
-        customFields
+        customFields,
+        classConfigs // V2 Enhancement: Include class configurations
       });
       onSuccess();
     } catch (err) {
@@ -188,16 +247,71 @@ const StudentFormBuilder = ({ onSuccess }) => {
             />
           </div>
           {classes.map((cls, index) => (
-            <div key={index} className={styles.formGroup}>
-              <label className={styles.label}>Class {index + 1} Name:</label>
-              <input
-                type="text"
-                value={cls}
-                onChange={(e) => handleClassNameChange(index, e.target.value)}
-                disabled={isLoading}
-                className={styles.input}
-                placeholder={`Enter class name (letters, numbers, underscores only)`}
-              />
+            <div key={index} className={styles.classConfigGroup}>
+              <div className={styles.formGroup}>
+                <label className={styles.label}>Class {index + 1} Name:</label>
+                <input
+                  type="text"
+                  value={cls}
+                  onChange={(e) => handleClassNameChange(index, e.target.value)}
+                  disabled={isLoading}
+                  className={styles.input}
+                  placeholder={`Enter class name (letters, numbers, underscores only)`}
+                />
+              </div>
+              
+              {/* V2 Enhancement: Class Configuration Options */}
+              {task1Config && (
+                <div className={styles.classOptions}>
+                  {/* KG Configuration */}
+                  {task1Config.has_kg && (
+                    <label className={styles.checkboxContainer}>
+                      <input
+                        type="checkbox"
+                        checked={classConfigs[cls]?.isKG || false}
+                        onChange={(e) => handleClassConfigChange(cls, 'isKG', e.target.checked)}
+                        disabled={isLoading}
+                        className={styles.checkboxInput}
+                      />
+                      <span className={styles.checkboxLabel}>
+                        🎨 Kindergarten (KG) Class
+                      </span>
+                    </label>
+                  )}
+                  
+                  {/* Evening Class Configuration */}
+                  {task1Config.has_evening_class && (
+                    <label className={styles.checkboxContainer}>
+                      <input
+                        type="checkbox"
+                        checked={classConfigs[cls]?.isEvening || false}
+                        onChange={(e) => handleClassConfigChange(cls, 'isEvening', e.target.checked)}
+                        disabled={isLoading}
+                        className={styles.checkboxInput}
+                      />
+                      <span className={styles.checkboxLabel}>
+                        🌙 Evening Class
+                      </span>
+                    </label>
+                  )}
+                  
+                  {/* Shift Selection (only if 2 shifts) */}
+                  {task1Config.total_shifts === 2 && (
+                    <div className={styles.shiftSelection}>
+                      <label className={styles.label}>Shift Assignment:</label>
+                      <select
+                        value={classConfigs[cls]?.shift || 1}
+                        onChange={(e) => handleClassConfigChange(cls, 'shift', parseInt(e.target.value))}
+                        disabled={isLoading}
+                        className={styles.select}
+                      >
+                        <option value={1}>Shift 1 (Morning)</option>
+                        <option value={2}>Shift 2 (Afternoon)</option>
+                      </select>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           ))}
           <h3>Custom Fields</h3>
