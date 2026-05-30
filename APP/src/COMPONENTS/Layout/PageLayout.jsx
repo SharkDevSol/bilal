@@ -74,16 +74,26 @@ const PageLayout = ({
         activeItem={activeMenuItem}
         onNavigate={onNavigate}
         userRole={userRole}
+        branding={{
+          name: 'Skoolific',
+          tagline: 'SCHOOL MANAGEMENT SYSTEM',
+          logo: null
+        }}
+        showPremium={true}
+        onPremiumClick={() => console.log('Premium upgrade clicked')}
       />
 
       {/* Main Content Area */}
       <div className={styles.mainContent}>
         {/* Header */}
         <Header
-          breadcrumbs={breadcrumbs}
+          pageTitle={title || 'Dashboard'}
+          pageSubtitle={subtitle || `Welcome back, ${user?.name || 'User'}! Here's what's happening today.`}
           onSearch={onSearch}
           notifications={notifications}
           onNotificationClick={onNotificationClick}
+          unreadMessages={0}
+          onMessagesClick={() => console.log('Messages clicked')}
           user={user}
           onLogout={onLogout}
           onProfileClick={onProfileClick}
@@ -91,8 +101,8 @@ const PageLayout = ({
 
         {/* Page Container */}
         <div className={styles.pageContainer}>
-          {/* Page Header */}
-          {(title || subtitle || actions) && (
+          {/* Page Header - Only show if we have actions, since title is now in Header */}
+          {actions && (
             <PageHeader
               title={title}
               subtitle={subtitle}

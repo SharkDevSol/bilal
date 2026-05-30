@@ -2,13 +2,13 @@
   height: 100vh;
   display: flex;
   flex-direction: column;
-  background: #f5f5f5;
+  background: var(--bg-secondary);
 }
 
 .header {
-  background: white;
+  background: var(--bg-primary);
   padding: 20px 30px;
-  border-bottom: 1px solid #e0e0e0;
+  border-bottom: 1px solid var(--border-primary);
   display: flex;
   align-items: center;
   gap: 12px;
@@ -17,13 +17,13 @@
 .backButton {
   width: 44px;
   height: 44px;
-  background: #f8f9fa;
+  background: var(--bg-secondary);
   border: none;
   border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #666;
+  color: var(--text-secondary);
   font-size: 1.25rem;
   cursor: pointer;
   transition: all 0.2s;
@@ -31,7 +31,7 @@
 }
 
 .backButton:hover {
-  background: #e9ecef;
+  background: var(--border-primary);
 }
 
 .backButton:active {
@@ -40,13 +40,13 @@
 
 .header svg {
   font-size: 1.8rem;
-  color: #007bff;
+  color: var(--color-primary);
 }
 
 .header h1 {
   margin: 0;
   font-size: 1.5rem;
-  color: #333;
+  color: var(--text-primary);
 }
 
 .content {
@@ -57,21 +57,21 @@
 }
 
 .conversations, .chat {
-  background: white;
-  border-right: 1px solid #e0e0e0;
+  background: var(--bg-primary);
+  border-right: 1px solid var(--border-primary);
   display: flex;
   flex-direction: column;
 }
 
 .conversationsHeader {
   padding: 16px 20px;
-  border-bottom: 1px solid #e0e0e0;
+  border-bottom: 1px solid var(--border-primary);
 }
 
 .conversationsHeader h3 {
   margin: 0;
   font-size: 1.1rem;
-  color: #333;
+  color: var(--text-primary);
 }
 
 .chat {
@@ -80,7 +80,7 @@
 
 .chatHeader {
   padding: 16px 20px;
-  border-bottom: 1px solid #e0e0e0;
+  border-bottom: 1px solid var(--border-primary);
   display: flex;
   align-items: center;
   gap: 12px;
@@ -90,8 +90,8 @@
   width: 44px;
   height: 44px;
   border-radius: 50%;
-  background: #007bff;
-  color: white;
+  background: var(--color-primary);
+  color: var(--bg-primary);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -102,12 +102,12 @@
 .chatHeader h3 {
   margin: 0;
   font-size: 1.1rem;
-  color: #333;
+  color: var(--text-primary);
 }
 
 .chatHeader span {
   font-size: 0.85rem;
-  color: #666;
+  color: var(--text-secondary);
 }
 
 .noChat {
@@ -116,7 +116,7 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  color: #999;
+  color: var(--text-tertiary);
   gap: 12px;
 }
 
@@ -133,7 +133,7 @@
 .newChatBtn {
   background: linear-gradient(135deg, #10b981, #059669);
   border: none;
-  color: white;
+  color: var(--bg-primary);
   padding: 0.5rem 1rem;
   border-radius: 8px;
   font-size: 0.875rem;
@@ -165,7 +165,7 @@
 }
 
 .modal {
-  background: white;
+  background: var(--bg-primary);
   border-radius: 16px;
   width: 100%;
   max-width: 500px;
@@ -180,26 +180,26 @@
   justify-content: space-between;
   align-items: center;
   padding: 1.5rem;
-  border-bottom: 1px solid #e9ecef;
+  border-bottom: 1px solid var(--border-primary);
 }
 
 .modalHeader h2 {
   font-size: 1.25rem;
   font-weight: 700;
-  color: #333;
+  color: var(--text-primary);
   margin: 0;
 }
 
 .closeBtn {
   width: 36px;
   height: 36px;
-  background: #f8f9fa;
+  background: var(--bg-secondary);
   border: none;
   border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #666;
+  color: var(--text-secondary);
   font-size: 1.25rem;
   cursor: pointer;
   transition: all 0.2s;
@@ -207,13 +207,13 @@
 
 .closeBtn:active {
   transform: scale(0.95);
-  background: #e9ecef;
+  background: var(--border-primary);
 }
 
 .modalSearch {
   position: relative;
   padding: 1rem 1.5rem;
-  border-bottom: 1px solid #e9ecef;
+  border-bottom: 1px solid var(--border-primary);
 }
 
 .modalSearch svg {
@@ -221,14 +221,14 @@
   left: 2rem;
   top: 50%;
   transform: translateY(-50%);
-  color: #999;
+  color: var(--text-tertiary);
   font-size: 1.125rem;
 }
 
 .modalSearch input {
   width: 100%;
   padding: 0.75rem 1rem 0.75rem 2.5rem;
-  border: 1px solid #e9ecef;
+  border: 1px solid var(--border-primary);
   border-radius: 10px;
   font-size: 0.9375rem;
   box-sizing: border-box;
@@ -249,7 +249,7 @@
 .modalLoading {
   padding: 2rem;
   text-align: center;
-  color: #999;
+  color: var(--text-tertiary);
 }
 
 .guardiansList {
@@ -264,15 +264,15 @@
   padding: 1rem 1.5rem;
   cursor: pointer;
   transition: all 0.2s;
-  border-bottom: 1px solid #f0f0f0;
+  border-bottom: 1px solid var(--border-primary);
 }
 
 .guardianItem:hover {
-  background: #f8f9fa;
+  background: var(--bg-secondary);
 }
 
 .guardianItem:active {
-  background: #e9ecef;
+  background: var(--border-primary);
 }
 
 .guardianItem:last-child {
@@ -287,7 +287,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: white;
+  color: var(--bg-primary);
   font-size: 1.5rem;
   flex-shrink: 0;
 }
@@ -299,7 +299,7 @@
 .guardianInfo h4 {
   font-size: 1rem;
   font-weight: 600;
-  color: #333;
+  color: var(--text-primary);
   margin: 0 0 0.25rem 0;
 }
 
@@ -316,7 +316,7 @@
   align-items: center;
   justify-content: center;
   padding: 3rem 2rem;
-  color: #999;
+  color: var(--text-tertiary);
 }
 
 .modalEmpty svg {

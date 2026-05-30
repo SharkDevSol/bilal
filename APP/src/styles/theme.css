@@ -8,6 +8,9 @@
   --bg-secondary: #f9fafb;
   --bg-tertiary: #f3f4f6;
   --bg-elevated: #ffffff;
+  --color-surface: #ffffff;
+  --color-border: #e5e7eb;
+  --color-text: #111827;
   
   /* Text Colors */
   --text-primary: #111827;
@@ -129,6 +132,9 @@
   --bg-secondary: #1f2937;
   --bg-tertiary: #374151;
   --bg-elevated: #1f2937;
+  --color-surface: #1f2937;
+  --color-border: #374151;
+  --color-text: #f9fafb;
   
   /* Text Colors */
   --text-primary: #f9fafb;

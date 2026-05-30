@@ -1,7 +1,17 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
+import { Plus, Search } from 'lucide-react';
 import styles from './PaymentManagement.module.css';
 
+import Button from '../../COMPONENTS/Button/Button';
+import Input from '../../COMPONENTS/Input/Input';
+import Select from '../../COMPONENTS/Select/Select';
+import Card from '../../COMPONENTS/Card/Card';
+import Table from '../../components/Table/Table';
+import Badge from '../../COMPONENTS/Badge/Badge';
+
 const PaymentManagement = () => {
+  const { t } = useTranslation();
   const [payments, setPayments] = useState([]);
   const [invoices, setInvoices] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -70,113 +80,106 @@ const PaymentManagement = () => {
     payment.studentId.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  const statusFilterOptions = useMemo(
+    () =>
+      ['ALL', 'COMPLETED', 'PENDING', 'FAILED'].map((status) => ({
+        value: status,
+        label: status === 'ALL' ? t('common.all', 'All') : status
+      })),
+    [t]
+  );
+
+  const getFeeTypes = (payment) =>
+    payment.allocations
+      ?.map((alloc) => {
+        const invoice = alloc.invoice;
+        if (invoice?.metadata?.feeType) {
+          return invoice.metadata.feeType === 'CUSTOM' && invoice.metadata.customFeeName
+            ? invoice.metadata.customFeeName
+            : invoice.metadata.feeType;
+        }
+        return 'N/A';
+      })
+      .join(', ') || 'N/A';
+
+  const tableColumns = useMemo(
+    () => [
+      { key: 'receiptNumber', header: t('finance.payments.receipt', 'Receipt #'), accessor: 'receiptNumber' },
+      { key: 'studentId', header: t('finance.payments.student', 'Student ID'), accessor: 'studentId' },
+      {
+        key: 'paymentDate',
+        header: t('finance.payments.date', 'Date'),
+        render: (row) => new Date(row.paymentDate).toLocaleDateString()
+      },
+      {
+        key: 'amount',
+        header: t('finance.payments.amount', 'Amount'),
+        render: (row) => `$${parseFloat(row.amount).toFixed(2)}`
+      },
+      {
+        key: 'feeType',
+        header: t('finance.payments.feeType', 'Fee type'),
+        render: (row) => getFeeTypes(row)
+      },
+      { key: 'paymentMethod', header: t('finance.payments.method', 'Method'), accessor: 'paymentMethod' },
+      {
+        key: 'reference',
+        header: t('finance.payments.reference', 'Reference'),
+        render: (row) => row.referenceNumber || '—'
+      },
+      {
+        key: 'status',
+        header: t('finance.payments.status', 'Status'),
+        render: (row) => (
+          <Badge variant={row.status === 'COMPLETED' ? 'success' : row.status === 'FAILED' ? 'error' : 'warning'}>
+            {row.status}
+          </Badge>
+        )
+      }
+    ],
+    [t]
+  );
+
   return (
     <div className={styles.container}>
       <div className={styles.header}>
         <div>
-          <h1>Payment Management</h1>
-          <p>Record and track student payments</p>
+          <h1>{t('finance.payments.title', 'Payments')}</h1>
+          <p>{t('finance.payments.subtitle', 'Record and track student payments')}</p>
         </div>
-        <button 
-          className={styles.recordButton}
-          onClick={() => setShowRecordModal(true)}
-        >
-          + Record Payment
-        </button>
+        <Button variant="primary" icon={<Plus size={16} />} onClick={() => setShowRecordModal(true)}>
+          {t('finance.payments.record', 'Record payment')}
+        </Button>
       </div>
 
-      {/* Filters */}
-      <div className={styles.filters}>
-        <div className={styles.filterTabs}>
-          {['ALL', 'COMPLETED', 'PENDING', 'FAILED'].map(status => (
-            <button
-              key={status}
-              className={`${styles.filterTab} ${filter === status ? styles.active : ''}`}
-              onClick={() => setFilter(status)}
-            >
-              {status}
-            </button>
-          ))}
+      <Card className={styles.filtersCard}>
+        <div className={styles.filters}>
+          <Select
+            label={t('finance.payments.status', 'Status')}
+            value={filter}
+            onChange={setFilter}
+            options={statusFilterOptions}
+          />
+          <Input
+            label={t('common.search', 'Search')}
+            value={searchTerm}
+            onChange={setSearchTerm}
+            placeholder={t('finance.payments.searchPlaceholder', 'Receipt or student...')}
+            prefixIcon={<Search size={16} />}
+          />
         </div>
-        
-        <input
-          type="text"
-          placeholder="Search by receipt number or student..."
-          className={styles.searchInput}
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-        />
-      </div>
+      </Card>
 
-      {/* Payments Table */}
       {loading ? (
-        <div className={styles.loading}>Loading payments...</div>
+        <div className={styles.loading}>{t('common.loading', 'Loading...')}</div>
       ) : (
-        <div className={styles.tableContainer}>
-          <table className={styles.table}>
-            <thead>
-              <tr>
-                <th>Receipt #</th>
-                <th>Student ID</th>
-                <th>Payment Date</th>
-                <th>Amount</th>
-                <th>Fee Type</th>
-                <th>Payment Method</th>
-                <th>Reference</th>
-                <th>Status</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredPayments.length === 0 ? (
-                <tr>
-                  <td colSpan="9" className={styles.noData}>
-                    No payments found
-                  </td>
-                </tr>
-              ) : (
-                filteredPayments.map(payment => {
-                  // Extract fee types from allocations
-                  const feeTypes = payment.allocations?.map(alloc => {
-                    const invoice = alloc.invoice;
-                    if (invoice?.metadata?.feeType) {
-                      return invoice.metadata.feeType === 'CUSTOM' && invoice.metadata.customFeeName 
-                        ? invoice.metadata.customFeeName 
-                        : invoice.metadata.feeType;
-                    }
-                    return 'N/A';
-                  }).join(', ') || 'N/A';
-
-                  return (
-                    <tr key={payment.id}>
-                      <td className={styles.receiptNumber}>{payment.receiptNumber}</td>
-                      <td>{payment.studentId}</td>
-                      <td>{new Date(payment.paymentDate).toLocaleDateString()}</td>
-                      <td className={styles.amount}>${parseFloat(payment.amount).toFixed(2)}</td>
-                      <td className={styles.feeType}>{feeTypes}</td>
-                      <td>{payment.paymentMethod}</td>
-                      <td>{payment.referenceNumber || '-'}</td>
-                      <td>
-                        <span 
-                          className={styles.statusBadge}
-                          style={{ backgroundColor: getStatusColor(payment.status) }}
-                        >
-                          {payment.status}
-                        </span>
-                      </td>
-                      <td>
-                        <div className={styles.actions}>
-                          <button className={styles.actionButton} title="View">👁️</button>
-                          <button className={styles.actionButton} title="Print Receipt">🖨️</button>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })
-              )}
-            </tbody>
-          </table>
-        </div>
+        <Table
+          columns={tableColumns}
+          data={filteredPayments}
+          paginated
+          pageSize={15}
+          emptyMessage={t('finance.payments.empty', 'No payments found')}
+        />
       )}
 
       {/* Record Payment Modal */}

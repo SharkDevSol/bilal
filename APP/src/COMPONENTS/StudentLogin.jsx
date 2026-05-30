@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { Building2, User as UserIcon, Lock } from 'lucide-react';
@@ -10,6 +11,7 @@ import LanguageSelector from './LanguageSelector/LanguageSelector';
 import Toast from './Toast/Toast';
 
 const StudentLogin = () => {
+  const { t } = useTranslation();
   const [credentials, setCredentials] = useState({ username: '', password: '', branchCode: '' });
   const [errors, setErrors] = useState({});
   const [touched, setTouched] = useState({});
@@ -100,32 +102,32 @@ const StudentLogin = () => {
         <div className={styles.loginCard}>
           <div className={styles.logoSection}>
             <img src="/skoolific-icon.png" alt="Skoolific" className={styles.logo} />
-            <h1 className={styles.title}>Student Portal</h1>
-            <p className={styles.subtitle}>Access your student profile</p>
+            <h1 className={styles.title}>{t('auth.studentPortalTitle', 'Student Portal')}</h1>
+            <p className={styles.subtitle}>{t('auth.studentPortalSubtitle', 'Access your academic resources')}</p>
           </div>
           
           <form onSubmit={handleLogin} className={styles.form}>
             <Input
-              label="Branch Code"
+              label={t('auth.branchCode', 'Branch Code')}
               name="branchCode"
               value={credentials.branchCode}
               onChange={handleInputChange}
               onBlur={() => handleBlur('branchCode')}
               icon={<Building2 size={20} />}
-              placeholder="Enter branch code"
+              placeholder={t('auth.branchCodePlaceholder', 'Enter branch code')}
               error={touched.branchCode && errors.branchCode}
               disabled={isLoading}
               required
             />
             
             <Input
-              label="Username"
+              label={t('auth.username', 'Username')}
               name="username"
               value={credentials.username}
               onChange={handleInputChange}
               onBlur={() => handleBlur('username')}
               icon={<UserIcon size={20} />}
-              placeholder="Enter your username"
+              placeholder={t('auth.usernamePlaceholder', 'Enter your username')}
               error={touched.username && errors.username}
               disabled={isLoading}
               autoComplete="username"
@@ -133,14 +135,14 @@ const StudentLogin = () => {
             />
             
             <Input
-              label="Password"
+              label={t('auth.password', 'Password')}
               type="password"
               name="password"
               value={credentials.password}
               onChange={handleInputChange}
               onBlur={() => handleBlur('password')}
               icon={<Lock size={20} />}
-              placeholder="Enter your password"
+              placeholder={t('auth.passwordPlaceholder', 'Enter your password')}
               error={touched.password && errors.password}
               disabled={isLoading}
               autoComplete="current-password"
@@ -154,7 +156,7 @@ const StudentLogin = () => {
               loading={isLoading}
               className={styles.loginButton}
             >
-              Sign In
+              {t('auth.signIn', 'Sign In')}
             </Button>
           </form>
           

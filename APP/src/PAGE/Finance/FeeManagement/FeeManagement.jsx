@@ -1,7 +1,13 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
+import { Plus, Tag } from 'lucide-react';
 import styles from './FeeManagement.module.css';
 
+import Card from '../../../COMPONENTS/Card/Card';
+import Button from '../../../COMPONENTS/Button/Button';
+
 const FeeManagement = () => {
+  const { t } = useTranslation();
   const [feeStructures, setFeeStructures] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -115,25 +121,27 @@ const FeeManagement = () => {
     <div className={styles.container}>
       <div className={styles.header}>
         <div>
-          <h1>Fee Management</h1>
-          <p>Configure fee structures and manage fee types for different classes and terms</p>
+          <h1>{t('finance.feeManagement.title', 'Fee Management')}</h1>
+          <p>{t('finance.feeManagement.subtitle', 'Configure fee structures and fee types')}</p>
         </div>
-        <div style={{ display: 'flex', gap: '10px' }}>
-          <button 
-            className={styles.addButton} 
+        <div className={styles.headerActions}>
+          <Button
+            variant={showFeeTypesSection ? 'primary' : 'secondary'}
+            icon={<Tag size={16} />}
             onClick={() => setShowFeeTypesSection(!showFeeTypesSection)}
-            style={{ background: showFeeTypesSection ? '#666' : '#2196F3' }}
           >
-            {showFeeTypesSection ? '📋 View Fee Structures' : '🏷️ View Fee Types'}
-          </button>
-          <button className={styles.addButton} onClick={() => { setEditingFee(null); setShowModal(true); }}>
-            + Add Fee Structure
-          </button>
+            {showFeeTypesSection
+              ? t('finance.feeManagement.viewStructures', 'View fee structures')
+              : t('finance.feeManagement.viewTypes', 'View fee types')}
+          </Button>
+          <Button variant="primary" icon={<Plus size={16} />} onClick={() => { setEditingFee(null); setShowModal(true); }}>
+            {t('finance.feeManagement.addStructure', 'Add fee structure')}
+          </Button>
         </div>
       </div>
 
       {loading ? (
-        <div className={styles.loading}>Loading fee structures...</div>
+        <div className={styles.loading}>{t('common.loading', 'Loading...')}</div>
       ) : showFeeTypesSection ? (
         <>
           {/* Fee Types Section */}
@@ -210,7 +218,7 @@ const FeeManagement = () => {
             <div className={styles.noData}>No fee structures found</div>
           ) : (
             feeStructures.map(fee => (
-              <div key={fee.id} className={styles.card}>
+              <Card key={fee.id} className={styles.feeCard}>
                 <div className={styles.cardHeader}>
                   <h3>{fee.name}</h3>
                   <span className={`${styles.badge} ${fee.isActive ? styles.active : styles.inactive}`}>
@@ -227,10 +235,14 @@ const FeeManagement = () => {
                   {fee.dueDate && <p><strong>Due:</strong> {new Date(fee.dueDate).toLocaleDateString()}</p>}
                 </div>
                 <div className={styles.cardActions}>
-                  <button onClick={() => { setEditingFee(fee); setShowModal(true); }}>✏️ Edit</button>
-                  <button onClick={() => handleDelete(fee.id)}>🗑️ Delete</button>
+                  <Button variant="ghost" size="sm" onClick={() => { setEditingFee(fee); setShowModal(true); }}>
+                    {t('common.edit', 'Edit')}
+                  </Button>
+                  <Button variant="ghost" size="sm" onClick={() => handleDelete(fee.id)}>
+                    {t('common.delete', 'Delete')}
+                  </Button>
                 </div>
-              </div>
+              </Card>
             ))
           )}
         </div>

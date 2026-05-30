@@ -1,8 +1,14 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import axios from 'axios';
 import styles from './GuardianNotifications.module.css';
+import Card from '../../COMPONENTS/Card/Card';
+import Button from '../../COMPONENTS/Button/Button';
+import Select from '../../COMPONENTS/Select/Select';
+import Input from '../../COMPONENTS/Input/Input';
 
 const GuardianNotifications = () => {
+  const { t } = useTranslation();
   const [status, setStatus] = useState(null);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
@@ -11,6 +17,7 @@ const GuardianNotifications = () => {
   const [previewData, setPreviewData] = useState(null);
   const [previewType, setPreviewType] = useState('');
   const [testEmail, setTestEmail] = useState('');
+  const [typeFilter, setTypeFilter] = useState('all');
 
   useEffect(() => {
     fetchStatus();
@@ -127,12 +134,49 @@ const GuardianNotifications = () => {
     }
   };
 
+  const guardianOptions = useMemo(
+    () => [
+      { value: '', label: t('communication.notifications.guardian', 'Select a guardian...') },
+      ...guardians.map((g) => ({
+        value: g.guardian_username,
+        label: `${g.guardian_name} (${g.guardian_username})`
+      }))
+    ],
+    [guardians, t]
+  );
+
+  const typeFilterOptions = useMemo(
+    () => [
+      { value: 'all', label: t('communication.notifications.allTypes', 'All types') },
+      { value: 'attendance', label: t('communication.notifications.attendance', 'Attendance') },
+      { value: 'payment', label: t('communication.notifications.payments', 'Payments') }
+    ],
+    [t]
+  );
+
   return (
-    <div className={styles.container}>
-      <div className={styles.header}>
-        <h1>📬 Guardian Notifications</h1>
-        <p>Manage automated notifications for guardians</p>
-      </div>
+    <main className={styles.container} aria-label={t('communication.notifications.title', 'Notifications')}>
+      <header className={styles.header}>
+        <h1>{t('communication.notifications.title', 'Notifications')}</h1>
+        <p>{t('communication.notifications.subtitle', 'Manage automated notifications for guardians')}</p>
+      </header>
+
+      <Card className={styles.filtersCard}>
+        <div className={styles.filtersRow}>
+          <Select
+            label={t('communication.notifications.type', 'Notification type')}
+            value={typeFilter}
+            onChange={setTypeFilter}
+            options={typeFilterOptions}
+          />
+          <Select
+            label={t('communication.notifications.guardian', 'Guardian')}
+            value={selectedGuardian}
+            onChange={setSelectedGuardian}
+            options={guardianOptions}
+          />
+        </div>
+      </Card>
 
       {/* Status Card */}
       <div className={styles.statusCard}>
@@ -392,7 +436,7 @@ const GuardianNotifications = () => {
           </li>
         </ol>
       </div>
-    </div>
+    </main>
   );
 };
 

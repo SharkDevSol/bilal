@@ -81,12 +81,54 @@ const authenticateWithBranch = (req, res, next) => {
   const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
 
   if (!token) {
-    return res.status(401).json({ error: 'Access token required' });
+    return res.status(401).json({ 
+      error: 'Access token required',
+      code: 'NO_TOKEN'
+    });
   }
 
-  jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key', (err, user) => {
+  // Verify token with proper options to match generation settings
+  const verifyOptions = {
+    issuer: 'school-management-system',
+    audience: 'school-app'
+  };
+
+  jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key', verifyOptions, (err, user) => {
     if (err) {
-      return res.status(403).json({ error: 'Invalid or expired token' });
+      console.error('JWT Verification Error:', err.name, err.message);
+      
+      let errorResponse = { 
+        error: 'Invalid or expired token',
+        code: 'INVALID_TOKEN'
+      };
+
+      if (err.name === 'TokenExpiredError') {
+        errorResponse = {
+          error: 'Your session has expired. Please login again.',
+          code: 'TOKEN_EXPIRED'
+        };
+      } else if (err.name === 'JsonWebTokenError') {
+        if (err.message.includes('invalid signature')) {
+          errorResponse = {
+            error: 'Token signature mismatch. Please logout and login again.',
+            code: 'SIGNATURE_MISMATCH',
+            action: 'LOGOUT_REQUIRED'
+          };
+        } else if (err.message.includes('jwt malformed')) {
+          errorResponse = {
+            error: 'Malformed token. Please login again.',
+            code: 'MALFORMED_TOKEN'
+          };
+        } else if (err.message.includes('jwt audience invalid') || err.message.includes('jwt issuer invalid')) {
+          errorResponse = {
+            error: 'Token was generated with different settings. Please logout and login again.',
+            code: 'TOKEN_SETTINGS_MISMATCH',
+            action: 'LOGOUT_REQUIRED'
+          };
+        }
+      }
+
+      return res.status(403).json(errorResponse);
     }
 
     // Attach user info to request (includes branchCode)
@@ -107,7 +149,9 @@ const generateBranchToken = (userData, branchCode, expiresIn = '24h') => {
   };
 
   return jwt.sign(payload, process.env.JWT_SECRET || 'your-secret-key', {
-    expiresIn: expiresIn
+    expiresIn: expiresIn,
+    issuer: 'school-management-system',
+    audience: 'school-app'
   });
 };
 

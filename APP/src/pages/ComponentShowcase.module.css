@@ -35,6 +35,17 @@
   align-items: center;
 }
 
+.statGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: var(--spacing-md, 16px);
+}
+
+.sampleImage {
+  border-radius: var(--radius-md, 8px);
+  max-width: 100%;
+}
+
 /* Sections */
 .section {
   margin-bottom: 32px;

@@ -1,11 +1,22 @@
-// StaffForm.jsx - COMPLETE FIXED CODE
-import React, { useState, useEffect, useRef } from 'react';
+// StaffForm.jsx - V2 Staff Registration Form
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import axios from 'axios';
 import * as XLSX from 'xlsx';
+import { Camera, Download, Upload } from 'lucide-react';
 import styles from './CreateRegisterStaff.module.css';
 
+import Input from '../../../COMPONENTS/Input/Input';
+import Select from '../../../COMPONENTS/Select/Select';
+import DatePicker from '../../../COMPONENTS/DatePicker/DatePicker';
+import FileUpload from '../../../COMPONENTS/FileUpload/FileUpload';
+import Textarea from '../../../COMPONENTS/Textarea/Textarea';
+import Checkbox from '../../../COMPONENTS/Checkbox/Checkbox';
+import Button from '../../../COMPONENTS/Button/Button';
+
 const StaffForm = ({ staffTypeProp, classNameProp, onSuccess }) => {
+  const { t } = useTranslation();
   const { staffType: paramStaffType, className: paramClassName } = useParams();
   const staffType = staffTypeProp || paramStaffType;
   const className = classNameProp || paramClassName;
@@ -475,130 +486,59 @@ const StaffForm = ({ staffTypeProp, classNameProp, onSuccess }) => {
     return fileTypeConfig[fieldName]?.isImage || false;
   };
 
+  const fieldLabel = useCallback(
+    (fieldName) => formatFieldLabel(fieldName),
+    []
+  );
+
+  const parseDateValue = (val) => {
+    if (!val) return null;
+    if (val instanceof Date && !Number.isNaN(val.getTime())) return val;
+    const parsed = new Date(val);
+    return Number.isNaN(parsed.getTime()) ? null : parsed;
+  };
+
   const renderField = (col) => {
     const fieldName = col.column_name;
     const value = formData[fieldName] || '';
     const isRequired = col.is_nullable === 'NO';
+    const label = fieldLabel(fieldName);
+    const isStandardDropdown = standardOptions[fieldName]?.length > 0;
+    const selectOptions = (col.options || standardOptions[fieldName] || []).map((opt) => ({
+      value: opt,
+      label: opt
+    }));
 
-    const isStandardDropdown = standardOptions[fieldName] && standardOptions[fieldName].length > 0;
+    const handleFileUploadChange = (uploaded) => {
+      const file = uploaded?.[0];
+      if (!file) {
+        const next = { ...files };
+        delete next[fieldName];
+        setFiles(next);
+        return;
+      }
+      setFiles({ ...files, [fieldName]: file });
+    };
 
-    // Special handling for image_staff field with camera and file upload
-    if (fieldName === 'image_staff') {
-      const hasFile = files[fieldName];
-      
+    if (fieldName === 'image_staff' || col.data_type === 'upload') {
       return (
         <div key={fieldName} className={styles.fieldGroup}>
-          <label>{formatFieldLabel(fieldName)} {isRequired && <span className={styles.required}>*</span>}</label>
-          
-          <div className={styles.uploadSection}>
-            {/* Camera Option */}
-            <div className={styles.cameraSection}>
-              <button
-                type="button"
-                onClick={startCamera}
-                className={styles.cameraButton}
-              >
-                📷 Take Photo
-              </button>
-              <span className={styles.optionSeparator}>or</span>
-              
-              {/* File Upload Option */}
-              <div className={styles.fileUploadOption}>
-                <input
-                  type="file"
-                  onChange={(e) => handleFileChange(e, fieldName)}
-                  className={styles.hiddenInput}
-                  accept={getFileAcceptTypes(fieldName)}
-                  id={`file-upload-${fieldName}`}
-                />
-                <label htmlFor={`file-upload-${fieldName}`} className={styles.uploadLabel}>
-                  📁 Upload Image
-                </label>
-              </div>
+          {fieldName === 'image_staff' && (
+            <div className={styles.cameraRow}>
+              <Button type="button" variant="secondary" size="sm" icon={<Camera size={16} />} onClick={startCamera}>
+                {t('staff.registration.takePhoto', 'Take Photo')}
+              </Button>
             </div>
-            
-            {/* File Status */}
-            {hasFile && (
-              <div className={styles.fileStatus}>
-                <span className={styles.fileIcon}>
-                  {isImageField(fieldName) ? '🖼️' : '📄'}
-                </span>
-                <span className={styles.fileName}>{files[fieldName].name}</span>
-                <span className={styles.fileSize}>
-                  ({(files[fieldName].size / 1024 / 1024).toFixed(2)} MB)
-                </span>
-                <button 
-                  type="button" 
-                  onClick={() => {
-                    const newFiles = { ...files };
-                    delete newFiles[fieldName];
-                    setFiles(newFiles);
-                  }}
-                  className={styles.removeFileButton}
-                >
-                  ✕
-                </button>
-              </div>
-            )}
-            
-            {/* File Type Info */}
-            <div className={styles.fileInputInfo}>
-              <small>{getFileTypeDescription(fieldName)} (Max 30MB)</small>
-            </div>
-          </div>
-        </div>
-      );
-    }
-
-    // Regular upload fields (non-image_staff)
-    if (col.data_type === 'upload') {
-      const hasFile = files[fieldName];
-      
-      return (
-        <div key={fieldName} className={styles.fieldGroup}>
-          <label>{formatFieldLabel(fieldName)} {isRequired && <span className={styles.required}>*</span>}</label>
-          
-          <div className={styles.uploadSection}>
-            <div className={styles.fileInputContainer}>
-              <input
-                type="file"
-                onChange={(e) => handleFileChange(e, fieldName)}
-                className={styles.fileInput}
-                accept={getFileAcceptTypes(fieldName)}
-                required={isRequired && !hasFile}
-                id={`file-upload-${fieldName}`}
-              />
-              <label htmlFor={`file-upload-${fieldName}`} className={styles.uploadLabel}>
-                📎 Choose File
-              </label>
-              <div className={styles.fileInputInfo}>
-                <small>{getFileTypeDescription(fieldName)} (Max 30MB)</small>
-              </div>
-            </div>
-            
-            {hasFile && (
-              <div className={styles.fileStatus}>
-                <span className={styles.fileIcon}>
-                  {isImageField(fieldName) ? '🖼️' : '📄'}
-                </span>
-                <span className={styles.fileName}>{files[fieldName].name}</span>
-                <span className={styles.fileSize}>
-                  ({(files[fieldName].size / 1024 / 1024).toFixed(2)} MB)
-                </span>
-                <button 
-                  type="button" 
-                  onClick={() => {
-                    const newFiles = { ...files };
-                    delete newFiles[fieldName];
-                    setFiles(newFiles);
-                  }}
-                  className={styles.removeFileButton}
-                >
-                  ✕
-                </button>
-              </div>
-            )}
-          </div>
+          )}
+          <FileUpload
+            label={label}
+            accept={getFileAcceptTypes(fieldName)}
+            value={files[fieldName] ? [files[fieldName]] : []}
+            onChange={handleFileUploadChange}
+            required={isRequired}
+            maxSize={30 * 1024 * 1024}
+            helperText={`${getFileTypeDescription(fieldName)} (Max 30MB)`}
+          />
         </div>
       );
     }
@@ -606,113 +546,86 @@ const StaffForm = ({ staffTypeProp, classNameProp, onSuccess }) => {
     if (fieldName === 'staff_work_time') {
       return (
         <div key={fieldName} className={styles.fieldGroup}>
-          <label>{formatFieldLabel(fieldName)} {isRequired && <span className={styles.required}>*</span>}</label>
-          <select
+          <Select
+            label={label}
             value={value}
-            onChange={handleWorkTimeChange}
+            onChange={(v) => handleWorkTimeChange({ target: { value: v } })}
+            options={[
+              { value: 'Full Time', label: t('staff.registration.fullTime', 'Full Time') },
+              { value: 'Part Time', label: t('staff.registration.partTime', 'Part Time') }
+            ]}
+            placeholder={t('staff.registration.selectWorkTime', 'Select work time')}
             required={isRequired}
-            className={styles.select}
-          >
-            <option value="">Select Work Time</option>
-            <option value="Full Time">Full Time</option>
-            <option value="Part Time">Part Time</option>
-          </select>
+            error={validationErrors.staff_work_time}
+          />
           {value === 'Part Time' && formData.availability && (
             <div className={styles.scheduleSummary}>
-              <p><strong>Schedule Summary:</strong></p>
-              <p>Days: {formData.work_days?.join(', ') || 'Not set'}</p>
-              <p>Shifts: {formData.shifts?.join(', ') || 'Not set'}</p>
-              <p>Active Slots: {formData.availability?.filter(slot => slot.active).length || 0}</p>
-              <button 
-                type="button" 
-                onClick={() => setShowScheduleModal(true)}
-                className={styles.editScheduleButton}
-              >
-                Edit Schedule
-              </button>
+              <p>{t('staff.registration.scheduleSummary', 'Schedule Summary')}</p>
+              <p>{t('staff.registration.days', 'Days')}: {formData.work_days?.join(', ') || '—'}</p>
+              <p>{t('staff.registration.shifts', 'Shifts')}: {formData.shifts?.join(', ') || '—'}</p>
+              <Button type="button" variant="ghost" size="sm" onClick={() => setShowScheduleModal(true)}>
+                {t('staff.registration.editSchedule', 'Edit Schedule')}
+              </Button>
             </div>
           )}
         </div>
       );
     }
 
-    // Shift Assignment removed - now managed in Time & Shift Settings
-
-    // Checkbox field
     if (col.data_type === 'checkbox') {
       return (
         <div key={fieldName} className={styles.fieldGroup}>
-          <label className={styles.checkboxLabel}>
-            <input
-              type="checkbox"
-              checked={value || false}
-              onChange={(e) => handleCheckboxChange(fieldName, e.target.checked)}
-              className={styles.checkbox}
-              required={isRequired}
-            />
-            {formatFieldLabel(fieldName)}
-            {isRequired && <span className={styles.required}>*</span>}
-          </label>
+          <Checkbox
+            label={label}
+            checked={Boolean(value)}
+            onChange={(checked) => handleCheckboxChange(fieldName, checked)}
+            required={isRequired}
+          />
         </div>
       );
     }
 
-    // Multiple checkbox field
     if (col.data_type === 'multiple-checkbox' && col.options) {
       return (
         <div key={fieldName} className={styles.fieldGroup}>
-          <label>{formatFieldLabel(fieldName)} {isRequired && <span className={styles.required}>*</span>}</label>
+          <span className={styles.multiCheckboxLabel}>{label}</span>
           <div className={styles.checkboxGroup}>
-            {col.options.map(option => (
-              <label key={option} className={styles.checkboxOption}>
-                <input
-                  type="checkbox"
-                  checked={Array.isArray(value) && value.includes(option)}
-                  onChange={(e) => handleMultipleCheckboxChange(fieldName, option, e.target.checked)}
-                  className={styles.checkbox}
-                />
-                {option}
-              </label>
+            {col.options.map((option) => (
+              <Checkbox
+                key={option}
+                label={option}
+                checked={Array.isArray(value) && value.includes(option)}
+                onChange={(checked) => handleMultipleCheckboxChange(fieldName, option, checked)}
+              />
             ))}
           </div>
-          {Array.isArray(value) && value.length > 0 && (
-            <div className={styles.selectionSummary}>
-              Selected: {value.join(', ')}
-            </div>
-          )}
         </div>
       );
     }
 
-    // Single Select Dropdown
-    if ((col.data_type === 'select' || isStandardDropdown) && col.options) {
+    if ((col.data_type === 'select' || isStandardDropdown) && selectOptions.length > 0) {
       return (
         <div key={fieldName} className={styles.fieldGroup}>
-          <label>{formatFieldLabel(fieldName)} {isRequired && <span className={styles.required}>*</span>}</label>
-          <select
+          <Select
+            label={label}
             value={value}
-            onChange={(e) => handleSelectChange(fieldName, e.target.value)}
+            onChange={(v) => handleSelectChange(fieldName, v)}
+            options={selectOptions}
+            placeholder={t('common.select', 'Select {{field}}', { field: label })}
             required={isRequired}
-            className={styles.select}
-          >
-            <option value="">Select {formatFieldLabel(fieldName)}</option>
-            {col.options.map(option => (
-              <option key={option} value={option}>{option}</option>
-            ))}
-          </select>
+            error={validationErrors[fieldName]}
+          />
         </div>
       );
     }
 
-    // Textarea field
     if (col.data_type === 'textarea') {
       return (
         <div key={fieldName} className={styles.fieldGroup}>
-          <label>{formatFieldLabel(fieldName)} {isRequired && <span className={styles.required}>*</span>}</label>
-          <textarea
+          <Textarea
+            label={label}
             value={value}
-            onChange={(e) => handleInputChange(fieldName, e.target.value)}
-            className={styles.textarea}
+            onChange={(v) => handleInputChange(fieldName, v)}
             required={isRequired}
             rows={4}
           />
@@ -720,15 +633,15 @@ const StaffForm = ({ staffTypeProp, classNameProp, onSuccess }) => {
       );
     }
 
-    if (col.data_type === 'text' || col.data_type === 'character varying') {
+    if (col.data_type === 'date') {
       return (
         <div key={fieldName} className={styles.fieldGroup}>
-          <label>{formatFieldLabel(fieldName)} {isRequired && <span className={styles.required}>*</span>}</label>
-          <input
-            type="text"
-            value={value}
-            onChange={(e) => handleInputChange(fieldName, e.target.value)}
-            className={styles.input}
+          <DatePicker
+            label={label}
+            value={parseDateValue(value)}
+            onChange={(date) =>
+              handleInputChange(fieldName, date ? date.toISOString().split('T')[0] : '')
+            }
             required={isRequired}
           />
         </div>
@@ -738,28 +651,13 @@ const StaffForm = ({ staffTypeProp, classNameProp, onSuccess }) => {
     if (col.data_type === 'integer' || col.data_type === 'numeric') {
       return (
         <div key={fieldName} className={styles.fieldGroup}>
-          <label>{formatFieldLabel(fieldName)} {isRequired && <span className={styles.required}>*</span>}</label>
-          <input
+          <Input
             type="number"
+            label={label}
             value={value}
-            onChange={(e) => handleInputChange(fieldName, e.target.value)}
-            className={styles.input}
+            onChange={(v) => handleInputChange(fieldName, v)}
             required={isRequired}
-          />
-        </div>
-      );
-    }
-
-    if (col.data_type === 'date') {
-      return (
-        <div key={fieldName} className={styles.fieldGroup}>
-          <label>{formatFieldLabel(fieldName)} {isRequired && <span className={styles.required}>*</span>}</label>
-          <input
-            type="date"
-            value={value}
-            onChange={(e) => handleInputChange(fieldName, e.target.value)}
-            className={styles.input}
-            required={isRequired}
+            error={validationErrors[fieldName]}
           />
         </div>
       );
@@ -767,13 +665,12 @@ const StaffForm = ({ staffTypeProp, classNameProp, onSuccess }) => {
 
     return (
       <div key={fieldName} className={styles.fieldGroup}>
-        <label>{formatFieldLabel(fieldName)} {isRequired && <span className={styles.required}>*</span>}</label>
-        <input
-          type="text"
+        <Input
+          label={label}
           value={value}
-          onChange={(e) => handleInputChange(fieldName, e.target.value)}
-          className={styles.input}
+          onChange={(v) => handleInputChange(fieldName, v)}
           required={isRequired}
+          error={validationErrors[fieldName]}
         />
       </div>
     );
@@ -781,22 +678,24 @@ const StaffForm = ({ staffTypeProp, classNameProp, onSuccess }) => {
 
   return (
     <div className={styles.formContainer}>
-      <div className={styles.formHeader}>
-        <h2>Add Staff to {className?.replace(/_/g, ' ')} ({staffType})</h2>
-        {!staffTypeProp && (
-          <button onClick={() => navigate(-1)} className={styles.backButton}>
-            ← Back
-          </button>
-        )}
-      </div>
-      
+      {!staffTypeProp && (
+        <div className={styles.formHeader}>
+          <Button variant="ghost" size="sm" onClick={() => navigate(-1)}>
+            {t('common.back', 'Back')}
+          </Button>
+        </div>
+      )}
+
       <div className={styles.formActions}>
-        <button onClick={handleDownload} className={styles.actionButton}>
-          📥 Download Excel
-        </button>
-        <label className={styles.actionButton}>
-          📤 Upload Excel
-          <input type="file" accept=".xlsx, .xls" onChange={handleUploadExcel} className={styles.hiddenInput} />
+        <Button variant="secondary" size="sm" icon={<Download size={16} />} onClick={handleDownload}>
+          {t('staff.registration.downloadExcel', 'Download Excel')}
+        </Button>
+        <label className={styles.excelUploadLabel}>
+          <span className={styles.excelUploadBtn}>
+            <Upload size={16} />
+            {t('staff.registration.uploadExcel', 'Upload Excel')}
+          </span>
+          <input type="file" accept=".xlsx,.xls" onChange={handleUploadExcel} className={styles.hiddenInput} />
         </label>
       </div>
 
@@ -883,16 +782,9 @@ const StaffForm = ({ staffTypeProp, classNameProp, onSuccess }) => {
         )}
         
         <div className={styles.submitSection}>
-          <button type="submit" className={styles.submitButton} disabled={isSubmitting}>
-            {isSubmitting ? (
-              <>
-                <span className={styles.spinner}></span>
-                Adding Staff...
-              </>
-            ) : (
-              '➕ Add Staff'
-            )}
-          </button>
+          <Button type="submit" variant="primary" loading={isSubmitting} disabled={isSubmitting}>
+            {t('staff.addStaff', 'Add Staff')}
+          </Button>
         </div>
       </form>
 

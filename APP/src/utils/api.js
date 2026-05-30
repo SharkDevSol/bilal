@@ -26,10 +26,18 @@ api.interceptors.request.use(
   }
 );
 
+// Track if we're already redirecting to prevent multiple redirects
+let isRedirecting = false;
+
 // Response interceptor - handle common errors
 api.interceptors.response.use(
   (response) => response,
   (error) => {
+    // Prevent multiple simultaneous redirects
+    if (isRedirecting) {
+      return Promise.reject(error);
+    }
+
     // Handle 401 Unauthorized - token expired or invalid
     if (error.response?.status === 401) {
       const errorCode = error.response?.data?.code;
@@ -48,7 +56,10 @@ api.interceptors.response.use(
         localStorage.removeItem('adminUser');
         localStorage.removeItem('staffUser');
         localStorage.removeItem('userType');
+        localStorage.removeItem('staffProfile');
+        localStorage.removeItem('userPermissions');
         
+        isRedirecting = true;
         alert('Your session is invalid. This can happen after a server update. Please log in again.');
         window.location.href = '/login';
         return Promise.reject(error);
@@ -60,8 +71,11 @@ api.interceptors.response.use(
       localStorage.removeItem('adminUser');
       localStorage.removeItem('staffUser');
       localStorage.removeItem('userType');
+      localStorage.removeItem('staffProfile');
+      localStorage.removeItem('userPermissions');
       
       // Show user-friendly message
+      isRedirecting = true;
       if (errorCode === 'TOKEN_EXPIRED') {
         alert('Your session has expired. Please log in again.');
       } else if (errorMessage === 'Access token required') {
@@ -74,14 +88,55 @@ api.interceptors.response.use(
       window.location.href = '/login';
     }
     
-    // Handle 403 Forbidden - insufficient permissions
+    // Handle 403 Forbidden - insufficient permissions or invalid token
     if (error.response?.status === 403) {
-      console.error('Access denied:', error.response?.data?.error);
+      const errorMessage = error.response?.data?.error;
+      const errorCode = error.response?.data?.code;
+      
+      console.error('🚫 Access Denied:', errorMessage || 'Forbidden');
+      
+      // Check if it's a token-related 403 (some servers return 403 instead of 401 for invalid tokens)
+      if (errorMessage?.toLowerCase().includes('token') || 
+          errorMessage?.toLowerCase().includes('expired') ||
+          errorMessage?.toLowerCase().includes('invalid') ||
+          errorCode === 'INVALID_TOKEN' ||
+          errorCode === 'TOKEN_SETTINGS_MISMATCH') {
+        
+        // Prevent multiple redirects
+        if (isRedirecting) {
+          return Promise.reject(error);
+        }
+        
+        // Clear auth data
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('isLoggedIn');
+        localStorage.removeItem('adminUser');
+        localStorage.removeItem('staffUser');
+        localStorage.removeItem('userType');
+        localStorage.removeItem('staffProfile');
+        localStorage.removeItem('userPermissions');
+        
+        isRedirecting = true;
+        
+        // Redirect to clear-auth page for better user experience
+        window.location.href = '/clear-auth.html?auto=true';
+        return Promise.reject(error);
+      }
+      
+      // Otherwise it's a permissions issue
+      console.error('⚠️  Insufficient permissions for this resource');
     }
     
     // Handle 429 Too Many Requests - rate limited
     if (error.response?.status === 429) {
-      console.error('Rate limited:', error.response?.data?.error);
+      console.error('⚠️  Rate limited:', error.response?.data?.error);
+    }
+    
+    // Handle network errors
+    if (!error.response) {
+      console.error('🌐 Network Error: Unable to reach the server');
+      console.error('API Base URL:', API_BASE_URL);
+      console.error('Please check if the backend server is running');
     }
     
     return Promise.reject(error);

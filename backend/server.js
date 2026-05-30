@@ -374,28 +374,28 @@ app.use('/api/v2/branches', branchRoutes); // Multi-branch architecture routes
 // ===========================================
 // AI06 WEBSOCKET SERVICE
 // ===========================================
-// AI06 WEBSOCKET SERVICE
-// ===========================================
-// CRITICAL: DO NOT DISABLE - Required for AI06 device connections
-// This service listens on port 7788 for biometric attendance devices
-const AI06_ENABLED = process.env.AI06_WEBSOCKET_ENABLED !== 'false';
-const AI06_PORT = process.env.AI06_WEBSOCKET_PORT || 7788;
+// TEMPORARILY DISABLED TO FIX PORT CONFLICT
+// const AI06_ENABLED = process.env.AI06_WEBSOCKET_ENABLED !== 'false';
+// const AI06_PORT = process.env.AI06_WEBSOCKET_PORT || 7788;
 
-if (AI06_ENABLED) {
-  const AI06WebSocketService = require('./services/ai06WebSocketService');
-  const ai06Service = new AI06WebSocketService(AI06_PORT);
+// if (AI06_ENABLED) {
+//   const AI06WebSocketService = require('./services/ai06WebSocketService');
+//   const ai06Service = new AI06WebSocketService(AI06_PORT);
 
-  // Start AI06 service with Socket.IO for real-time updates
-  ai06Service.start(io);
+//   // Start AI06 service with Socket.IO for real-time updates
+//   ai06Service.start(io);
 
-  // Make AI06 service accessible to routes
-  app.set('ai06Service', ai06Service);
+//   // Make AI06 service accessible to routes
+//   app.set('ai06Service', ai06Service);
   
-  console.log(`✅ AI06 WebSocket Service enabled on port ${AI06_PORT}`);
-} else {
-  console.log('⚠️  AI06 WebSocket Service is DISABLED in .env');
-  console.log('   Set AI06_WEBSOCKET_ENABLED=true to enable device connections');
-}
+//   console.log(`✅ AI06 WebSocket Service enabled on port ${AI06_PORT}`);
+// } else {
+//   console.log('⚠️  AI06 WebSocket Service is DISABLED in .env');
+//   console.log('   Set AI06_WEBSOCKET_ENABLED=true to enable device connections');
+// }
+
+console.log('⚠️  AI06 WebSocket Service is TEMPORARILY DISABLED');
+
 
 // ===========================================
 // ATTENDANCE AUTO-MARKER SERVICES

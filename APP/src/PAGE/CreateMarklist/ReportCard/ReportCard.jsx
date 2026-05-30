@@ -1,20 +1,19 @@
-// ReportCard.jsx - Iqra Academy Report Card Design
-import React, { useState, useEffect, useRef } from 'react';
+// ReportCard.jsx - V2 Report Cards
+import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import api from '../../../utils/api';
 import styles from './ReportCard.module.css';
-import { 
-  FaPrint, FaUserGraduate, FaSchool, 
-  FaSpinner, FaAward,
-  FaDownload, FaUsers
-} from 'react-icons/fa';
-import { motion } from 'framer-motion';
+import { Award, Download, Loader2, Printer, School, User, Users } from 'lucide-react';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
-import { useApp } from '../../../context/AppContext';
 import { getFileUrl } from '../../List/utils/fileUtils';
 
+import Button from '../../../COMPONENTS/Button/Button';
+import Select from '../../../COMPONENTS/Select/Select';
+import Card from '../../../COMPONENTS/Card/Card';
+
 const ReportCard = () => {
-  const { theme } = useApp();
+  const { t } = useTranslation();
   const [classes, setClasses] = useState([]);
   const [students, setStudents] = useState([]);
   const [selectedClass, setSelectedClass] = useState('');
@@ -784,11 +783,24 @@ const ReportCard = () => {
     );
   };
 
+  const classOptions = useMemo(
+    () => classes.map((cls) => ({ value: cls, label: cls })),
+    [classes]
+  );
+  const studentOptions = useMemo(
+    () =>
+      students.map((s) => ({
+        value: s.studentName,
+        label: `${s.studentName} (#${s.rank})`
+      })),
+    [students]
+  );
+
   if (loading) {
     return (
       <div className={styles.loadingContainer}>
-        <FaSpinner className={styles.spinner} />
-        <p>Loading...</p>
+        <Loader2 className={styles.spinner} size={32} />
+        <p>{t('common.loading', 'Loading...')}</p>
       </div>
     );
   }
@@ -797,81 +809,57 @@ const ReportCard = () => {
     <div className={`${styles.container} ${isPrinting ? styles.printMode : ''}`}>
       {!isPrinting && (
         <div className={styles.screenOnly}>
-          <div className={styles.header}>
-            <div className={styles.headerContent}>
-              <FaAward className={styles.headerIcon} />
-              <div>
-                <h1>Bilal School Report Card</h1>
-                <p>Bilal Islamic School Report Card Design (A5 Portrait)</p>
+          <div className={styles.pageHeader}>
+            <Award className={styles.headerIcon} size={28} />
+            <div>
+              <h1 className={styles.pageTitle}>{t('academic.reportCards.title', 'Report Cards')}</h1>
+              <p className={styles.pageSubtitle}>
+                {t('academic.reportCards.subtitle', 'View, print, and download student report cards')}
+              </p>
+            </div>
+          </div>
+
+          <Card className={styles.controlsCard}>
+            <div className={styles.controls}>
+              <Select
+                label={t('academic.markLists.class', 'Class')}
+                value={selectedClass}
+                onChange={setSelectedClass}
+                options={classOptions}
+                placeholder={t('academic.reportCards.noClasses', 'No classes')}
+              />
+              <Select
+                label={t('academic.reportCards.student', 'Student')}
+                value={selectedStudent}
+                onChange={setSelectedStudent}
+                options={studentOptions}
+                disabled={students.length === 0}
+                placeholder={t('academic.reportCards.noStudents', 'No students')}
+              />
+              <div className={styles.actionButtons}>
+                <Button variant="primary" icon={<Printer size={16} />} onClick={() => handlePrint(false)} disabled={!reportData}>
+                  {t('academic.reportCards.printSingle', 'Print single')}
+                </Button>
+                <Button variant="secondary" icon={<Users size={16} />} onClick={() => handlePrint(true)} disabled={allStudentsData.length === 0}>
+                  {t('academic.reportCards.printAll', 'Print all')} ({allStudentsData.length})
+                </Button>
+                <Button variant="secondary" icon={<Download size={16} />} onClick={handleDownloadPDF} disabled={!reportData}>
+                  {t('academic.reportCards.downloadPdf', 'Download PDF')}
+                </Button>
               </div>
             </div>
-          </div>
-
-          <div className={styles.controls}>
-            <div className={styles.controlGroup}>
-              <label><FaSchool /> Class</label>
-              <select value={selectedClass} onChange={(e) => setSelectedClass(e.target.value)}>
-                {classes.length === 0 ? (
-                  <option value="">No classes</option>
-                ) : (
-                  classes.map(cls => <option key={cls} value={cls}>{cls}</option>)
-                )}
-              </select>
-            </div>
-
-            <div className={styles.controlGroup}>
-              <label><FaUserGraduate /> Student</label>
-              <select value={selectedStudent} onChange={(e) => setSelectedStudent(e.target.value)} disabled={students.length === 0}>
-                {students.length === 0 ? (
-                  <option value="">No students</option>
-                ) : (
-                  students.map(s => (
-                    <option key={s.studentName} value={s.studentName}>
-                      {s.studentName} (#{s.rank})
-                    </option>
-                  ))
-                )}
-              </select>
-            </div>
-
-            <div className={styles.actionButtons}>
-              <motion.button 
-                className={styles.printBtn} 
-                onClick={() => handlePrint(false)} 
-                whileHover={{ scale: 1.05 }}
-                disabled={!reportData}
-              >
-                <FaPrint /> Print Single
-              </motion.button>
-              <motion.button 
-                className={styles.printAllBtn} 
-                onClick={() => handlePrint(true)} 
-                whileHover={{ scale: 1.05 }}
-                disabled={allStudentsData.length === 0}
-              >
-                <FaUsers /> Print All ({allStudentsData.length})
-              </motion.button>
-              <motion.button 
-                className={styles.pdfBtn} 
-                onClick={handleDownloadPDF} 
-                whileHover={{ scale: 1.05 }}
-                disabled={!reportData}
-              >
-                <FaDownload /> PDF
-              </motion.button>
-            </div>
-          </div>
+          </Card>
 
           {loadingReport ? (
             <div className={styles.loadingReport}>
-              <FaSpinner className={styles.spinner} />
-              <p>Loading report...</p>
+              <Loader2 className={styles.spinner} size={24} />
+              <p>{t('academic.reportCards.loading', 'Loading report...')}</p>
             </div>
           ) : !reportData ? (
             <div className={styles.noData}>
-              <FaUserGraduate className={styles.noDataIcon} />
-              <h3>No data available</h3>
-              <p>Select a class and student with marks entered.</p>
+              <User className={styles.noDataIcon} size={40} />
+              <h3>{t('academic.reportCards.noData', 'No data available')}</h3>
+              <p>{t('academic.reportCards.noDataHint', 'Select a class and student with marks.')}</p>
             </div>
           ) : (
             <div className={styles.previewSection}>

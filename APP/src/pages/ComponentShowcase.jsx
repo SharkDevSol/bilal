@@ -1,21 +1,24 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Save, Edit, Trash2, Plus, User, Mail, Lock, CheckCircle } from 'lucide-react';
-import Button from '../components/Button/Button';
-import Input from '../components/Input/Input';
-import Card from '../components/Card/Card';
-import Modal from '../components/Modal/Modal';
-import Table from '../components/Table/Table';
-import ThemeToggle from '../components/ThemeToggle/ThemeToggle';
-import LanguageSelector from '../components/LanguageSelector/LanguageSelector';
-import LoadingSpinner from '../components/LoadingSpinner/LoadingSpinner';
-import Skeleton from '../components/Skeleton/Skeleton';
-import Toast from '../components/Toast/Toast';
-import Badge from '../components/Badge/Badge';
-import Select from '../components/Select/Select';
-import Checkbox from '../components/Checkbox/Checkbox';
-import Radio from '../components/Radio/Radio';
-import Textarea from '../components/Textarea/Textarea';
+import Button from '../COMPONENTS/Button/Button';
+import Input from '../COMPONENTS/Input/Input';
+import Card from '../COMPONENTS/Card/Card';
+import Modal from '../COMPONENTS/Modal/Modal';
+import Table from '../COMPONENTS/Table/Table';
+import ThemeToggle from '../COMPONENTS/ThemeToggle/ThemeToggle';
+import LanguageSelector from '../COMPONENTS/LanguageSelector/LanguageSelector';
+import LoadingSpinner from '../COMPONENTS/LoadingSpinner/LoadingSpinner';
+import Skeleton from '../COMPONENTS/Skeleton/Skeleton';
+import Toast from '../COMPONENTS/Toast/Toast';
+import Badge from '../COMPONENTS/Badge/Badge';
+import Select from '../COMPONENTS/Select/Select';
+import Checkbox from '../COMPONENTS/Checkbox/Checkbox';
+import Radio from '../COMPONENTS/Radio/Radio';
+import Textarea from '../COMPONENTS/Textarea/Textarea';
+import StatCard from '../COMPONENTS/StatCard/StatCard';
+import LazyImage from '../COMPONENTS/LazyImage';
+import { Users, TrendingUp } from 'lucide-react';
 import styles from './ComponentShowcase.module.css';
 
 /**
@@ -94,6 +97,35 @@ const ComponentShowcase = () => {
           <ThemeToggle />
         </div>
       </div>
+
+      {/* Stat Cards */}
+      <Card title="Stat Cards" subtitle="Dashboard metrics with trends">
+        <div className={styles.statGrid}>
+          <StatCard
+            title="Total Students"
+            value="1,248"
+            icon={<Users size={24} />}
+            trend={{ value: 12, direction: 'up' }}
+            color="primary"
+          />
+          <StatCard
+            title="Attendance Rate"
+            value="94%"
+            icon={<TrendingUp size={24} />}
+            trend={{ value: 3, direction: 'up' }}
+            color="success"
+          />
+        </div>
+      </Card>
+
+      {/* Lazy Image */}
+      <Card title="Lazy Image" subtitle="Native lazy loading with optional WebP">
+        <LazyImage
+          src="https://picsum.photos/seed/skoolific/400/200"
+          alt="Sample lazy-loaded image"
+          className={styles.sampleImage}
+        />
+      </Card>
 
       {/* Buttons Section */}
       <Card title="Buttons" subtitle="Various button styles and states">

@@ -1,12 +1,16 @@
-// PAGE/Schedule/ScheduleDashboard.jsx - UPDATED WITH CONFLICT RESOLUTION STATUS
-import React, { useState, useEffect } from 'react';
+// PAGE/Schedule/ScheduleDashboard.jsx - V2 Schedule
+import React, { useState, useEffect, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import axios from 'axios';
-import { useApp } from '../../context/AppContext';
 import styles from './ScheduleDashboard.module.css';
 
+import Select from '../../COMPONENTS/Select/Select';
+import Button from '../../COMPONENTS/Button/Button';
+import Card from '../../COMPONENTS/Card/Card';
+
 const ScheduleDashboard = () => {
-  const { t } = useApp();
+  const { t } = useTranslation();
   const [activeShift, setActiveShift] = useState(1);
   const [schedule, setSchedule] = useState([]);
   const [conflicts, setConflicts] = useState([]);
@@ -774,26 +778,26 @@ const ScheduleDashboard = () => {
           <div className={styles.timetableHeader}>
             <h2>School Timetable - Shift {activeShift}</h2>
             <div className={styles.timetableFilters}>
-              <select 
+              <Select
+                label={t('academic.schedule.class', 'Class')}
                 value={selectedClass}
-                onChange={(e) => setSelectedClass(e.target.value)}
-                className={styles.filterSelect}
-              >
-                <option value="all">All Classes</option>
-                {classes.map(cls => (
-                  <option key={cls} value={cls}>{cls}</option>
-                ))}
-              </select>
-              <select 
+                onChange={setSelectedClass}
+                options={[
+                  { value: 'all', label: t('academic.schedule.allClasses', 'All classes') },
+                  ...classes.map((cls) => ({ value: cls, label: cls }))
+                ]}
+              />
+              <Select
+                label={t('academic.schedule.day', 'Day')}
                 value={selectedDay}
-                onChange={(e) => setSelectedDay(e.target.value)}
-                className={styles.filterSelect}
-              >
-                <option value="all">All Days</option>
-                {daysOfWeek.filter(day => schoolDays.includes(day.id)).map(day => (
-                  <option key={day.id} value={day.id}>{day.name}</option>
-                ))}
-              </select>
+                onChange={setSelectedDay}
+                options={[
+                  { value: 'all', label: t('academic.schedule.allDays', 'All days') },
+                  ...daysOfWeek
+                    .filter((day) => schoolDays.includes(day.id))
+                    .map((day) => ({ value: String(day.id), label: day.name }))
+                ]}
+              />
             </div>
           </div>
 

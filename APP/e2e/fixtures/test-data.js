@@ -205,7 +205,7 @@ export const paymentTestData = {
     totalAmount: 5000,
     month: 'Tir',
     paymentMethod: 'Cash',
-    isPart ial: true
+    isPartial: true
   },
   invalidPayment: {
     amount: -100,

@@ -10,6 +10,7 @@ import {
   FiChevronLeft, FiChevronRight, FiEdit
 } from 'react-icons/fi';
 import { getFileType, getFileIcon, isFileField, getFileUrl, formatLabel, getFileName, looksLikeFile } from '../utils/fileUtils';
+import { useTranslation } from 'react-i18next';
 import { useApp } from '../../../context/AppContext';
 import styles from './ListStaff.module.css';
 
@@ -20,7 +21,13 @@ import Button from '../../../components/Button/Button';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://iqrab3.skoolific.com/api';
 const ListStaff = () => {
-  const { t } = useApp();
+  const { t: tApp } = useApp();
+  const { t: ti18n } = useTranslation();
+  const t = (key, fallback) => {
+    const i18nVal = ti18n(key, { defaultValue: '' });
+    if (i18nVal && i18nVal !== key) return i18nVal;
+    return tApp(key) || fallback || key;
+  };
   const navigate = useNavigate();
   const [staffData, setStaffData] = useState([]);
   const [filteredData, setFilteredData] = useState([]);
@@ -478,8 +485,8 @@ const ListStaff = () => {
         <div className={styles.headerLeft}>
           <div className={styles.headerIcon}><FiUsers /></div>
           <div>
-            <h1>{showInactive ? t('deactivatedStaff') || 'Deactivated Staff' : t('staffDirectory')}</h1>
-            <p>{showInactive ? 'View and manage deactivated staff members' : t('staffDirectoryDesc')}</p>
+            <h1>{showInactive ? t('staff.list.deactivatedTitle', 'Deactivated Staff') : t('staff.list.title', 'Staff Directory')}</h1>
+            <p>{showInactive ? t('staff.list.deactivatedDesc', 'View and manage deactivated staff members') : t('staff.list.subtitle', 'Browse and manage staff records')}</p>
           </div>
         </div>
         <div className={styles.headerStats}>

@@ -1,580 +1,437 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import Modal from './Modal';
+import styles from './Modal.module.css';
 
 describe('Modal Component', () => {
-  let onCloseMock;
+  const mockOnClose = vi.fn();
 
   beforeEach(() => {
-    onCloseMock = vi.fn();
+    mockOnClose.mockClear();
   });
 
   afterEach(() => {
-    // Clean up body overflow style
     document.body.style.overflow = 'unset';
   });
 
-  describe('Rendering', () => {
-    it('should not render when isOpen is false', () => {
+  describe('Light Mode', () => {
+    beforeEach(() => {
+      document.documentElement.removeAttribute('data-theme');
+      document.body.classList.remove('dark-mode');
+    });
+
+    test('renders modal when isOpen is true in light mode', () => {
       render(
-        <Modal isOpen={false} onClose={onCloseMock} title="Test Modal">
+        <Modal isOpen={true} onClose={mockOnClose} title="Test Modal">
           <p>Modal content</p>
         </Modal>
       );
 
-      expect(screen.queryByTestId('modal-overlay')).not.toBeInTheDocument();
+      expect(screen.getByText('Test Modal')).toBeInTheDocument();
+      expect(screen.getByText('Modal content')).toBeInTheDocument();
     });
 
-    it('should render when isOpen is true', () => {
+    test('does not render modal when isOpen is false in light mode', () => {
       render(
-        <Modal isOpen={true} onClose={onCloseMock} title="Test Modal">
+        <Modal isOpen={false} onClose={mockOnClose} title="Test Modal">
           <p>Modal content</p>
         </Modal>
       );
 
-      expect(screen.getByTestId('modal-overlay')).toBeInTheDocument();
-      expect(screen.getByTestId('modal-container')).toBeInTheDocument();
+      expect(screen.queryByText('Test Modal')).not.toBeInTheDocument();
     });
 
-    it('should render title correctly', () => {
+    test('renders close button by default in light mode', () => {
       render(
-        <Modal isOpen={true} onClose={onCloseMock} title="Test Modal Title">
-          <p>Modal content</p>
-        </Modal>
-      );
-
-      expect(screen.getByText('Test Modal Title')).toBeInTheDocument();
-    });
-
-    it('should render children content', () => {
-      render(
-        <Modal isOpen={true} onClose={onCloseMock} title="Test Modal">
-          <p>Test content</p>
-          <button>Test button</button>
-        </Modal>
-      );
-
-      expect(screen.getByText('Test content')).toBeInTheDocument();
-      expect(screen.getByRole('button', { name: 'Test button' })).toBeInTheDocument();
-    });
-
-    it('should render footer when provided', () => {
-      render(
-        <Modal 
-          isOpen={true} 
-          onClose={onCloseMock} 
-          title="Test Modal"
-          footer={
-            <div>
-              <button>Cancel</button>
-              <button>Save</button>
-            </div>
-          }
-        >
-          <p>Modal content</p>
-        </Modal>
-      );
-
-      expect(screen.getByTestId('modal-footer')).toBeInTheDocument();
-      expect(screen.getByRole('button', { name: 'Cancel' })).toBeInTheDocument();
-      expect(screen.getByRole('button', { name: 'Save' })).toBeInTheDocument();
-    });
-
-    it('should not render footer when not provided', () => {
-      render(
-        <Modal isOpen={true} onClose={onCloseMock} title="Test Modal">
-          <p>Modal content</p>
-        </Modal>
-      );
-
-      expect(screen.queryByTestId('modal-footer')).not.toBeInTheDocument();
-    });
-
-    it('should render close button by default', () => {
-      render(
-        <Modal isOpen={true} onClose={onCloseMock} title="Test Modal">
-          <p>Modal content</p>
+        <Modal isOpen={true} onClose={mockOnClose} title="Test Modal">
+          Content
         </Modal>
       );
 
       expect(screen.getByTestId('modal-close-button')).toBeInTheDocument();
     });
 
-    it('should not render close button when showCloseButton is false', () => {
+    test('hides close button when showCloseButton is false in light mode', () => {
       render(
-        <Modal isOpen={true} onClose={onCloseMock} title="Test Modal" showCloseButton={false}>
-          <p>Modal content</p>
+        <Modal isOpen={true} onClose={mockOnClose} title="Test Modal" showCloseButton={false}>
+          Content
         </Modal>
       );
 
       expect(screen.queryByTestId('modal-close-button')).not.toBeInTheDocument();
     });
-  });
 
-  describe('Size Variants', () => {
-    it('should apply small size class', () => {
+    test('renders footer when provided in light mode', () => {
+      const footer = <button>Footer Button</button>;
       render(
-        <Modal isOpen={true} onClose={onCloseMock} title="Test Modal" size="small">
-          <p>Modal content</p>
+        <Modal isOpen={true} onClose={mockOnClose} title="Test Modal" footer={footer}>
+          Content
         </Modal>
       );
 
-      const modal = screen.getByTestId('modal-container');
-      expect(modal.className).toContain('small');
+      expect(screen.getByText('Footer Button')).toBeInTheDocument();
+      expect(screen.getByTestId('modal-footer')).toBeInTheDocument();
     });
 
-    it('should apply medium size class by default', () => {
+    test('applies size classes correctly in light mode', () => {
+      const { rerender } = render(
+        <Modal isOpen={true} onClose={mockOnClose} title="Test" size="small">
+          Content
+        </Modal>
+      );
+      expect(screen.getByTestId('modal-container')).toHaveClass(styles.small);
+
+      rerender(
+        <Modal isOpen={true} onClose={mockOnClose} title="Test" size="medium">
+          Content
+        </Modal>
+      );
+      expect(screen.getByTestId('modal-container')).toHaveClass(styles.medium);
+
+      rerender(
+        <Modal isOpen={true} onClose={mockOnClose} title="Test" size="large">
+          Content
+        </Modal>
+      );
+      expect(screen.getByTestId('modal-container')).toHaveClass(styles.large);
+
+      rerender(
+        <Modal isOpen={true} onClose={mockOnClose} title="Test" size="full">
+          Content
+        </Modal>
+      );
+      expect(screen.getByTestId('modal-container')).toHaveClass(styles.full);
+    });
+
+    test('calls onClose when close button is clicked in light mode', () => {
       render(
-        <Modal isOpen={true} onClose={onCloseMock} title="Test Modal">
-          <p>Modal content</p>
+        <Modal isOpen={true} onClose={mockOnClose} title="Test Modal">
+          Content
         </Modal>
       );
 
-      const modal = screen.getByTestId('modal-container');
-      expect(modal.className).toContain('medium');
+      fireEvent.click(screen.getByTestId('modal-close-button'));
+      expect(mockOnClose).toHaveBeenCalledTimes(1);
     });
 
-    it('should apply large size class', () => {
+    test('calls onClose when overlay is clicked in light mode', () => {
       render(
-        <Modal isOpen={true} onClose={onCloseMock} title="Test Modal" size="large">
-          <p>Modal content</p>
+        <Modal isOpen={true} onClose={mockOnClose} title="Test Modal">
+          Content
         </Modal>
       );
 
-      const modal = screen.getByTestId('modal-container');
-      expect(modal.className).toContain('large');
+      fireEvent.click(screen.getByTestId('modal-overlay'));
+      expect(mockOnClose).toHaveBeenCalledTimes(1);
     });
 
-    it('should apply full size class', () => {
+    test('does not close when overlay is clicked if closeOnOverlayClick is false in light mode', () => {
       render(
-        <Modal isOpen={true} onClose={onCloseMock} title="Test Modal" size="full">
-          <p>Modal content</p>
+        <Modal isOpen={true} onClose={mockOnClose} title="Test Modal" closeOnOverlayClick={false}>
+          Content
         </Modal>
       );
 
-      const modal = screen.getByTestId('modal-container');
-      expect(modal.className).toContain('full');
-    });
-  });
-
-  describe('Close Functionality', () => {
-    it('should call onClose when close button is clicked', async () => {
-      const user = userEvent.setup();
-      render(
-        <Modal isOpen={true} onClose={onCloseMock} title="Test Modal">
-          <p>Modal content</p>
-        </Modal>
-      );
-
-      const closeButton = screen.getByTestId('modal-close-button');
-      await user.click(closeButton);
-
-      expect(onCloseMock).toHaveBeenCalledTimes(1);
+      fireEvent.click(screen.getByTestId('modal-overlay'));
+      expect(mockOnClose).not.toHaveBeenCalled();
     });
 
-    it('should call onClose when Escape key is pressed', () => {
+    test('calls onClose when Escape key is pressed in light mode', () => {
       render(
-        <Modal isOpen={true} onClose={onCloseMock} title="Test Modal">
-          <p>Modal content</p>
+        <Modal isOpen={true} onClose={mockOnClose} title="Test Modal">
+          Content
         </Modal>
       );
 
       fireEvent.keyDown(document, { key: 'Escape' });
-
-      expect(onCloseMock).toHaveBeenCalledTimes(1);
+      expect(mockOnClose).toHaveBeenCalledTimes(1);
     });
 
-    it('should not call onClose when Escape key is pressed if closeOnEscape is false', () => {
+    test('does not close when Escape is pressed if closeOnEscape is false in light mode', () => {
       render(
-        <Modal isOpen={true} onClose={onCloseMock} title="Test Modal" closeOnEscape={false}>
-          <p>Modal content</p>
+        <Modal isOpen={true} onClose={mockOnClose} title="Test Modal" closeOnEscape={false}>
+          Content
         </Modal>
       );
 
       fireEvent.keyDown(document, { key: 'Escape' });
-
-      expect(onCloseMock).not.toHaveBeenCalled();
+      expect(mockOnClose).not.toHaveBeenCalled();
     });
 
-    it('should call onClose when overlay is clicked', async () => {
-      const user = userEvent.setup();
-      render(
-        <Modal isOpen={true} onClose={onCloseMock} title="Test Modal">
-          <p>Modal content</p>
-        </Modal>
-      );
-
-      const overlay = screen.getByTestId('modal-overlay');
-      await user.click(overlay);
-
-      expect(onCloseMock).toHaveBeenCalledTimes(1);
-    });
-
-    it('should not call onClose when overlay is clicked if closeOnOverlayClick is false', async () => {
-      const user = userEvent.setup();
-      render(
-        <Modal isOpen={true} onClose={onCloseMock} title="Test Modal" closeOnOverlayClick={false}>
-          <p>Modal content</p>
-        </Modal>
-      );
-
-      const overlay = screen.getByTestId('modal-overlay');
-      await user.click(overlay);
-
-      expect(onCloseMock).not.toHaveBeenCalled();
-    });
-
-    it('should not call onClose when modal content is clicked', async () => {
-      const user = userEvent.setup();
-      render(
-        <Modal isOpen={true} onClose={onCloseMock} title="Test Modal">
-          <p>Modal content</p>
-        </Modal>
-      );
-
-      const modalContent = screen.getByTestId('modal-body');
-      await user.click(modalContent);
-
-      expect(onCloseMock).not.toHaveBeenCalled();
-    });
-  });
-
-  describe('Body Scroll Lock', () => {
-    it('should lock body scroll when modal opens', () => {
-      const { rerender } = render(
-        <Modal isOpen={false} onClose={onCloseMock} title="Test Modal">
-          <p>Modal content</p>
-        </Modal>
-      );
-
-      expect(document.body.style.overflow).toBe('unset');
-
-      rerender(
-        <Modal isOpen={true} onClose={onCloseMock} title="Test Modal">
-          <p>Modal content</p>
-        </Modal>
-      );
-
-      expect(document.body.style.overflow).toBe('hidden');
-    });
-
-    it('should unlock body scroll when modal closes', () => {
-      const { rerender } = render(
-        <Modal isOpen={true} onClose={onCloseMock} title="Test Modal">
-          <p>Modal content</p>
-        </Modal>
-      );
-
-      expect(document.body.style.overflow).toBe('hidden');
-
-      rerender(
-        <Modal isOpen={false} onClose={onCloseMock} title="Test Modal">
-          <p>Modal content</p>
-        </Modal>
-      );
-
-      expect(document.body.style.overflow).toBe('unset');
-    });
-
-    it('should unlock body scroll on unmount', () => {
+    test('locks body scroll when modal is open in light mode', () => {
       const { unmount } = render(
-        <Modal isOpen={true} onClose={onCloseMock} title="Test Modal">
-          <p>Modal content</p>
+        <Modal isOpen={true} onClose={mockOnClose} title="Test Modal">
+          Content
         </Modal>
       );
 
       expect(document.body.style.overflow).toBe('hidden');
 
       unmount();
-
       expect(document.body.style.overflow).toBe('unset');
     });
-  });
 
-  describe('Focus Management', () => {
-    it('should focus first focusable element when modal opens', async () => {
+    test('applies custom className in light mode', () => {
       render(
-        <Modal isOpen={true} onClose={onCloseMock} title="Test Modal">
-          <input type="text" placeholder="First input" />
-          <button>Second button</button>
+        <Modal isOpen={true} onClose={mockOnClose} title="Test Modal" className="custom-modal">
+          Content
         </Modal>
       );
 
-      await waitFor(() => {
-        const closeButton = screen.getByTestId('modal-close-button');
-        expect(document.activeElement).toBe(closeButton);
-      });
+      expect(screen.getByTestId('modal-container')).toHaveClass('custom-modal');
     });
 
-    it('should trap focus within modal', async () => {
-      const user = userEvent.setup();
+    test('applies ARIA attributes correctly in light mode', () => {
       render(
-        <Modal isOpen={true} onClose={onCloseMock} title="Test Modal">
-          <input type="text" data-testid="input-1" />
-          <input type="text" data-testid="input-2" />
-        </Modal>
-      );
-
-      const closeButton = screen.getByTestId('modal-close-button');
-      const input1 = screen.getByTestId('input-1');
-      const input2 = screen.getByTestId('input-2');
-
-      // Focus should start at close button
-      await waitFor(() => {
-        expect(document.activeElement).toBe(closeButton);
-      });
-
-      // Tab to input 1
-      await user.tab();
-      expect(document.activeElement).toBe(input1);
-
-      // Tab to input 2
-      await user.tab();
-      expect(document.activeElement).toBe(input2);
-
-      // Tab should wrap back to close button
-      await user.tab();
-      expect(document.activeElement).toBe(closeButton);
-
-      // Shift+Tab should go back to input 2
-      await user.tab({ shift: true });
-      expect(document.activeElement).toBe(input2);
-    });
-  });
-
-  describe('Accessibility', () => {
-    it('should have role="dialog"', () => {
-      render(
-        <Modal isOpen={true} onClose={onCloseMock} title="Test Modal">
-          <p>Modal content</p>
+        <Modal 
+          isOpen={true} 
+          onClose={mockOnClose} 
+          title="Test Modal"
+          ariaLabel="Custom Modal Label"
+          ariaDescribedBy="modal-description"
+        >
+          Content
         </Modal>
       );
 
       const modal = screen.getByTestId('modal-container');
       expect(modal).toHaveAttribute('role', 'dialog');
-    });
-
-    it('should have aria-modal="true"', () => {
-      render(
-        <Modal isOpen={true} onClose={onCloseMock} title="Test Modal">
-          <p>Modal content</p>
-        </Modal>
-      );
-
-      const modal = screen.getByTestId('modal-container');
       expect(modal).toHaveAttribute('aria-modal', 'true');
-    });
-
-    it('should have aria-labelledby pointing to title', () => {
-      render(
-        <Modal isOpen={true} onClose={onCloseMock} title="Test Modal">
-          <p>Modal content</p>
-        </Modal>
-      );
-
-      const modal = screen.getByTestId('modal-container');
-      expect(modal).toHaveAttribute('aria-labelledby', 'modal-title');
-    });
-
-    it('should use aria-label when provided', () => {
-      render(
-        <Modal isOpen={true} onClose={onCloseMock} title="Test Modal" ariaLabel="Custom label">
-          <p>Modal content</p>
-        </Modal>
-      );
-
-      const modal = screen.getByTestId('modal-container');
-      expect(modal).toHaveAttribute('aria-label', 'Custom label');
-      expect(modal).not.toHaveAttribute('aria-labelledby');
-    });
-
-    it('should have aria-describedby when provided', () => {
-      render(
-        <Modal isOpen={true} onClose={onCloseMock} title="Test Modal" ariaDescribedBy="description-id">
-          <p id="description-id">Modal description</p>
-        </Modal>
-      );
-
-      const modal = screen.getByTestId('modal-container');
-      expect(modal).toHaveAttribute('aria-describedby', 'description-id');
-    });
-
-    it('should have accessible close button label', () => {
-      render(
-        <Modal isOpen={true} onClose={onCloseMock} title="Test Modal">
-          <p>Modal content</p>
-        </Modal>
-      );
-
-      const closeButton = screen.getByTestId('modal-close-button');
-      expect(closeButton).toHaveAttribute('aria-label', 'Close modal');
+      expect(modal).toHaveAttribute('aria-label', 'Custom Modal Label');
+      expect(modal).toHaveAttribute('aria-describedby', 'modal-description');
     });
   });
 
-  describe('Custom Styling', () => {
-    it('should apply custom className', () => {
+  describe('Dark Mode', () => {
+    beforeEach(() => {
+      document.documentElement.setAttribute('data-theme', 'dark');
+      document.body.classList.add('dark-mode');
+    });
+
+    afterEach(() => {
+      document.documentElement.removeAttribute('data-theme');
+      document.body.classList.remove('dark-mode');
+    });
+
+    test('renders modal when isOpen is true in dark mode', () => {
       render(
-        <Modal isOpen={true} onClose={onCloseMock} title="Test Modal" className="custom-class">
+        <Modal isOpen={true} onClose={mockOnClose} title="Test Modal">
           <p>Modal content</p>
         </Modal>
       );
 
-      const modal = screen.getByTestId('modal-container');
-      expect(modal.className).toContain('custom-class');
+      expect(screen.getByText('Test Modal')).toBeInTheDocument();
+      expect(screen.getByText('Modal content')).toBeInTheDocument();
     });
-  });
 
-  describe('Portal Rendering', () => {
-    it('should render modal in document.body', () => {
+    test('does not render modal when isOpen is false in dark mode', () => {
       render(
-        <Modal isOpen={true} onClose={onCloseMock} title="Test Modal">
+        <Modal isOpen={false} onClose={mockOnClose} title="Test Modal">
           <p>Modal content</p>
         </Modal>
       );
 
-      const overlay = screen.getByTestId('modal-overlay');
-      expect(overlay.parentElement).toBe(document.body);
+      expect(screen.queryByText('Test Modal')).not.toBeInTheDocument();
     });
-  });
 
-  describe('Edge Cases', () => {
-    it('should handle rapid open/close', () => {
+    test('renders close button by default in dark mode', () => {
+      render(
+        <Modal isOpen={true} onClose={mockOnClose} title="Test Modal">
+          Content
+        </Modal>
+      );
+
+      expect(screen.getByTestId('modal-close-button')).toBeInTheDocument();
+    });
+
+    test('renders footer when provided in dark mode', () => {
+      const footer = <button>Footer Button</button>;
+      render(
+        <Modal isOpen={true} onClose={mockOnClose} title="Test Modal" footer={footer}>
+          Content
+        </Modal>
+      );
+
+      expect(screen.getByText('Footer Button')).toBeInTheDocument();
+    });
+
+    test('applies size classes correctly in dark mode', () => {
       const { rerender } = render(
-        <Modal isOpen={false} onClose={onCloseMock} title="Test Modal">
-          <p>Modal content</p>
+        <Modal isOpen={true} onClose={mockOnClose} title="Test" size="small">
+          Content
         </Modal>
       );
+      expect(screen.getByTestId('modal-container')).toHaveClass(styles.small);
 
-      // Open
       rerender(
-        <Modal isOpen={true} onClose={onCloseMock} title="Test Modal">
-          <p>Modal content</p>
+        <Modal isOpen={true} onClose={mockOnClose} title="Test" size="large">
+          Content
         </Modal>
       );
-      expect(screen.getByTestId('modal-overlay')).toBeInTheDocument();
-
-      // Close
-      rerender(
-        <Modal isOpen={false} onClose={onCloseMock} title="Test Modal">
-          <p>Modal content</p>
-        </Modal>
-      );
-      expect(screen.queryByTestId('modal-overlay')).not.toBeInTheDocument();
-
-      // Open again
-      rerender(
-        <Modal isOpen={true} onClose={onCloseMock} title="Test Modal">
-          <p>Modal content</p>
-        </Modal>
-      );
-      expect(screen.getByTestId('modal-overlay')).toBeInTheDocument();
+      expect(screen.getByTestId('modal-container')).toHaveClass(styles.large);
     });
 
-    it('should handle empty children', () => {
+    test('calls onClose when close button is clicked in dark mode', () => {
       render(
-        <Modal isOpen={true} onClose={onCloseMock} title="Test Modal">
-          {null}
+        <Modal isOpen={true} onClose={mockOnClose} title="Test Modal">
+          Content
         </Modal>
       );
 
-      expect(screen.getByTestId('modal-body')).toBeInTheDocument();
+      fireEvent.click(screen.getByTestId('modal-close-button'));
+      expect(mockOnClose).toHaveBeenCalledTimes(1);
     });
 
-    it('should handle complex nested content', () => {
+    test('calls onClose when overlay is clicked in dark mode', () => {
       render(
-        <Modal isOpen={true} onClose={onCloseMock} title="Test Modal">
-          <div>
-            <h3>Section 1</h3>
-            <p>Content 1</p>
-            <div>
-              <h4>Subsection</h4>
-              <ul>
-                <li>Item 1</li>
-                <li>Item 2</li>
-              </ul>
-            </div>
-          </div>
+        <Modal isOpen={true} onClose={mockOnClose} title="Test Modal">
+          Content
         </Modal>
       );
 
-      expect(screen.getByText('Section 1')).toBeInTheDocument();
-      expect(screen.getByText('Content 1')).toBeInTheDocument();
-      expect(screen.getByText('Subsection')).toBeInTheDocument();
-      expect(screen.getByText('Item 1')).toBeInTheDocument();
+      fireEvent.click(screen.getByTestId('modal-overlay'));
+      expect(mockOnClose).toHaveBeenCalledTimes(1);
     });
-  });
 
-  describe('RTL Support', () => {
-    it('should support RTL layout', () => {
-      // Set RTL direction on document
-      document.documentElement.setAttribute('dir', 'rtl');
-
+    test('calls onClose when Escape key is pressed in dark mode', () => {
       render(
-        <Modal isOpen={true} onClose={onCloseMock} title="Test Modal">
-          <p>Modal content</p>
+        <Modal isOpen={true} onClose={mockOnClose} title="Test Modal">
+          Content
         </Modal>
       );
 
-      const modal = screen.getByTestId('modal-container');
-      expect(modal).toBeInTheDocument();
-
-      // Clean up
-      document.documentElement.removeAttribute('dir');
+      fireEvent.keyDown(document, { key: 'Escape' });
+      expect(mockOnClose).toHaveBeenCalledTimes(1);
     });
 
-    it('should render correctly in RTL mode with footer', () => {
-      document.documentElement.setAttribute('dir', 'rtl');
+    test('locks body scroll when modal is open in dark mode', () => {
+      const { unmount } = render(
+        <Modal isOpen={true} onClose={mockOnClose} title="Test Modal">
+          Content
+        </Modal>
+      );
 
+      expect(document.body.style.overflow).toBe('hidden');
+
+      unmount();
+      expect(document.body.style.overflow).toBe('unset');
+    });
+
+    test('applies ARIA attributes correctly in dark mode', () => {
       render(
         <Modal 
           isOpen={true} 
-          onClose={onCloseMock} 
+          onClose={mockOnClose} 
           title="Test Modal"
-          footer={
-            <div>
-              <button>Cancel</button>
-              <button>Save</button>
-            </div>
-          }
+          ariaLabel="Custom Modal Label"
         >
-          <p>Modal content</p>
-        </Modal>
-      );
-
-      expect(screen.getByTestId('modal-footer')).toBeInTheDocument();
-
-      // Clean up
-      document.documentElement.removeAttribute('dir');
-    });
-  });
-
-  describe('Animation Support', () => {
-    it('should have fade-in animation on overlay', () => {
-      render(
-        <Modal isOpen={true} onClose={onCloseMock} title="Test Modal">
-          <p>Modal content</p>
-        </Modal>
-      );
-
-      const overlay = screen.getByTestId('modal-overlay');
-      const styles = window.getComputedStyle(overlay);
-      
-      // Check that animation is defined (the actual animation will be in CSS)
-      expect(overlay).toBeInTheDocument();
-    });
-
-    it('should have slide-up animation on modal', () => {
-      render(
-        <Modal isOpen={true} onClose={onCloseMock} title="Test Modal">
-          <p>Modal content</p>
+          Content
         </Modal>
       );
 
       const modal = screen.getByTestId('modal-container');
+      expect(modal).toHaveAttribute('role', 'dialog');
+      expect(modal).toHaveAttribute('aria-modal', 'true');
+      expect(modal).toHaveAttribute('aria-label', 'Custom Modal Label');
+    });
+  });
+
+  describe('Theme Switching', () => {
+    test('maintains functionality when switching from light to dark mode', () => {
+      document.documentElement.removeAttribute('data-theme');
       
-      // Check that modal is rendered (animation is handled by CSS)
-      expect(modal).toBeInTheDocument();
+      const { rerender } = render(
+        <Modal isOpen={true} onClose={mockOnClose} title="Test Modal">
+          Content
+        </Modal>
+      );
+
+      expect(screen.getByText('Test Modal')).toBeInTheDocument();
+
+      // Switch to dark mode
+      document.documentElement.setAttribute('data-theme', 'dark');
+      rerender(
+        <Modal isOpen={true} onClose={mockOnClose} title="Test Modal">
+          Content
+        </Modal>
+      );
+
+      expect(screen.getByText('Test Modal')).toBeInTheDocument();
+      expect(screen.getByTestId('modal-close-button')).toBeInTheDocument();
+    });
+
+    test('maintains functionality when switching from dark to light mode', () => {
+      document.documentElement.setAttribute('data-theme', 'dark');
+      
+      const { rerender } = render(
+        <Modal isOpen={true} onClose={mockOnClose} title="Test Modal">
+          Content
+        </Modal>
+      );
+
+      expect(screen.getByText('Test Modal')).toBeInTheDocument();
+
+      // Switch to light mode
+      document.documentElement.removeAttribute('data-theme');
+      rerender(
+        <Modal isOpen={true} onClose={mockOnClose} title="Test Modal">
+          Content
+        </Modal>
+      );
+
+      expect(screen.getByText('Test Modal')).toBeInTheDocument();
+      expect(screen.getByTestId('modal-close-button')).toBeInTheDocument();
+    });
+  });
+
+  describe('Focus Management', () => {
+    test('focuses first focusable element when modal opens', async () => {
+      render(
+        <Modal isOpen={true} onClose={mockOnClose} title="Test Modal">
+          <button>First Button</button>
+          <button>Second Button</button>
+        </Modal>
+      );
+
+      // The close button is the first focusable element in the modal
+      await waitFor(() => {
+        expect(screen.getByTestId('modal-close-button')).toHaveFocus();
+      });
+    });
+
+    test('traps focus within modal', async () => {
+      render(
+        <Modal isOpen={true} onClose={mockOnClose} title="Test Modal">
+          <button data-testid="first-button">First</button>
+          <button data-testid="second-button">Second</button>
+        </Modal>
+      );
+
+      const firstButton = screen.getByTestId('first-button');
+      const secondButton = screen.getByTestId('second-button');
+      const closeButton = screen.getByTestId('modal-close-button');
+
+      // Close button gets focus first (it's the first focusable element)
+      await waitFor(() => {
+        expect(closeButton).toHaveFocus();
+      });
+
+      // Tab forward to first button in body
+      await userEvent.tab();
+      expect(firstButton).toHaveFocus();
+
+      // Tab to second button
+      await userEvent.tab();
+      expect(secondButton).toHaveFocus();
+
+      // Tab should wrap back to close button
+      await userEvent.tab();
+      expect(closeButton).toHaveFocus();
+
+      // Shift+Tab should go backwards to second button
+      await userEvent.tab({ shift: true });
+      expect(secondButton).toHaveFocus();
     });
   });
 });

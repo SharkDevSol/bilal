@@ -1,10 +1,12 @@
-// Updated PAGE/Home.jsx - With AppContext integration and permission filtering
+// Updated PAGE/Home.jsx - With new Sidebar and Header components
 import { useState, useEffect, useMemo } from "react";
 import { Outlet, Link, useLocation, useNavigate } from "react-router-dom";
 import styles from "./Home.module.css";
 import { motion, AnimatePresence } from "framer-motion";
 import { useApp } from "../context/AppContext";
 import { filterNavByPermissions } from "../utils/permissionUtils";
+import Sidebar from "../COMPONENTS/Sidebar/Sidebar";
+import Header from "../COMPONENTS/Header/Header";
 import { 
   FiHome, FiUser, FiUsers, FiBook, FiCalendar, 
   FiMessageSquare, FiFileText, FiSettings, 
@@ -14,33 +16,72 @@ import {
   FiSearch, FiAward,
   FiPieChart, FiDatabase,
   FiCheckCircle, FiDollarSign, FiTrendingUp,
-  FiShoppingCart, FiPackage, FiTool, FiClock, FiBell, FiRefreshCw, FiAlertCircle
+  FiShoppingCart, FiPackage, FiTool, FiClock, FiBell, FiRefreshCw, FiAlertCircle, FiMoon, FiSun
 } from "react-icons/fi";
 import { FaGraduationCap, FaChalkboardTeacher, FaRegCalendarAlt } from "react-icons/fa";
+import { Home as HomeIcon, Users, BookOpen, DollarSign, Package, Briefcase, Settings } from 'lucide-react';
 
 const Home = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { theme, profile, t } = useApp();
+  const { theme, profile, t, updateTheme } = useApp();
   
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [expandedSections, setExpandedSections] = useState({
-    registration: true,
-    lists: true,
-    finance: true,
+    registration: false,
+    lists: false,
+    finance: false,
     inventory: false,
     assets: false,
     hr: false,
-    academic: true,
-    administration: true
+    academic: false,
+    administration: false
   });
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const [profileOpen, setProfileOpen] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [notifications] = useState([
+    {
+      id: '1',
+      type: 'info',
+      title: 'New Student Registered',
+      message: 'John Doe has been registered',
+      timestamp: new Date(),
+      read: false
+    },
+    {
+      id: '2',
+      type: 'warning',
+      title: 'Payment Due',
+      message: '5 students have pending payments',
+      timestamp: new Date(),
+      read: false
+    },
+    {
+      id: '3',
+      type: 'success',
+      title: 'Report Generated',
+      message: 'Monthly report is ready',
+      timestamp: new Date(),
+      read: true
+    }
+  ]);
 
   const handleRefresh = () => {
     setIsRefreshing(true);
     window.location.reload();
+  };
+
+  const toggleDarkMode = () => {
+    const newMode = theme.mode === 'light' ? 'dark' : 'light';
+    updateTheme({ ...theme, mode: newMode });
+    // Also update the data-theme attribute on the document
+    document.documentElement.setAttribute('data-theme', newMode);
+  };
+
+  const handleSidebarToggle = () => {
+    setSidebarCollapsed(!sidebarCollapsed);
   };
 
   useEffect(() => {
@@ -74,23 +115,23 @@ const Home = () => {
   const navItems = [
     {
       path: "/",
-      icon: <FiHome className={styles.navIcon} />,
+      icon: <FiHome />,
       label: t('dashboard'),
       section: null,
     },
     {
       section: t('registration'),
       sectionKey: 'registration',
-      icon: <FiUser className={styles.sectionIcon} />,
+      icon: <FiUser />,
       items: [
         {
           path: "/create-register-student",
-          icon: <FaGraduationCap className={styles.navIcon} />,
+          icon: <FaGraduationCap />,
           label: t('registerStudent'),
         },
         {
           path: "/create-register-staff",
-          icon: <FaChalkboardTeacher className={styles.navIcon} />,
+          icon: <FaChalkboardTeacher />,
           label: t('registerStaff'),
         },
       ],
@@ -98,21 +139,21 @@ const Home = () => {
     {
       section: t('lists'),
       sectionKey: 'lists',
-      icon: <FiDatabase className={styles.sectionIcon} />,
+      icon: <FiDatabase />,
       items: [
         {
           path: "/list-student",
-          icon: <FiUsers className={styles.navIcon} />,
+          icon: <FiUsers />,
           label: t('students'),
         },
         {
           path: "/list-staff",
-          icon: <FiUsers className={styles.navIcon} />,
+          icon: <FiUsers />,
           label: t('staff'),
         },
         {
           path: "/list-guardian",
-          icon: <FiUsers className={styles.navIcon} />,
+          icon: <FiUsers />,
           label: t('guardians'),
         },
       ],
@@ -120,56 +161,56 @@ const Home = () => {
     {
       section: 'Finance Management',
       sectionKey: 'finance',
-      icon: <FiDollarSign className={styles.sectionIcon} />,
+      icon: <FiDollarSign />,
       items: [
         {
           path: "/finance",
-          icon: <FiPieChart className={styles.navIcon} />,
+          icon: <FiPieChart />,
           label: 'Finance Dashboard',
         },
         {
           path: "/finance/fee-management",
-          icon: <FiDollarSign className={styles.navIcon} />,
+          icon: <FiDollarSign />,
           label: 'Fee Management',
         },
         {
           path: "/finance/fee-types",
-          icon: <FiDollarSign className={styles.navIcon} />,
+          icon: <FiDollarSign />,
           label: 'Fee Types',
         },
         {
           path: "/finance/monthly-payments",
-          icon: <FiCalendar className={styles.navIcon} />,
+          icon: <FiCalendar />,
           label: 'Monthly Payments',
         },
         {
           path: "/finance/monthly-payment-settings",
-          icon: <FiSettings className={styles.navIcon} />,
+          icon: <FiSettings />,
           label: 'Payment Settings',
         },
         {
           path: "/finance/expenses",
-          icon: <FiTrendingUp className={styles.navIcon} />,
+          icon: <FiTrendingUp />,
           label: 'Expenses',
         },
         {
           path: "/finance/expense-approval",
-          icon: <FiCheckCircle className={styles.navIcon} />,
+          icon: <FiCheckCircle />,
           label: 'Expense Approval',
         },
         {
           path: "/finance/budgets",
-          icon: <FiPieChart className={styles.navIcon} />,
+          icon: <FiPieChart />,
           label: 'Budgets',
         },
         {
           path: "/finance/reports",
-          icon: <FiFileText className={styles.navIcon} />,
+          icon: <FiFileText />,
           label: 'Financial Reports',
         },
         {
           path: "/finance/inventory-integration",
-          icon: <FiPackage className={styles.navIcon} />,
+          icon: <FiPackage />,
           label: '🔗 Inventory Integration',
         },
       ],
@@ -177,36 +218,36 @@ const Home = () => {
     {
       section: 'Inventory & Stock',
       sectionKey: 'inventory',
-      icon: <FiPackage className={styles.sectionIcon} />,
+      icon: <FiPackage />,
       items: [
         {
           path: "/inventory",
-          icon: <FiShoppingCart className={styles.navIcon} />,
+          icon: <FiShoppingCart />,
           label: 'Inventory Dashboard',
         },
         {
           path: "/inventory/items",
-          icon: <FiPackage className={styles.navIcon} />,
+          icon: <FiPackage />,
           label: 'Items',
         },
         {
           path: "/inventory/purchase-orders",
-          icon: <FiFileText className={styles.navIcon} />,
+          icon: <FiFileText />,
           label: 'Purchase Orders',
         },
         {
           path: "/inventory/movements",
-          icon: <FiTool className={styles.navIcon} />,
+          icon: <FiTool />,
           label: 'Stock Movements',
         },
         {
           path: "/inventory/suppliers",
-          icon: <FiUsers className={styles.navIcon} />,
+          icon: <FiUsers />,
           label: 'Suppliers',
         },
         {
           path: "/inventory/reports",
-          icon: <FiPieChart className={styles.navIcon} />,
+          icon: <FiPieChart />,
           label: 'Inventory Reports',
         },
       ],
@@ -214,41 +255,41 @@ const Home = () => {
     {
       section: 'Asset Management',
       sectionKey: 'assets',
-      icon: <FiTool className={styles.sectionIcon} />,
+      icon: <FiTool />,
       items: [
         {
           path: "/assets",
-          icon: <FiPieChart className={styles.navIcon} />,
+          icon: <FiPieChart />,
           label: 'Asset Dashboard',
         },
         {
           path: "/assets/registry",
-          icon: <FiFileText className={styles.navIcon} />,
+          icon: <FiFileText />,
           label: 'Asset Registry',
         },
         {
           path: "/assets/assignments",
-          icon: <FiUsers className={styles.navIcon} />,
+          icon: <FiUsers />,
           label: 'Assignments',
         },
         {
           path: "/assets/maintenance",
-          icon: <FiTool className={styles.navIcon} />,
+          icon: <FiTool />,
           label: 'Maintenance',
         },
         {
           path: "/assets/depreciation",
-          icon: <FiTrendingUp className={styles.navIcon} />,
+          icon: <FiTrendingUp />,
           label: 'Depreciation',
         },
         {
           path: "/assets/disposal",
-          icon: <FiFileText className={styles.navIcon} />,
+          icon: <FiFileText />,
           label: 'Disposal',
         },
         {
           path: "/assets/reports",
-          icon: <FiPieChart className={styles.navIcon} />,
+          icon: <FiPieChart />,
           label: 'Asset Reports',
         },
       ],
@@ -256,61 +297,61 @@ const Home = () => {
     {
       section: 'HR & Staff Management',
       sectionKey: 'hr',
-      icon: <FiUsers className={styles.sectionIcon} />,
+      icon: <FiUsers />,
       items: [
         {
           path: "/hr",
-          icon: <FiPieChart className={styles.navIcon} />,
+          icon: <FiPieChart />,
           label: 'HR Dashboard',
         },
         {
           path: "/hr/salary",
-          icon: <FiDollarSign className={styles.navIcon} />,
+          icon: <FiDollarSign />,
           label: '💰 Salary Management',
         },
         {
           path: "/hr/attendance",
-          icon: <FiCalendar className={styles.navIcon} />,
+          icon: <FiCalendar />,
           label: 'Attendance System',
         },
         {
           path: "/hr/device-status",
-          icon: <FiClock className={styles.navIcon} />,
+          icon: <FiClock />,
           label: '🔌 Device Status',
         },
         {
           path: "/hr/attendance-time-settings",
-          icon: <FiClock className={styles.navIcon} />,
+          icon: <FiClock />,
           label: '⏰ Time & Shift Settings',
         },
         {
           path: "/hr/staff-specific-timing",
-          icon: <FiClock className={styles.navIcon} />,
+          icon: <FiClock />,
           label: '👤 Staff-Specific Timing',
         },
         {
           path: "/hr/attendance-deduction-settings",
-          icon: <FiSettings className={styles.navIcon} />,
+          icon: <FiSettings />,
           label: '⚙️ Attendance Deductions',
         },
         {
           path: "/hr/leave",
-          icon: <FiCalendar className={styles.navIcon} />,
+          icon: <FiCalendar />,
           label: 'Leave Management',
         },
         {
           path: "/hr/payroll",
-          icon: <FiDollarSign className={styles.navIcon} />,
+          icon: <FiDollarSign />,
           label: 'Payroll System',
         },
         {
           path: "/hr/performance",
-          icon: <FiTrendingUp className={styles.navIcon} />,
+          icon: <FiTrendingUp />,
           label: 'Performance',
         },
         {
           path: "/hr/reports",
-          icon: <FiPieChart className={styles.navIcon} />,
+          icon: <FiPieChart />,
           label: 'HR Reports',
         },
       ],
@@ -318,76 +359,76 @@ const Home = () => {
     {
       section: t('academic'),
       sectionKey: 'academic',
-      icon: <FiBook className={styles.sectionIcon} />,
+      icon: <FiBook />,
       items: [
         {
           path: "/evaluation",
-          icon: <FiPieChart className={styles.navIcon} />,
+          icon: <FiPieChart />,
           label: t('evaluation'),
         },
         {
           path: "/evaluation-book",
-          icon: <FiBook className={styles.navIcon} />,
+          icon: <FiBook />,
           label: t('evaluationBook'),
         },
         {
           path: "/evaluation-book/reports",
-          icon: <FiFileText className={styles.navIcon} />,
+          icon: <FiFileText />,
           label: t('evalBookReports'),
         },
         {
           path: "/mark-list-view",
-          icon: <FiFileText className={styles.navIcon} />,
+          icon: <FiFileText />,
           label: t('markLists'),
         },
         {
           path: "/student-attendance-system",
-          icon: <FiCheckCircle className={styles.navIcon} />,
+          icon: <FiCheckCircle />,
           label: '📋 Student Attendance (Weekly)',
         },
         {
           path: "/student-attendance-time-settings",
-          icon: <FiClock className={styles.navIcon} />,
+          icon: <FiClock />,
           label: '⏰ Student Attendance Settings',
         },
         {
           path: "/student-faults",
-          icon: <FiFileText className={styles.navIcon} />,
+          icon: <FiFileText />,
           label: '⚠️ Student Faults',
         },
         {
           path: "/create-mark-list",
-          icon: <FiFilePlus className={styles.navIcon} />,
+          icon: <FiFilePlus />,
           label: t('createMarklist'),
         },
         {
           path: "/ai-test-generator",
-          icon: <FiRefreshCw className={styles.navIcon} />,
+          icon: <FiRefreshCw />,
           label: 'AI Test Generator',
         },
         {
           path: "/report-card",
-          icon: <FiAward className={styles.navIcon} />,
+          icon: <FiAward />,
           label: t('reportCard'),
         },
         {
           path: "/schedule",
-          icon: <FiCalendar className={styles.navIcon} />,
+          icon: <FiCalendar />,
           label: t('schedule'),
         },
         {
           path: "/post",
-          icon: <FiMessageSquare className={styles.navIcon} />,
+          icon: <FiMessageSquare />,
           label: t('post'),
         },
         {
           path: "/tasks",
-          icon: <FiCheckCircle className={styles.navIcon} />,
+          icon: <FiCheckCircle />,
           label: t('tasks'),
         },
         {
           path: "/faults",
-          icon: <FiAlertCircle className={styles.navIcon} />,
+          icon: <FiAlertCircle />,
           label: 'Student Faults',
         },
       ],
@@ -395,36 +436,36 @@ const Home = () => {
     {
       section: t('administration'),
       sectionKey: 'administration',
-      icon: <FiSettings className={styles.sectionIcon} />,
+      icon: <FiSettings />,
       items: [
         {
           path: "/communication",
-          icon: <FiMessageSquare className={styles.navIcon} />,
+          icon: <FiMessageSquare />,
           label: t('communication'),
         },
         {
           path: "/guardian-notifications",
-          icon: <FiBell className={styles.navIcon} />,
+          icon: <FiBell />,
           label: 'Guardian Notifications',
         },
         {
           path: "/class-teacher-assignment",
-          icon: <FaChalkboardTeacher className={styles.navIcon} />,
+          icon: <FaChalkboardTeacher />,
           label: t('classTeachers'),
         },
         {
           path: "/evaluation-book/assignments",
-          icon: <FiUsers className={styles.navIcon} />,
+          icon: <FiUsers />,
           label: t('evalBookAssignments'),
         },
         {
           path: "/settings",
-          icon: <FiSettings className={styles.navIcon} />,
+          icon: <FiSettings />,
           label: t('settings'),
         },
         {
           path: "/admin-sub-accounts",
-          icon: <FiUsers className={styles.navIcon} />,
+          icon: <FiUsers />,
           label: t('subAccounts'),
         },
       ],
@@ -505,314 +546,110 @@ const Home = () => {
     return filtered;
   }, [userPermissions, userType]);
 
+  // Convert navItems to Sidebar component format - Keep sections with children
+  const menuItems = useMemo(() => {
+    const items = [];
+    
+    filteredNavItems.forEach((item, index) => {
+      if (item.path) {
+        // Single item (like Dashboard)
+        items.push({
+          id: `item-${index}`,
+          label: item.label,
+          icon: item.icon,
+          path: item.path,
+          roles: []
+        });
+      } else if (item.items) {
+        // Section with sub-items - create parent with children
+        items.push({
+          id: `section-${index}`,
+          label: item.section,
+          icon: item.icon,
+          path: '#', // No direct path for sections
+          roles: [],
+          children: item.items.map((subItem, subIndex) => ({
+            id: `item-${index}-${subIndex}`,
+            label: subItem.label,
+            icon: subItem.icon,
+            path: subItem.path
+          }))
+        });
+      }
+    });
+    
+    return items;
+  }, [filteredNavItems]);
+
+  // Get active menu item based on current path
+  const activeMenuItem = useMemo(() => {
+    const item = menuItems.find(item => item.path === location.pathname);
+    return item?.id || '';
+  }, [location.pathname, menuItems]);
+
+  // Get page title based on current route
+  const pageTitle = useMemo(() => {
+    const item = menuItems.find(item => item.path === location.pathname);
+    return item?.label || 'Dashboard';
+  }, [location.pathname, menuItems]);
+
+  const handleNavigate = (path) => {
+    navigate(path);
+  };
+
+  const handleSearch = (query) => {
+    console.log('Search:', query);
+    // Implement search functionality
+  };
+
+  const handleNotificationClick = () => {
+    console.log('Notifications clicked');
+    // Implement notification panel
+  };
+
+  const handleProfileClick = () => {
+    navigate('/settings');
+  };
+
   return (
     <div className={styles.container}>
-      {/* Profile Header */}
-      {!isMobile ? (
-        <motion.header 
-          className={styles.profileHeader}
-          initial={{ y: -50, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ type: "spring", stiffness: 300 }}
-          style={{ 
-            background: `linear-gradient(135deg, ${theme.primaryColor}, ${theme.secondaryColor})` 
-          }}
-        >
-          <div className={styles.searchContainer}>
-            <FiSearch className={styles.searchIcon} />
-            <input 
-              type="search" 
-              placeholder={t('search')}
-              className={styles.searchInput}
-            />
-          </div>
-
-          <div className={styles.profileControls}>
-            <motion.button
-              className={styles.refreshBtn}
-              onClick={handleRefresh}
-              disabled={isRefreshing}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              title={t('refresh') || 'Refresh'}
-            >
-              <FiRefreshCw 
-                className={`${styles.refreshIcon} ${isRefreshing ? styles.spinning : ''}`} 
-              />
-            </motion.button>
-
-            <motion.div 
-              className={styles.profileDropdown}
-              onClick={() => setProfileOpen(!profileOpen)}
-              whileHover={{ scale: 1.02 }}
-            >
-              <div className={styles.profileAvatar}>
-                {profile.profileImage ? (
-                  <img src={profile.profileImage} alt="Profile" className={styles.avatarImage} />
-                ) : (
-                  <FiProfile className={styles.avatarIcon} />
-                )}
-              </div>
-              <span className={styles.profileName}>{profile.name}</span>
-              <FiChevronDown 
-                className={`${styles.dropdownArrow} ${profileOpen ? styles.rotated : ''}`} 
-              />
-            </motion.div>
-
-            <AnimatePresence>
-              {profileOpen && (
-                <motion.div
-                  className={styles.dropdownMenu}
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  transition={{ type: "spring", stiffness: 300 }}
-                >
-                  <Link to="/settings" className={styles.dropdownItem}>
-                    <FiProfile className={styles.dropdownIcon} /> {t('myProfile')}
-                  </Link>
-                  <Link to="/settings" className={styles.dropdownItem}>
-                    <FiSettings className={styles.dropdownIcon} /> {t('settings')}
-                  </Link>
-                  <motion.button
-                    onClick={handleLogout}
-                    className={styles.dropdownItem}
-                    whileHover={{ x: 5 }}
-                  >
-                    <FiLogOut className={styles.dropdownIcon} /> {t('logout')}
-                  </motion.button>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-        </motion.header>
-      ) : (
-        <motion.header 
-          className={styles.profileHeader}
-          initial={{ y: -50, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ type: "spring", stiffness: 300 }}
-          style={{ 
-            background: `linear-gradient(135deg, ${theme.primaryColor}, ${theme.secondaryColor})` 
-          }}
-        >
-          <motion.button 
-            className={styles.menuButton}
-            onClick={() => setMobileMenuOpen(true)}
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
-          >
-            <FiMenu />
-          </motion.button>
-
-          <div className={styles.logoText}>Skoolific</div>
-
-          <div className={styles.mobileHeaderControls}>
-            <motion.button
-              className={styles.refreshBtn}
-              onClick={handleRefresh}
-              disabled={isRefreshing}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              title={t('refresh') || 'Refresh'}
-            >
-              <FiRefreshCw 
-                className={`${styles.refreshIcon} ${isRefreshing ? styles.spinning : ''}`} 
-              />
-            </motion.button>
-
-            <motion.div 
-              className={styles.profileDropdown}
-              onClick={() => setProfileOpen(!profileOpen)}
-              whileHover={{ scale: 1.02 }}
-            >
-              <div className={styles.profileAvatar}>
-                {profile.profileImage ? (
-                  <img src={profile.profileImage} alt="Profile" className={styles.avatarImage} />
-                ) : (
-                  <FiProfile className={styles.avatarIcon} />
-                )}
-              </div>
-              <FiChevronDown 
-                className={`${styles.dropdownArrow} ${profileOpen ? styles.rotated : ''}`} 
-              />
-            </motion.div>
-          </div>
-        </motion.header>
-      )}
-
-      {/* Sidebar Navigation */}
-      <motion.nav
-        className={`${styles.sidebar} ${mobileMenuOpen ? styles.mobileOpen : ""}`}
-        initial={{ x: isMobile ? -300 : 0 }}
-        animate={{
-          x: mobileMenuOpen ? 0 : isMobile ? -300 : 0,
-          width: isMobile ? "80%" : "280px",
+      {/* New Sidebar Component */}
+      <Sidebar
+        collapsed={sidebarCollapsed}
+        onToggle={handleSidebarToggle}
+        menuItems={menuItems}
+        activeItem={activeMenuItem}
+        onNavigate={handleNavigate}
+        userRole={userType}
+        branding={{
+          name: 'Skoolific',
+          tagline: 'SCHOOL MANAGEMENT SYSTEM',
+          logo: null
         }}
-        transition={{ type: "spring", stiffness: 300, damping: 30 }}
-        style={{ 
-          background: `linear-gradient(180deg, ${theme.primaryColor}dd, ${theme.secondaryColor}dd)` 
-        }}
-      >
-        <div className={styles.logo}>
-          <motion.h2
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.2 }}
-            className={styles.logoText}
-          >
-            Skoolific
-          </motion.h2>
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 0.8 }}
-            transition={{ delay: 0.3 }}
-            className={styles.logoSubtext}
-          >
-            School Management System
-          </motion.p>
-        </div>
-
-        <ul className={styles.navLinks}>
-          {filteredNavItems.map((item, index) => {
-            if (item.path) {
-              return (
-                <motion.li
-                  key={index}
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                >
-                  <Link
-                    to={item.path}
-                    className={`${styles.navLink} ${
-                      location.pathname === item.path ? styles.active : ""
-                    }`}
-                    style={location.pathname === item.path ? {
-                      background: `linear-gradient(135deg, ${theme.primaryColor}, ${theme.secondaryColor})`
-                    } : {}}
-                  >
-                    <span className={styles.icon}>{item.icon}</span>
-                    <span className={styles.linkText}>{item.label}</span>
-                  </Link>
-                </motion.li>
-              );
-            } else {
-              const sectionKey = item.sectionKey;
-              return (
-                <li key={index} className={styles.navSection}>
-                  <motion.div
-                    className={styles.sectionHeader}
-                    onClick={() => toggleSection(sectionKey)}
-                    whileHover={{ backgroundColor: "rgba(255, 255, 255, 0.05)" }}
-                  >
-                    <div className={styles.sectionTitle}>
-                      <span className={styles.sectionIcon}>{item.icon}</span>
-                      <span>{item.section}</span>
-                    </div>
-                    {expandedSections[sectionKey] ? (
-                      <FiChevronDown className={styles.chevronIcon} />
-                    ) : (
-                      <FiChevronRight className={styles.chevronIcon} />
-                    )}
-                  </motion.div>
-                  <AnimatePresence>
-                    {expandedSections[sectionKey] && (
-                      <motion.ul
-                        initial={{ opacity: 0, height: 0 }}
-                        animate={{ opacity: 1, height: "auto" }}
-                        exit={{ opacity: 0, height: 0 }}
-                        transition={{ duration: 0.3 }}
-                        className={styles.subMenu}
-                      >
-                        {item.items.map((subItem, subIndex) => (
-                          <motion.li 
-                            key={subIndex} 
-                            whileHover={{ x: 5 }}
-                            transition={{ type: "spring", stiffness: 300 }}
-                          >
-                            <Link
-                              to={subItem.path}
-                              className={`${styles.navLink} ${
-                                location.pathname === subItem.path ? styles.active : ""
-                              }`}
-                              style={location.pathname === subItem.path ? {
-                                background: `linear-gradient(135deg, ${theme.primaryColor}, ${theme.secondaryColor})`
-                              } : {}}
-                            >
-                              <span className={styles.icon}>{subItem.icon}</span>
-                              <span className={styles.linkText}>{subItem.label}</span>
-                            </Link>
-                          </motion.li>
-                        ))}
-                      </motion.ul>
-                    )}
-                  </AnimatePresence>
-                </li>
-              );
-            }
-          })}
-        </ul>
-
-        {/* Mobile Profile and Logout */}
-        {isMobile && (
-          <motion.div 
-            className={styles.mobileProfileMenu}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.4 }}
-          >
-            <Link to="/settings" className={styles.mobileProfileLink}>
-              <FiProfile className={styles.mobileMenuIcon} /> {t('myProfile')}
-            </Link>
-            <motion.button 
-              onClick={handleLogout} 
-              className={styles.mobileLogoutBtn}
-              whileHover={{ x: 5 }}
-            >
-              <FiLogOut className={styles.mobileMenuIcon} /> {t('logout')}
-            </motion.button>
-          </motion.div>
-        )}
-      </motion.nav>
-
-      {/* Overlay for mobile menu */}
-      {mobileMenuOpen && isMobile && (
-        <motion.div
-          className={styles.overlay}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          onClick={() => setMobileMenuOpen(false)}
-        />
-      )}
-
-      {/* Mobile Profile Dropdown */}
-      {profileOpen && isMobile && (
-        <motion.div
-          className={styles.mobileProfileDropdown}
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -20 }}
-          transition={{ type: "spring", stiffness: 300 }}
-        >
-          <Link to="/settings" className={styles.dropdownItem}>
-            <FiProfile className={styles.dropdownIcon} /> {t('myProfile')}
-          </Link>
-          <Link to="/settings" className={styles.dropdownItem}>
-            <FiSettings className={styles.dropdownIcon} /> {t('settings')}
-          </Link>
-          <motion.button 
-            onClick={handleLogout} 
-            className={styles.dropdownItem}
-            whileHover={{ x: 5 }}
-          >
-            <FiLogOut className={styles.dropdownIcon} /> {t('logout')}
-          </motion.button>
-        </motion.div>
-      )}
+      />
 
       {/* Main Content Area */}
-      <main className={styles.mainContent}>
+      <main className={`${styles.mainContent} ${sidebarCollapsed ? styles.collapsed : ''}`}>
+        {/* New Header Component */}
+        <Header
+          pageTitle={pageTitle}
+          pageSubtitle={`Welcome back, ${profile?.name || 'User'}! Here's what's happening today.`}
+          onSearch={handleSearch}
+          notifications={notifications}
+          onNotificationClick={handleNotificationClick}
+          user={{
+            name: profile?.name || 'User',
+            role: userType === 'admin' ? 'Administrator' : 'Sub Account',
+            avatar: profile?.profileImage || null
+          }}
+          onLogout={handleLogout}
+          onProfileClick={handleProfileClick}
+          isDarkMode={theme.mode === 'dark'}
+          onToggleDarkMode={toggleDarkMode}
+          sidebarCollapsed={sidebarCollapsed}
+        />
+
+        {/* Page Content */}
         <motion.div
           key={location.pathname}
           initial={{ opacity: 0, y: 20 }}

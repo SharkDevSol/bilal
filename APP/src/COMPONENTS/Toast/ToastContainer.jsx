@@ -11,7 +11,8 @@ import styles from './Toast.module.css';
  * @param {string} props.position - Toast position (top-right, top-left, bottom-right, bottom-left, top-center, bottom-center)
  */
 const ToastContainer = ({ toasts, onRemove, position = 'top-right' }) => {
-  if (toasts.length === 0) return null;
+  // Guard against undefined or null toasts
+  if (!toasts || toasts.length === 0) return null;
 
   const containerClasses = [
     styles.toastContainer,

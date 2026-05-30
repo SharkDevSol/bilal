@@ -1,32 +1,36 @@
-// MarkListView.jsx - Display All Student Marks with All Subjects
-import React, { useState, useEffect, useRef } from 'react';
+// MarkListView.jsx - V2 Mark Lists
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import axios from 'axios';
-import styles from './MarkListView.module.css';
+import { useTranslation } from 'react-i18next';
 import {
-  FaPrint,
-  FaFileExcel,
-  FaFilePdf,
-  FaChartBar,
-  FaSearch,
-  FaUserGraduate,
-  FaBook,
-  FaCalendarAlt,
-  FaSpinner,
-  FaTrophy,
-  FaChartLine,
-  FaCheckCircle,
-  FaTimesCircle,
-} from 'react-icons/fa';
-import { motion, AnimatePresence } from 'framer-motion';
+  BarChart3,
+  BookOpen,
+  Calendar,
+  CheckCircle,
+  FileSpreadsheet,
+  FileText,
+  Loader2,
+  Printer,
+  Search,
+  Trophy,
+  Users,
+  XCircle
+} from 'lucide-react';
 import * as XLSX from 'xlsx';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
-import { useApp } from '../../context/AppContext';
+import styles from './MarkListView.module.css';
+
+import Button from '../../COMPONENTS/Button/Button';
+import Input from '../../COMPONENTS/Input/Input';
+import Select from '../../COMPONENTS/Select/Select';
+import Card from '../../COMPONENTS/Card/Card';
+import StatCard from '../../COMPONENTS/StatCard/StatCard';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://iqrab3.skoolific.com/api';
 
 const MarkListView = () => {
-  const { t, theme } = useApp();
+  const { t } = useTranslation();
   const [classes, setClasses] = useState([]);
   const [subjects, setSubjects] = useState([]);
   const [students, setStudents] = useState([]);
@@ -208,6 +212,28 @@ const MarkListView = () => {
   // Get all subjects from ranking data
   const allSubjects = rankingData?.subjects || [];
 
+  const classOptions = useMemo(
+    () => classes.map((cls) => ({ value: cls, label: cls })),
+    [classes]
+  );
+
+  const subjectOptions = useMemo(
+    () =>
+      subjects.map((sub) => ({
+        value: sub.subject_name,
+        label: sub.subject_name
+      })),
+    [subjects]
+  );
+
+  const termOptions = useMemo(
+    () =>
+      Array.from({ length: termCount }, (_, i) => ({
+        value: String(i + 1),
+        label: t('academic.markLists.term', 'Term {{n}}', { n: i + 1 })
+      })),
+    [termCount, t]
+  );
 
   const exportToExcel = () => {
     if (viewMode === 'subject') {
@@ -266,155 +292,122 @@ const MarkListView = () => {
 
   const printMarkList = () => window.print();
 
+  const studentCount =
+    viewMode === 'subject' ? totalStudents : rankingData?.rankings?.length || 0;
+  const subjectCount = viewMode === 'subject' ? subjects.length : allSubjects.length;
+  const avgDisplay =
+    viewMode === 'subject'
+      ? averageMark
+      : rankingData?.summary?.averageClassScore?.toFixed(1) || 0;
+  const passedCount =
+    viewMode === 'subject'
+      ? passCount
+      : rankingData?.rankings?.filter((r) => r.overallStatus === 'Pass').length || 0;
+  const exportDisabled =
+    (viewMode === 'subject' && sortedStudents.length === 0) ||
+    (viewMode === 'ranking' && !rankingData?.rankings?.length);
+
   if (loading) {
     return (
       <div className={styles.loadingContainer}>
-        <FaSpinner className={styles.spinner} />
-        <p>Loading...</p>
+        <Loader2 className={styles.spinner} size={32} />
+        <p>{t('common.loading', 'Loading...')}</p>
       </div>
     );
   }
 
   return (
-    <motion.div className={styles.container} initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-      {/* Header */}
-      <div className={styles.header}>
-        <div className={styles.headerContent}>
-          <FaChartBar className={styles.headerIcon} />
-          <div>
-            <h1>Student Mark List</h1>
-            <p>View and analyze student academic performance across all subjects</p>
-          </div>
+    <div className={styles.container}>
+      <div className={styles.pageHeader}>
+        <div>
+          <h1 className={styles.pageTitle}>{t('academic.markLists.title', 'Mark Lists')}</h1>
+          <p className={styles.pageSubtitle}>
+            {t('academic.markLists.subtitle', 'View and analyze student performance')}
+          </p>
         </div>
+        <BarChart3 size={28} className={styles.headerIcon} aria-hidden />
       </div>
 
-      {/* View Mode Toggle */}
       <div className={styles.viewToggle}>
-        <button
-          className={`${styles.toggleBtn} ${viewMode === 'ranking' ? styles.active : ''}`}
+        <Button
+          variant={viewMode === 'ranking' ? 'primary' : 'ghost'}
+          icon={<Trophy size={16} />}
           onClick={() => setViewMode('ranking')}
         >
-          <FaTrophy /> All Subjects & Ranking
-        </button>
-        <button
-          className={`${styles.toggleBtn} ${viewMode === 'subject' ? styles.active : ''}`}
+          {t('academic.markLists.allSubjects', 'All Subjects & Ranking')}
+        </Button>
+        <Button
+          variant={viewMode === 'subject' ? 'primary' : 'ghost'}
+          icon={<BookOpen size={16} />}
           onClick={() => setViewMode('subject')}
         >
-          <FaBook /> Single Subject
-        </button>
+          {t('academic.markLists.singleSubject', 'Single Subject')}
+        </Button>
       </div>
 
-      {/* Stats Cards */}
       <div className={styles.statsGrid}>
-        <div className={styles.statCard}>
-          <div className={styles.statIcon}>
-            <FaUserGraduate />
-          </div>
-          <div className={styles.statInfo}>
-            <span className={styles.statValue}>
-              {viewMode === 'subject' ? totalStudents : rankingData?.rankings?.length || 0}
-            </span>
-            <span className={styles.statLabel}>Students</span>
-          </div>
-        </div>
-        <div className={styles.statCard}>
-          <div className={styles.statIcon} style={{ background: '#e3f2fd' }}>
-            <FaBook style={{ color: '#2196f3' }} />
-          </div>
-          <div className={styles.statInfo}>
-            <span className={styles.statValue}>
-              {viewMode === 'subject' ? subjects.length : allSubjects.length}
-            </span>
-            <span className={styles.statLabel}>Subjects</span>
-          </div>
-        </div>
-        <div className={styles.statCard}>
-          <div className={styles.statIcon} style={{ background: '#fff3e0' }}>
-            <FaChartLine style={{ color: '#ff9800' }} />
-          </div>
-          <div className={styles.statInfo}>
-            <span className={styles.statValue}>
-              {viewMode === 'subject' ? averageMark : rankingData?.summary?.averageClassScore?.toFixed(1) || 0}%
-            </span>
-            <span className={styles.statLabel}>Class Average</span>
-          </div>
-        </div>
-        <div className={styles.statCard}>
-          <div className={styles.statIcon} style={{ background: '#e8f5e9' }}>
-            <FaCheckCircle style={{ color: '#4caf50' }} />
-          </div>
-          <div className={styles.statInfo}>
-            <span className={styles.statValue}>
-              {viewMode === 'subject'
-                ? passCount
-                : rankingData?.rankings?.filter((r) => r.overallStatus === 'Pass').length || 0}
-            </span>
-            <span className={styles.statLabel}>Passed</span>
-          </div>
-        </div>
+        <StatCard
+          title={t('academic.markLists.students', 'Students')}
+          value={String(studentCount)}
+          icon={<Users size={20} />}
+          size="small"
+        />
+        <StatCard
+          title={t('academic.subjects', 'Subjects')}
+          value={String(subjectCount)}
+          icon={<BookOpen size={20} />}
+          size="small"
+          variant="primary"
+        />
+        <StatCard
+          title={t('academic.markLists.classAverage', 'Class Average')}
+          value={`${avgDisplay}%`}
+          icon={<BarChart3 size={20} />}
+          size="small"
+          variant="secondary"
+        />
+        <StatCard
+          title={t('academic.markLists.passed', 'Passed')}
+          value={String(passedCount)}
+          icon={<CheckCircle size={20} />}
+          size="small"
+          variant="success"
+        />
       </div>
 
-      {/* Filters */}
-      <div className={styles.filters}>
-        <div className={styles.filterGroup}>
-          <label>
-            <FaBook /> Class
-          </label>
-          <select value={selectedClass} onChange={(e) => setSelectedClass(e.target.value)}>
-            {classes.map((cls) => (
-              <option key={cls} value={cls}>
-                {cls}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        {viewMode === 'subject' && (
-          <div className={styles.filterGroup}>
-            <label>
-              <FaBook /> Subject
-            </label>
-            <select
+      <Card className={styles.filtersCard}>
+        <div className={styles.filters}>
+          <Select
+            label={t('academic.markLists.class', 'Class')}
+            value={selectedClass}
+            onChange={setSelectedClass}
+            options={classOptions}
+          />
+          {viewMode === 'subject' && (
+            <Select
+              label={t('academic.subjects', 'Subject')}
               value={selectedSubject}
-              onChange={(e) => setSelectedSubject(e.target.value)}
+              onChange={setSelectedSubject}
+              options={subjectOptions}
               disabled={subjects.length === 0}
-            >
-              {subjects.length === 0 ? (
-                <option value="">No subjects available</option>
-              ) : (
-                subjects.map((sub) => (
-                  <option key={sub.subject_name} value={sub.subject_name}>
-                    {sub.subject_name}
-                  </option>
-                ))
-              )}
-            </select>
-          </div>
-        )}
-
-        <div className={styles.filterGroup}>
-          <label>
-            <FaCalendarAlt /> Term
-          </label>
-          <select value={selectedTerm} onChange={(e) => setSelectedTerm(e.target.value)}>
-            {Array.from({ length: termCount }, (_, i) => (
-              <option key={i + 1} value={i + 1}>
-                Term {i + 1}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div className={styles.searchBox}>
-          <FaSearch />
-          <input
-            type="text"
-            placeholder="Search students..."
+              placeholder={t('academic.markLists.noSubjects', 'No subjects')}
+            />
+          )}
+          <Select
+            label={t('academic.markLists.termLabel', 'Term')}
+            value={selectedTerm}
+            onChange={setSelectedTerm}
+            options={termOptions}
+          />
+          <Input
+            label={t('common.search', 'Search')}
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={setSearchQuery}
+            placeholder={t('academic.markLists.searchStudents', 'Search students...')}
+            prefixIcon={<Search size={16} />}
           />
         </div>
-      </div>
+      </Card>
 
 
       {/* Mark List Table */}
@@ -435,50 +428,45 @@ const MarkListView = () => {
 
         {loadingMarks ? (
           <div className={styles.loadingMarks}>
-            <FaSpinner className={styles.spinner} />
-            <p>Loading marks...</p>
+            <Loader2 className={styles.spinner} size={24} />
+            <p>{t('academic.markLists.loadingMarks', 'Loading marks...')}</p>
           </div>
         ) : viewMode === 'ranking' ? (
-          // All Subjects Ranking View
           !rankingData?.rankings?.length ? (
             <div className={styles.noData}>
-              <FaTrophy className={styles.noDataIcon} />
-              <h3>No ranking data</h3>
-              <p>No marks available for this class. Please ensure marks have been entered.</p>
+              <Trophy className={styles.noDataIcon} size={40} />
+              <h3>{t('academic.markLists.noRanking', 'No ranking data')}</h3>
+              <p>{t('academic.markLists.noRankingHint', 'Enter marks for this class first.')}</p>
             </div>
           ) : (
             <div className={styles.tableWrapper}>
               <table className={styles.markTable}>
                 <thead>
                   <tr>
-                    <th className={styles.stickyCol}>Rank</th>
-                    <th className={styles.stickyCol2}>Student Name</th>
+                    <th className={styles.stickyCol}>{t('academic.markLists.rank', 'Rank')}</th>
+                    <th className={styles.stickyCol2}>{t('academic.markLists.student', 'Student')}</th>
                     {allSubjects.map((subject) => (
                       <th key={subject} className={styles.subjectHeader}>
                         {subject}
                       </th>
                     ))}
-                    <th className={styles.totalCol}>Total</th>
-                    <th className={styles.avgCol}>Average</th>
-                    <th>Grade</th>
-                    <th>Status</th>
+                    <th className={styles.totalCol}>{t('academic.markLists.total', 'Total')}</th>
+                    <th className={styles.avgCol}>{t('academic.markLists.average', 'Average')}</th>
+                    <th>{t('academic.markLists.grade', 'Grade')}</th>
+                    <th>{t('academic.markLists.status', 'Status')}</th>
                   </tr>
                 </thead>
                 <tbody>
-                  <AnimatePresence>
                     {rankingData.rankings
                       .filter((student) => {
                         if (!searchQuery) return true;
                         return student.studentName?.toLowerCase().includes(searchQuery.toLowerCase());
                       })
-                      .map((student, index) => {
+                      .map((student) => {
                         const grade = calculateGrade(student.average || 0);
                         return (
-                          <motion.tr
+                          <tr
                             key={student.studentName}
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: index * 0.02 }}
                             className={student.overallStatus === 'Pass' ? styles.passed : styles.failed}
                           >
                             <td className={`${styles.rank} ${styles.stickyCol}`}>
@@ -545,47 +533,42 @@ const MarkListView = () => {
                                 {student.overallStatus || 'N/A'}
                               </span>
                             </td>
-                          </motion.tr>
+                          </tr>
                         );
                       })}
-                  </AnimatePresence>
                 </tbody>
               </table>
             </div>
           )
-        ) : // Single Subject View
+        ) :
         sortedStudents.length === 0 ? (
           <div className={styles.noData}>
-            <FaUserGraduate className={styles.noDataIcon} />
-            <h3>No marks found</h3>
-            <p>No student marks available for the selected subject.</p>
+            <Users className={styles.noDataIcon} size={40} />
+            <h3>{t('academic.markLists.noMarks', 'No marks found')}</h3>
+            <p>{t('academic.markLists.noMarksHint', 'No marks for the selected subject.')}</p>
           </div>
         ) : (
           <table className={styles.markTable}>
             <thead>
               <tr>
-                <th>Rank</th>
-                <th>Student Name</th>
+                <th>{t('academic.markLists.rank', 'Rank')}</th>
+                <th>{t('academic.markLists.student', 'Student')}</th>
                 {markComponents.map((comp) => (
                   <th key={comp.name}>
                     {comp.name} ({comp.percentage}%)
                   </th>
                 ))}
-                <th>Total</th>
-                <th>Grade</th>
-                <th>Status</th>
+                <th>{t('academic.markLists.total', 'Total')}</th>
+                <th>{t('academic.markLists.grade', 'Grade')}</th>
+                <th>{t('academic.markLists.status', 'Status')}</th>
               </tr>
             </thead>
             <tbody>
-              <AnimatePresence>
                 {sortedStudents.map((student, index) => {
                   const grade = calculateGrade(student.total || 0);
                   return (
-                    <motion.tr
+                    <tr
                       key={student.id || student.student_name}
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: index * 0.02 }}
                       className={student.pass_status === 'Pass' ? styles.passed : styles.failed}
                     >
                       <td className={styles.rank}>
@@ -620,55 +603,41 @@ const MarkListView = () => {
                           {student.pass_status || 'N/A'}
                         </span>
                       </td>
-                    </motion.tr>
+                    </tr>
                   );
                 })}
-              </AnimatePresence>
             </tbody>
           </table>
         )}
       </div>
 
-      {/* Actions */}
       <div className={styles.actions}>
-        <motion.button
-          className={styles.excelBtn}
+        <Button
+          variant="secondary"
+          icon={<FileSpreadsheet size={16} />}
           onClick={exportToExcel}
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          disabled={
-            (viewMode === 'subject' && sortedStudents.length === 0) ||
-            (viewMode === 'ranking' && !rankingData?.rankings?.length)
-          }
+          disabled={exportDisabled}
         >
-          <FaFileExcel /> Export Excel
-        </motion.button>
-        <motion.button
-          className={styles.pdfBtn}
+          {t('academic.markLists.exportExcel', 'Export Excel')}
+        </Button>
+        <Button
+          variant="secondary"
+          icon={<FileText size={16} />}
           onClick={exportToPDF}
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          disabled={
-            (viewMode === 'subject' && sortedStudents.length === 0) ||
-            (viewMode === 'ranking' && !rankingData?.rankings?.length)
-          }
+          disabled={exportDisabled}
         >
-          <FaFilePdf /> Export PDF
-        </motion.button>
-        <motion.button
-          className={styles.printBtn}
+          {t('academic.markLists.exportPdf', 'Export PDF')}
+        </Button>
+        <Button
+          variant="primary"
+          icon={<Printer size={16} />}
           onClick={printMarkList}
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          disabled={
-            (viewMode === 'subject' && sortedStudents.length === 0) ||
-            (viewMode === 'ranking' && !rankingData?.rankings?.length)
-          }
+          disabled={exportDisabled}
         >
-          <FaPrint /> Print
-        </motion.button>
+          {t('academic.markLists.print', 'Print')}
+        </Button>
       </div>
-    </motion.div>
+    </div>
   );
 };
 

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { Building2, User as UserIcon, Lock } from 'lucide-react';
@@ -10,6 +11,7 @@ import LanguageSelector from './LanguageSelector/LanguageSelector';
 import Toast from './Toast/Toast';
 
 const StaffLogin = () => {
+  const { t } = useTranslation();
   const [credentials, setCredentials] = useState({ username: '', password: '', branchCode: '' });
   const [errors, setErrors] = useState({});
   const [touched, setTouched] = useState({});
@@ -70,14 +72,14 @@ const StaffLogin = () => {
     
     // Validate all fields
     const newErrors = {};
-    if (!credentials.branchCode) newErrors.branchCode = 'Branch code is required';
-    if (!credentials.username) newErrors.username = 'Username is required';
-    if (!credentials.password) newErrors.password = 'Password is required';
+    if (!credentials.branchCode) newErrors.branchCode = t('auth.branchCode', 'Branch code') + ' ' + t('common.required', 'Required').toLowerCase();
+    if (!credentials.username) newErrors.username = t('auth.username', 'Username') + ' ' + t('common.required', 'Required').toLowerCase();
+    if (!credentials.password) newErrors.password = t('auth.password', 'Password') + ' ' + t('common.required', 'Required').toLowerCase();
     
     setErrors(newErrors);
     
     if (Object.keys(newErrors).length > 0) {
-      setToastMessage('Please fill in all required fields');
+      setToastMessage(t('auth.fillRequired', 'Please fill in all required fields'));
       setToastType('error');
       setShowToast(true);
       return;
@@ -104,11 +106,11 @@ const StaffLogin = () => {
       if (error.response?.status === 429) {
         const seconds = error.response?.data?.retryAfter || 60;
         setLockoutSeconds(seconds);
-        setToastMessage(`Too many attempts. Please wait ${seconds} seconds.`);
+        setToastMessage(t('auth.tooManyAttemptsWait', 'Too many attempts. Please wait {{seconds}} seconds.', { seconds }));
         setToastType('error');
         setShowToast(true);
       } else {
-        setToastMessage(error.response?.data?.error || 'Login failed. Please try again.');
+        setToastMessage(error.response?.data?.error || t('auth.loginFailed', 'Login failed. Please check your credentials.'));
         setToastType('error');
         setShowToast(true);
       }
@@ -130,39 +132,39 @@ const StaffLogin = () => {
         <div className={styles.loginCard}>
           <div className={styles.logoSection}>
             <img src="/skoolific-icon.png" alt="Skoolific" className={styles.logo} />
-            <h1 className={styles.title}>Staff Portal</h1>
-            <p className={styles.subtitle}>Access your staff profile and resources</p>
+            <h1 className={styles.title}>{t('auth.staffPortalTitle', 'Staff Portal')}</h1>
+            <p className={styles.subtitle}>{t('auth.staffPortalSubtitle', 'Access your staff profile and resources')}</p>
           </div>
           
           {isLocked && (
             <div className={styles.lockoutBanner}>
-              <p>Too many login attempts</p>
+              <p>{t('auth.tooManyAttempts', 'Too many login attempts')}</p>
               <div className={styles.lockoutTimer}>{lockoutSeconds}s</div>
             </div>
           )}
           
           <form onSubmit={handleSubmit} className={styles.form}>
             <Input
-              label="Branch Code"
+              label={t('auth.branchCode', 'Branch Code')}
               name="branchCode"
               value={credentials.branchCode}
               onChange={handleInputChange}
               onBlur={() => handleBlur('branchCode')}
               icon={<Building2 size={20} />}
-              placeholder="Enter branch code"
+              placeholder={t('auth.branchCodePlaceholder', 'Enter branch code')}
               error={touched.branchCode && errors.branchCode}
               disabled={isLoading || isLocked}
               required
             />
             
             <Input
-              label="Username"
+              label={t('auth.username', 'Username')}
               name="username"
               value={credentials.username}
               onChange={handleInputChange}
               onBlur={() => handleBlur('username')}
               icon={<UserIcon size={20} />}
-              placeholder="Enter your username"
+              placeholder={t('auth.usernamePlaceholder', 'Enter your username')}
               error={touched.username && errors.username}
               disabled={isLoading || isLocked}
               autoComplete="username"
@@ -170,14 +172,14 @@ const StaffLogin = () => {
             />
             
             <Input
-              label="Password"
+              label={t('auth.password', 'Password')}
               type="password"
               name="password"
               value={credentials.password}
               onChange={handleInputChange}
               onBlur={() => handleBlur('password')}
               icon={<Lock size={20} />}
-              placeholder="Enter your password"
+              placeholder={t('auth.passwordPlaceholder', 'Enter your password')}
               error={touched.password && errors.password}
               disabled={isLoading || isLocked}
               autoComplete="current-password"
@@ -192,12 +194,12 @@ const StaffLogin = () => {
               disabled={isLocked}
               className={styles.loginButton}
             >
-              {isLocked ? `Wait ${lockoutSeconds}s` : 'Sign In'}
+              {isLocked ? t('auth.signInWait', 'Wait {{seconds}}s', { seconds: lockoutSeconds }) : t('auth.signIn', 'Sign In')}
             </Button>
           </form>
           
           <div className={styles.footer}>
-            <p>Need help? Contact your administrator</p>
+            <p>{t('auth.needHelp', 'Need help? Contact your administrator')}</p>
           </div>
         </div>
       </div>

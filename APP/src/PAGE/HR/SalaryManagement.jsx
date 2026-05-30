@@ -1,7 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import axios from 'axios';
-import './SalaryManagement.css';
+import { Plus, RefreshCw } from 'lucide-react';
+import styles from './SalaryManagement.module.css';
 import AddSalaryCompleteModal from './components/AddSalaryCompleteModal';
+import Card from '../../COMPONENTS/Card/Card';
+import Button from '../../COMPONENTS/Button/Button';
 import EditSalaryModal from './components/EditSalaryModal';
 import AddDeductionModal from './components/AddDeductionModal';
 import AddAllowanceModal from './components/AddAllowanceModal';
@@ -12,6 +16,7 @@ import { getCurrentEthiopianMonth } from '../../utils/ethiopianCalendar';
 const API_URL = import.meta.env.VITE_API_URL || 'https://iqrab3.skoolific.com';
 
 const SalaryManagement = () => {
+  const { t } = useTranslation();
   const [allStaff, setAllStaff] = useState([]);
   const [salaries, setSalaries] = useState([]);
   const [deductions, setDeductions] = useState([]);
@@ -284,102 +289,85 @@ const SalaryManagement = () => {
     setShowDetailsModal(true);
   };
 
+  const tabs = [
+    { id: 'staff', label: t('hr.salary.tabs.staff', 'All Staff') },
+    { id: 'deductions', label: t('hr.salary.tabs.deductions', 'Deductions') },
+    { id: 'allowances', label: t('hr.salary.tabs.allowances', 'Allowances') },
+    { id: 'retentions', label: t('hr.salary.tabs.retentions', 'Staff Retention') }
+  ];
+
   return (
-    <div className="salary-management">
-      <div className="salary-header">
+    <main className={styles.container} aria-label={t('hr.salary.title', 'Salary Management')}>
+      <header className={styles.header}>
         <div>
-          <h1>HR & Staff Salary Management</h1>
-          <p>Manage staff salaries, deductions, allowances, and retention benefits</p>
-          <div style={{ 
-            marginTop: '10px', 
-            padding: '8px 15px', 
-            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', 
-            color: 'white', 
-            borderRadius: '8px',
-            display: 'inline-block',
-            fontSize: '0.9em',
-            fontWeight: '500'
-          }}>
-            📅 Current Ethiopian Date: {currentEthiopianDate.day} {currentEthiopianDate.monthName} {currentEthiopianDate.year}
+          <h1>{t('hr.salary.title', 'Salary Management')}</h1>
+          <p>{t('hr.salary.subtitle', 'Manage staff salaries, deductions, allowances, and retention benefits')}</p>
+          <div className={styles.dateBadge} role="status">
+            {t('hr.salary.currentDate', 'Current Ethiopian Date')}: {currentEthiopianDate.day} {currentEthiopianDate.monthName} {currentEthiopianDate.year}
           </div>
         </div>
-      </div>
+      </header>
 
-      {/* Tab Navigation */}
-      <div className="tab-navigation">
-        <button 
-          className={`tab-btn ${activeTab === 'staff' ? 'active' : ''}`}
-          onClick={() => setActiveTab('staff')}
-        >
-          👥 All Staff
-        </button>
-        <button 
-          className={`tab-btn ${activeTab === 'deductions' ? 'active' : ''}`}
-          onClick={() => setActiveTab('deductions')}
-        >
-          📉 Deductions
-        </button>
-        <button 
-          className={`tab-btn ${activeTab === 'allowances' ? 'active' : ''}`}
-          onClick={() => setActiveTab('allowances')}
-        >
-          📈 Allowances
-        </button>
-        <button 
-          className={`tab-btn ${activeTab === 'retentions' ? 'active' : ''}`}
-          onClick={() => setActiveTab('retentions')}
-        >
-          🎯 Staff Retention
-        </button>
-      </div>
+      <nav className={styles.tabNavigation} aria-label={t('hr.salary.tabsLabel', 'Salary sections')}>
+        {tabs.map((tab) => (
+          <button
+            key={tab.id}
+            type="button"
+            className={`${styles.tabBtn} ${activeTab === tab.id ? styles.tabBtnActive : ''}`}
+            onClick={() => setActiveTab(tab.id)}
+            aria-selected={activeTab === tab.id}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </nav>
 
-      {/* Add Button for other tabs */}
       {activeTab !== 'staff' && (
-        <div className="action-bar">
+        <div className={styles.actionBar}>
           {activeTab === 'deductions' && (
-            <button className="btn-add-main" onClick={() => setShowAddDeductionModal(true)}>
-              ➕ Add Deduction
-            </button>
+            <Button variant="primary" icon={<Plus size={16} />} onClick={() => setShowAddDeductionModal(true)}>
+              {t('hr.salary.addDeduction', 'Add Deduction')}
+            </Button>
           )}
           {activeTab === 'allowances' && (
-            <button className="btn-add-main" onClick={() => setShowAddAllowanceModal(true)}>
-              ➕ Add Allowance
-            </button>
+            <Button variant="primary" icon={<Plus size={16} />} onClick={() => setShowAddAllowanceModal(true)}>
+              {t('hr.salary.addAllowance', 'Add Allowance')}
+            </Button>
           )}
           {activeTab === 'retentions' && (
-            <button className="btn-add-main" onClick={() => setShowAddRetentionModal(true)}>
-              ➕ Add Retention Benefit
-            </button>
+            <Button variant="primary" icon={<Plus size={16} />} onClick={() => setShowAddRetentionModal(true)}>
+              {t('hr.salary.addRetention', 'Add Retention Benefit')}
+            </Button>
           )}
         </div>
       )}
 
-      {/* Refresh button for staff tab */}
       {activeTab === 'staff' && (
-        <div className="action-bar">
-          <button 
-            className="btn-refresh" 
+        <div className={styles.actionBar}>
+          <Button
+            variant="secondary"
+            icon={<RefreshCw size={16} />}
             onClick={() => {
               fetchAllStaff();
               fetchSalaries();
             }}
           >
-            🔄 Refresh
-          </button>
+            {t('common.refresh', 'Refresh')}
+          </Button>
         </div>
       )}
 
-      {/* Content Area */}
       {loading ? (
-        <div className="loading">Loading...</div>
+        <div className={styles.loading} role="status">{t('common.loading', 'Loading...')}</div>
       ) : error ? (
-        <div className="error">{error}</div>
+        <div className={styles.error} role="alert">{error}</div>
       ) : (
         <>
           {/* All Staff Tab */}
           {activeTab === 'staff' && (
-            <div className="staff-table-container">
-              <table className="staff-table">
+            <Card className={styles.tableCard}>
+            <div className={styles.tableWrapper}>
+              <table className={styles.staffTable}>
                 <thead>
                   <tr>
                     <th>Photo</th>
@@ -394,8 +382,8 @@ const SalaryManagement = () => {
                 <tbody>
                   {allStaff.length === 0 ? (
                     <tr>
-                      <td colSpan="7" style={{ textAlign: 'center', padding: '40px' }}>
-                        No staff members found.
+                      <td colSpan="7" className={styles.emptyCell}>
+                        {t('hr.salary.noStaff', 'No staff members found.')}
                       </td>
                     </tr>
                   ) : (
@@ -410,11 +398,11 @@ const SalaryManagement = () => {
                               <img 
                                 src={`${API_URL}/uploads/${staff.profilePhotoUrl}`}
                                 alt={staff.fullName}
-                                className="staff-photo"
+                                className={styles.staffPhoto}
                                 onError={(e) => e.target.style.display = 'none'}
                               />
                             ) : (
-                              <div className="staff-photo-placeholder">
+                              <div className={styles.staffPhotoPlaceholder} aria-hidden="true">
                                 {staff.firstName.charAt(0)}{staff.lastName.charAt(0)}
                               </div>
                             )}
@@ -422,10 +410,10 @@ const SalaryManagement = () => {
                           <td>
                             <strong>{staff.fullName}</strong>
                             <br />
-                            <small style={{ color: '#7f8c8d' }}>ID: {staff.employeeNumber}</small>
+                            <small className={styles.subText}>ID: {staff.employeeNumber}</small>
                           </td>
                           <td>
-                            <span className={`staff-type-badge ${staff.staffType.toLowerCase().replace(' ', '-')}`}>
+                            <span className={styles.staffTypeBadge}>
                               {staff.staffType}
                             </span>
                           </td>
@@ -441,51 +429,36 @@ const SalaryManagement = () => {
                           </td>
                           <td>
                             {hasSalary ? (
-                              <div className="salary-info">
-                                <span className="salary-badge has-salary">✓ Salary Added</span>
-                                <div className="salary-details">
+                              <div className={styles.salaryInfo}>
+                                <span className={styles.salaryBadgeHas}>{t('hr.salary.hasSalary', 'Salary Added')}</span>
+                                <div className={styles.salaryDetails}>
                                   <small>Base: {parseFloat(salary.baseSalary).toFixed(2)} Birr</small>
                                   <small>Net: {parseFloat(salary.netSalary).toFixed(2)} Birr</small>
                                 </div>
                               </div>
                             ) : (
-                              <span className="salary-badge no-salary">✗ No Salary</span>
+                              <span className={styles.salaryBadgeNo}>{t('hr.salary.noSalary', 'No Salary')}</span>
                             )}
                           </td>
                           <td>
                             {!hasSalary ? (
-                              <button 
-                                className="btn-add-salary"
-                                onClick={() => handleAddSalaryForStaff(staff)}
-                              >
-                                ➕ Add Salary
-                              </button>
+                              <Button size="sm" variant="primary" onClick={() => handleAddSalaryForStaff(staff)}>
+                                {t('hr.salary.addSalary', 'Add Salary')}
+                              </Button>
                             ) : (
-                              <div className="action-buttons-group">
-                                <button 
-                                  className="btn-edit-salary"
-                                  onClick={() => handleEditSalaryForStaff(staff)}
-                                >
-                                  ✏️ Edit Salary
-                                </button>
-                                <button 
-                                  className="btn-add-deduction"
-                                  onClick={() => handleAddDeductionForStaff(staff)}
-                                >
-                                  📉 Deductions
-                                </button>
-                                <button 
-                                  className="btn-add-allowance"
-                                  onClick={() => handleAddAllowanceForStaff(staff)}
-                                >
-                                  📈 Allowances
-                                </button>
-                                <button 
-                                  className="btn-view-details"
-                                  onClick={() => handleViewDetails(staff)}
-                                >
-                                  👁️ View Details
-                                </button>
+                              <div className={styles.actionButtonsGroup}>
+                                <Button size="sm" variant="secondary" onClick={() => handleEditSalaryForStaff(staff)}>
+                                  {t('common.edit', 'Edit')}
+                                </Button>
+                                <Button size="sm" variant="outline" onClick={() => handleAddDeductionForStaff(staff)}>
+                                  {t('hr.salary.tabs.deductions', 'Deductions')}
+                                </Button>
+                                <Button size="sm" variant="outline" onClick={() => handleAddAllowanceForStaff(staff)}>
+                                  {t('hr.salary.tabs.allowances', 'Allowances')}
+                                </Button>
+                                <Button size="sm" variant="ghost" onClick={() => handleViewDetails(staff)}>
+                                  {t('common.view', 'View')}
+                                </Button>
                               </div>
                             )}
                           </td>
@@ -496,12 +469,14 @@ const SalaryManagement = () => {
                 </tbody>
               </table>
             </div>
+            </Card>
           )}
 
           {/* Deductions Tab */}
           {activeTab === 'deductions' && (
-            <div className="staff-table-container">
-              <table className="staff-table">
+            <Card className={styles.tableCard}>
+            <div className={styles.tableWrapper}>
+              <table className={styles.staffTable}>
                 <thead>
                   <tr>
                     <th>Staff Name</th>
@@ -524,7 +499,7 @@ const SalaryManagement = () => {
                       <tr key={deduction.id}>
                         <td>{deduction.staff_name}</td>
                         <td>
-                          <span className="deduction-badge">
+                          <span className={styles.deductionBadge}>
                             {deduction.deduction_type.charAt(0).toUpperCase() + deduction.deduction_type.slice(1)}
                           </span>
                         </td>
@@ -536,12 +511,9 @@ const SalaryManagement = () => {
                           <small>{deduction.start_date} to {deduction.end_date}</small>
                         </td>
                         <td>
-                          <button 
-                            className="btn-delete"
-                            onClick={() => handleDeleteDeduction(deduction.id)}
-                          >
-                            🗑️ Delete
-                          </button>
+                          <Button size="sm" variant="danger" onClick={() => handleDeleteDeduction(deduction.id)}>
+                            {t('common.delete', 'Delete')}
+                          </Button>
                         </td>
                       </tr>
                     ))
@@ -549,12 +521,14 @@ const SalaryManagement = () => {
                 </tbody>
               </table>
             </div>
+            </Card>
           )}
 
           {/* Allowances Tab */}
           {activeTab === 'allowances' && (
-            <div className="staff-table-container">
-              <table className="staff-table">
+            <Card className={styles.tableCard}>
+            <div className={styles.tableWrapper}>
+              <table className={styles.staffTable}>
                 <thead>
                   <tr>
                     <th>Staff Name</th>
@@ -577,7 +551,7 @@ const SalaryManagement = () => {
                       <tr key={allowance.id}>
                         <td>{allowance.staff_name}</td>
                         <td>
-                          <span className="allowance-badge">
+                          <span className={styles.allowanceBadge}>
                             {allowance.allowance_name}
                           </span>
                         </td>
@@ -589,12 +563,9 @@ const SalaryManagement = () => {
                           <small>{allowance.start_date} to {allowance.end_date}</small>
                         </td>
                         <td>
-                          <button 
-                            className="btn-delete"
-                            onClick={() => handleDeleteAllowance(allowance.id)}
-                          >
-                            🗑️ Delete
-                          </button>
+                          <Button size="sm" variant="danger" onClick={() => handleDeleteAllowance(allowance.id)}>
+                            {t('common.delete', 'Delete')}
+                          </Button>
                         </td>
                       </tr>
                     ))
@@ -602,12 +573,14 @@ const SalaryManagement = () => {
                 </tbody>
               </table>
             </div>
+            </Card>
           )}
 
           {/* Retentions Tab */}
           {activeTab === 'retentions' && (
-            <div className="staff-table-container">
-              <table className="staff-table">
+            <Card className={styles.tableCard}>
+            <div className={styles.tableWrapper}>
+              <table className={styles.staffTable}>
                 <thead>
                   <tr>
                     <th>Staff Name</th>
@@ -629,19 +602,16 @@ const SalaryManagement = () => {
                       <tr key={retention.id}>
                         <td>{retention.staff_name}</td>
                         <td>
-                          <span className="retention-badge">
+                          <span className={styles.retentionBadge}>
                             {retention.retention_type.replace('_', ' ').split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
                           </span>
                         </td>
                         <td>${parseFloat(retention.amount).toFixed(2)}</td>
                         <td>{new Date(retention.created_at).toLocaleDateString()}</td>
                         <td>
-                          <button 
-                            className="btn-delete"
-                            onClick={() => handleDeleteRetention(retention.id)}
-                          >
-                            🗑️ Delete
-                          </button>
+                          <Button size="sm" variant="danger" onClick={() => handleDeleteRetention(retention.id)}>
+                            {t('common.delete', 'Delete')}
+                          </Button>
                         </td>
                       </tr>
                     ))
@@ -649,6 +619,7 @@ const SalaryManagement = () => {
                 </tbody>
               </table>
             </div>
+            </Card>
           )}
         </>
       )}
@@ -724,7 +695,7 @@ const SalaryManagement = () => {
           }}
         />
       )}
-    </div>
+    </main>
   );
 };
 

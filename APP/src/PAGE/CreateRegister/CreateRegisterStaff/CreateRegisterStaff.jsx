@@ -1,31 +1,55 @@
-// CreateRegisterStaff.jsx - Modern Staff Registration Design
-import React, { useState, useEffect } from 'react';
+// CreateRegisterStaff.jsx - V2 Staff Registration
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import axios from 'axios';
-import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  FiUsers, FiUserPlus, FiTrash2, FiX, FiFolder, FiClipboard,
-  FiBriefcase, FiShield, FiBook, FiPlus
-} from 'react-icons/fi';
+import { useTranslation } from 'react-i18next';
+import {
+  UserPlus,
+  Users,
+  FolderOpen,
+  ClipboardList,
+  Briefcase,
+  Shield,
+  BookOpen,
+  Plus,
+  Trash2,
+  X
+} from 'lucide-react';
 import styles from './CreateRegisterStaff.module.css';
-import StaffForm from './StaffForm';
-import { useApp } from '../../../context/AppContext';
 
-// API base URL - use environment variable or fallback to localhost
+import Card from '../../../COMPONENTS/Card/Card';
+import Button from '../../../COMPONENTS/Button/Button';
+import Modal from '../../../COMPONENTS/Modal/Modal';
+import StatCard from '../../../COMPONENTS/StatCard/StatCard';
+import { useToast } from '../../../COMPONENTS/Toast/useToast';
+import ToastContainer from '../../../COMPONENTS/Toast/ToastContainer';
+import StaffForm from './StaffForm';
+
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://iqrab3.skoolific.com/api';
 
+const STAFF_TYPES = [
+  { id: 'Supportive Staff', labelKey: 'supportive', icon: Briefcase },
+  { id: 'Administrative Staff', labelKey: 'administrative', icon: Shield },
+  { id: 'Teachers', labelKey: 'teacher', icon: BookOpen }
+];
+
 const CreateRegisterStaff = () => {
-  const { t } = useApp();
+  const { t } = useTranslation();
+  const toast = useToast();
+
   const [staffType, setStaffType] = useState('');
   const [classes, setClasses] = useState([]);
-  const [message, setMessage] = useState({ type: '', text: '' });
   const [selectedClass, setSelectedClass] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  const staffTypes = [
-    { id: 'Supportive Staff', labelKey: 'supportiveStaff', icon: FiBriefcase, descKey: 'supportiveStaffDesc' },
-    { id: 'Administrative Staff', labelKey: 'administrativeStaff', icon: FiShield, descKey: 'administrativeStaffDesc' },
-    { id: 'Teachers', labelKey: 'teachers', icon: FiBook, descKey: 'teachersDesc' }
-  ];
+  const staffTypes = useMemo(
+    () =>
+      STAFF_TYPES.map((type) => ({
+        ...type,
+        label: t(`staff.registration.types.${type.labelKey}`, type.id),
+        description: t(`staff.registration.types.${type.labelKey}Desc`, '')
+      })),
+    [t]
+  );
 
   useEffect(() => {
     if (staffType) {
@@ -36,11 +60,15 @@ const CreateRegisterStaff = () => {
   const fetchClasses = async () => {
     setLoading(true);
     try {
-      const response = await axios.get(`${API_BASE_URL}/staff/classes?staffType=${encodeURIComponent(staffType)}`);
-      setClasses(response.data);
-      setMessage({ type: '', text: '' });
+      const response = await axios.get(
+        `${API_BASE_URL}/staff/classes?staffType=${encodeURIComponent(staffType)}`
+      );
+      setClasses(response.data || []);
     } catch (error) {
-      setMessage({ type: 'error', text: `Error fetching forms: ${error.response?.data?.error || error.message}` });
+      toast.error(
+        t('staff.registration.fetchFormsError', 'Failed to load registration forms') +
+          `: ${error.response?.data?.error || error.message}`
+      );
     } finally {
       setLoading(false);
     }
@@ -54,209 +82,183 @@ const CreateRegisterStaff = () => {
 
   const handleDelete = async (cls, e) => {
     e.stopPropagation();
-    if (!window.confirm(`Are you sure you want to delete the form "${cls}"?`)) return;
-    
+    if (!window.confirm(t('staff.registration.confirmDeleteForm', 'Delete this registration form?'))) {
+      return;
+    }
+
     setLoading(true);
     try {
       await axios.delete(`${API_BASE_URL}/staff/delete-form`, {
         data: { staffType, className: cls }
       });
-      setMessage({ type: 'success', text: 'Form deleted successfully' });
+      toast.success(t('staff.registration.formDeleted', 'Form deleted successfully'));
       fetchClasses();
     } catch (error) {
-      setMessage({ type: 'error', text: `Error deleting form: ${error.response?.data?.error || error.message}` });
+      toast.error(
+        t('staff.registration.deleteFormError', 'Failed to delete form') +
+          `: ${error.response?.data?.error || error.message}`
+      );
     } finally {
       setLoading(false);
     }
   };
 
-  const closeModal = () => {
-    setSelectedClass(null);
-  };
-
-  const handleFormSuccess = (responseData) => {
-    // Handle teacher-specific success feedback
-    if (responseData?.teacherData) {
-      setMessage({ 
-        type: 'success', 
-        text: `✅ Staff member "${responseData.teacherData.name}" added successfully as ${responseData.teacherData.workTime} teacher!` 
-      });
-    } else if (responseData?.schoolSchemaError) {
-      setMessage({ 
-        type: 'warning', 
-        text: `⚠️ Staff added but teacher table update failed: ${responseData.schoolSchemaError}` 
-      });
-    } else {
-      setMessage({ type: 'success', text: '✅ Staff member added successfully!' });
-    }
-    setTimeout(() => setMessage({ type: '', text: '' }), 5000);
-  };
+  const handleFormSuccess = useCallback(
+    (responseData) => {
+      if (responseData?.teacherData) {
+        toast.success(
+          t('staff.registration.teacherAdded', '{{name}} added as {{workTime}} teacher', {
+            name: responseData.teacherData.name,
+            workTime: responseData.teacherData.workTime
+          })
+        );
+      } else if (responseData?.schoolSchemaError) {
+        toast.warning(
+          t('staff.registration.partialSuccess', 'Staff added but teacher table update failed')
+        );
+      } else {
+        toast.success(t('staff.registration.staffAdded', 'Staff member added successfully'));
+      }
+      setSelectedClass(null);
+      fetchClasses();
+    },
+    [t, toast, staffType]
+  );
 
   return (
     <div className={styles.container}>
-      {/* Header */}
-      <motion.div 
-        className={styles.header}
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-      >
-        <div className={styles.headerLeft}>
-          <div className={styles.headerIcon}>
-            <FiUserPlus />
-          </div>
-          <div className={styles.headerTitle}>
-            <h1>{t('staffRegistration')}</h1>
-            <p>{t('staffRegistrationDesc')}</p>
-          </div>
-        </div>
-        <div className={styles.headerStats}>
-          <div className={styles.statCard}>
-            <span className={styles.statNum}>{classes.length}</span>
-            <span className={styles.statLabel}>{t('forms')}</span>
-          </div>
-        </div>
-      </motion.div>
+      <ToastContainer />
 
-      {/* Message */}
-      <AnimatePresence>
-        {message.text && (
-          <motion.div 
-            className={`${styles.message} ${styles[message.type]}`}
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0 }}
-          >
-            {message.text}
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <div className={styles.pageHeader}>
+        <div>
+          <h1 className={styles.pageTitle}>
+            {t('staff.registration.title', 'Staff Registration')}
+          </h1>
+          <p className={styles.pageSubtitle}>
+            {t('staff.registration.subtitle', 'Register new staff members by type and form')}
+          </p>
+        </div>
+        <StatCard
+          title={t('staff.registration.formsCount', 'Forms')}
+          value={String(classes.length)}
+          icon={<ClipboardList size={20} />}
+          size="small"
+        />
+      </div>
 
-      {/* Staff Type Selection */}
-      <motion.div 
-        className={styles.typeSelection}
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1 }}
-      >
-        <h2><FiUsers /> {t('selectStaffType')}</h2>
+      <Card title={t('staff.registration.selectType', 'Select Staff Type')} className={styles.typeCard}>
         <div className={styles.typeGrid}>
           {staffTypes.map((type) => {
             const Icon = type.icon;
+            const isActive = staffType === type.id;
             return (
-              <motion.div
+              <button
                 key={type.id}
-                className={`${styles.typeCard} ${staffType === type.id ? styles.active : ''}`}
+                type="button"
+                className={`${styles.typeOption} ${isActive ? styles.typeOptionActive : ''}`}
                 onClick={() => handleStaffTypeChange(type.id)}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
+                aria-pressed={isActive}
               >
-                <div className={styles.typeIcon}>
-                  <Icon />
-                </div>
-                <h3>{t(type.labelKey)}</h3>
-                <p>{t(type.descKey)}</p>
-              </motion.div>
+                <span className={styles.typeIconWrap}>
+                  <Icon size={22} />
+                </span>
+                <span className={styles.typeLabel}>{type.label}</span>
+                {type.description ? (
+                  <span className={styles.typeDesc}>{type.description}</span>
+                ) : null}
+              </button>
             );
           })}
         </div>
-      </motion.div>
+      </Card>
 
-      {/* Forms Section */}
       {staffType && (
-        <motion.div 
-          className={styles.formsSection}
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
+        <Card
+          title={
+            <>
+              <FolderOpen size={18} className={styles.sectionIcon} />
+              {t('staff.registration.availableForms', 'Available Forms')} — {staffType}
+            </>
+          }
+          className={styles.formsCard}
         >
-          <div className={styles.sectionHeader}>
-            <h2><FiFolder /> {t('availableForms')} - {staffType}</h2>
-          </div>
-
           {loading ? (
-            <div className={styles.emptyState}>
-              <div className={styles.emptyIcon}><FiClipboard /></div>
-              <h3>{t('loading')}</h3>
-            </div>
+            <p className={styles.emptyMessage}>{t('common.loading', 'Loading...')}</p>
           ) : classes.length === 0 ? (
             <div className={styles.emptyState}>
-              <div className={styles.emptyIcon}><FiClipboard /></div>
-              <h3>{t('noFormsFound')}</h3>
-              <p>{t('createFormFirst')}</p>
+              <ClipboardList size={40} className={styles.emptyIcon} />
+              <h3>{t('staff.registration.noForms', 'No forms found')}</h3>
+              <p>{t('staff.registration.createFormFirst', 'Create a registration form first')}</p>
             </div>
           ) : (
             <div className={styles.formsGrid}>
-              {classes.map((cls, index) => (
-                <motion.div
+              {classes.map((cls) => (
+                <button
                   key={cls}
+                  type="button"
                   className={styles.formCard}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.05 }}
                   onClick={() => setSelectedClass(cls)}
                 >
-                  <div className={styles.formCardHeader}>
-                    <div className={styles.formIcon}>
-                      <FiClipboard />
-                    </div>
-                    <span className={styles.formBadge}>{t('active')}</span>
+                  <div className={styles.formCardTop}>
+                    <span className={styles.formIconWrap}>
+                      <ClipboardList size={20} />
+                    </span>
+                    <span className={styles.formBadge}>
+                      {t('staff.registration.active', 'Active')}
+                    </span>
                   </div>
-                  <h3>{cls.replace(/_/g, ' ')}</h3>
-                  <p>{t('clickToAdd')}</p>
+                  <h3 className={styles.formName}>{cls.replace(/_/g, ' ')}</h3>
+                  <p className={styles.formHint}>
+                    {t('staff.registration.clickToAdd', 'Click to add staff')}
+                  </p>
                   <div className={styles.formActions}>
-                    <button className={styles.addBtn}>
-                      <FiPlus /> {t('addStaff')}
-                    </button>
-                    <button 
-                      className={styles.deleteBtn}
-                      onClick={(e) => handleDelete(cls, e)}
+                    <Button
+                      variant="primary"
+                      size="sm"
+                      icon={<Plus size={16} />}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedClass(cls);
+                      }}
                     >
-                      <FiTrash2 />
-                    </button>
+                      {t('staff.addStaff', 'Add Staff')}
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      icon={<Trash2 size={16} />}
+                      onClick={(e) => handleDelete(cls, e)}
+                      aria-label={t('common.delete', 'Delete')}
+                    />
                   </div>
-                </motion.div>
+                </button>
               ))}
             </div>
           )}
-        </motion.div>
+        </Card>
       )}
 
-      {/* Modal */}
-      <AnimatePresence>
+      <Modal
+        isOpen={Boolean(selectedClass)}
+        onClose={() => setSelectedClass(null)}
+        title={
+          <>
+            <UserPlus size={20} />
+            {t('staff.registration.addToForm', 'Add staff to {{form}}', {
+              form: selectedClass?.replace(/_/g, ' ')
+            })}
+          </>
+        }
+        size="large"
+      >
         {selectedClass && (
-          <motion.div 
-            className={styles.modalOverlay}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={closeModal}
-          >
-            <motion.div 
-              className={styles.modalContent}
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className={styles.modalHeader}>
-                <h2>
-                  <FiUserPlus /> {t('addStaffTo')} {selectedClass.replace(/_/g, ' ')}
-                </h2>
-                <button className={styles.closeBtn} onClick={closeModal}>
-                  <FiX />
-                </button>
-              </div>
-              <div className={styles.modalBody}>
-                <StaffForm 
-                  staffTypeProp={staffType} 
-                  classNameProp={selectedClass}
-                  onSuccess={handleFormSuccess}
-                />
-              </div>
-            </motion.div>
-          </motion.div>
+          <StaffForm
+            staffTypeProp={staffType}
+            classNameProp={selectedClass}
+            onSuccess={handleFormSuccess}
+          />
         )}
-      </AnimatePresence>
+      </Modal>
     </div>
   );
 };

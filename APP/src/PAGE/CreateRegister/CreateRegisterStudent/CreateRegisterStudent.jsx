@@ -1,21 +1,53 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { useForm, useWatch } from 'react-hook-form';
-import { motion } from 'framer-motion';
-import Webcam from 'react-webcam';
-import {
-  FiUser, FiCalendar, FiBook, FiChevronDown, FiUpload, FiEdit2, FiType,
-  FiCamera, FiPlus, FiTrash2, FiEye, FiCheckSquare, FiXCircle, FiDownload, FiCopy,
-  FiVideo, FiX, FiFile
-} from 'react-icons/fi';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Controller, useForm, useWatch } from 'react-hook-form';
 import axios from 'axios';
 import * as XLSX from 'xlsx';
+import Webcam from 'react-webcam';
+import { useTranslation } from 'react-i18next';
 import styles from './CreateRegisterStudent.module.css';
+
+import Card from '../../../COMPONENTS/Card/Card';
+import Button from '../../../COMPONENTS/Button/Button';
+import Input from '../../../COMPONENTS/Input/Input';
+import Select from '../../../COMPONENTS/Select/Select';
+import DatePicker from '../../../COMPONENTS/DatePicker/DatePicker';
+import FileUpload from '../../../COMPONENTS/FileUpload/FileUpload';
+import Checkbox from '../../../COMPONENTS/Checkbox/Checkbox';
+import RadioGroup from '../../../COMPONENTS/Radio/RadioGroup';
+import Textarea from '../../../COMPONENTS/Textarea/Textarea';
+import { useToast } from '../../../COMPONENTS/Toast/useToast';
+import ToastContainer from '../../../COMPONENTS/Toast/ToastContainer';
+
+import {
+  Camera,
+  Copy,
+  Download,
+  FileSpreadsheet,
+  Plus,
+  Search,
+  Trash2,
+  User,
+  Users,
+  X
+} from 'lucide-react';
 
 // API base URL - use environment variable or fallback to localhost
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://iqrab3.skoolific.com/api';
 
 const AddStudentS = () => {
-  const { register, handleSubmit, formState: { errors }, setValue, reset, control, clearErrors, trigger } = useForm({
+  const { t } = useTranslation();
+  const toast = useToast();
+
+  const {
+    control,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+    setValue,
+    reset,
+    clearErrors,
+    trigger,
+    getValues
+  } = useForm({
     mode: 'onChange',
     defaultValues: {
       class: '',
@@ -26,20 +58,19 @@ const AddStudentS = () => {
       gender: '',
       guardian_name: '',
       guardian_phone: '',
-      guardian_relation: ''
+      guardian_relation: '',
+      image_student: [],
+      excel_file: []
     }
   });
   
   const isGuardianExisting = useWatch({ name: 'isGuardianExisting', control });
-  const [previewMode, setPreviewMode] = useState(false);
-  const [photoPreview, setPhotoPreview] = useState(null);
   const [showSuccess, setShowSuccess] = useState(false);
-  const [errorMessage, setErrorMessage] = useState('');
+  const [pageError, setPageError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [availableClasses, setAvailableClasses] = useState([]);
   const [tableColumns, setTableColumns] = useState([]);
   const [selectedClass, setSelectedClass] = useState('');
-  const [customFilePreviews, setCustomFilePreviews] = useState({});
   const [newCredentials, setNewCredentials] = useState(null);
   const [fetchedGuardian, setFetchedGuardian] = useState(null);
   const [guardianSearchError, setGuardianSearchError] = useState('');
@@ -55,8 +86,37 @@ const AddStudentS = () => {
   
   // V2 Enhancement: Task1 configuration state
   const [task1Config, setTask1Config] = useState(null);
+  
+  // Multi-step form state
+  const [currentStep, setCurrentStep] = useState(1);
+  const totalSteps = 4;
 
-  const genderOptions = ['Male', 'Female'];
+  const genderOptions = useMemo(
+    () => [
+      { value: 'Male', label: t('students.registration.genderMale', 'Male') },
+      { value: 'Female', label: t('students.registration.genderFemale', 'Female') }
+    ],
+    [t]
+  );
+
+  const classOptions = useMemo(
+    () => availableClasses.map((cls) => ({ value: cls, label: cls })),
+    [availableClasses]
+  );
+
+  const requiredMsg = useCallback(
+    (fallback) => t('common.required', 'Required') || fallback,
+    [t]
+  );
+
+  const formatDateForApi = (date) => {
+    if (!date) return '';
+    if (!(date instanceof Date) || Number.isNaN(date.getTime())) return '';
+    const yyyy = date.getFullYear();
+    const mm = String(date.getMonth() + 1).padStart(2, '0');
+    const dd = String(date.getDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
+  };
 
   // Fixed field type detection with proper array checking
   const getFieldType = (column) => {
@@ -106,20 +166,18 @@ const AddStudentS = () => {
     const imageSrc = webcamRef.current.getScreenshot();
     if (imageSrc) {
       if (cameraMode === 'image_student') {
-        setPhotoPreview(imageSrc);
         fetch(imageSrc)
           .then(res => res.blob())
           .then(blob => {
             const file = new File([blob], `camera-capture-${Date.now()}.jpg`, { type: 'image/jpeg' });
-            setValue('image_student', file);
+            setValue('image_student', [file], { shouldDirty: true, shouldValidate: true });
           });
       } else {
-        setCustomFilePreviews(prev => ({ ...prev, [cameraMode]: imageSrc }));
         fetch(imageSrc)
           .then(res => res.blob())
           .then(blob => {
             const file = new File([blob], `camera-capture-${Date.now()}.jpg`, { type: 'image/jpeg' });
-            setValue(cameraMode, file);
+            setValue(cameraMode, [file], { shouldDirty: true, shouldValidate: true });
           });
       }
       setShowCamera(false);
@@ -129,19 +187,20 @@ const AddStudentS = () => {
 
   // Camera component
   const CameraModal = () => (
-    <div className={styles.cameraModal}>
+    <div className={styles.cameraModal} role="dialog" aria-modal="true" aria-label={t('students.registration.cameraModalTitle', 'Take a photo')}>
       <div className={styles.cameraContent}>
         <div className={styles.cameraHeader}>
-          <h3>Take a Photo</h3>
-          <button 
-            type="button" 
+          <h3 className={styles.cameraTitle}>{t('students.registration.cameraModalTitle', 'Take a photo')}</h3>
+          <button
+            type="button"
             onClick={() => {
               setShowCamera(false);
               setCameraMode(null);
             }}
             className={styles.closeCamera}
+            aria-label={t('common.close', 'Close')}
           >
-            <FiX />
+            <X size={18} />
           </button>
         </div>
         <Webcam
@@ -152,18 +211,13 @@ const AddStudentS = () => {
           videoConstraints={{
             width: 1280,
             height: 720,
-            facingMode: "user"
+            facingMode: 'user'
           }}
         />
         <div className={styles.cameraControls}>
-          <button 
-            type="button" 
-            onClick={capture}
-            className={styles.captureButton}
-          >
-            <FiCamera size={24} />
-            Capture Photo
-          </button>
+          <Button type="button" onClick={capture} icon={<Camera size={18} />} disabled={isLoading}>
+            {t('students.registration.capturePhoto', 'Capture photo')}
+          </Button>
         </div>
       </div>
     </div>
@@ -181,12 +235,12 @@ const AddStudentS = () => {
             fetchColumns(response.data[0]);
           }
         } else {
-          setErrorMessage('No form structure exists. Please create it first in Task 2.');
+          setPageError(t('students.registration.noFormStructure', 'No form structure exists. Please create it first in the Form Builder.'));
         }
       })
       .catch(error => {
         console.error('Error fetching classes:', error);
-        setErrorMessage(`Failed to fetch classes: ${error.message}`);
+        setPageError(t('students.registration.failedToFetchClasses', 'Failed to fetch classes') + `: ${error.message}`);
       })
       .finally(() => setIsLoading(false));
 
@@ -263,7 +317,7 @@ const AddStudentS = () => {
       }
     } catch (error) {
       console.error('Error fetching columns:', error);
-      setErrorMessage(`Failed to fetch columns: ${error.message}`);
+      setPageError(t('students.registration.failedToFetchColumns', 'Failed to fetch columns') + `: ${error.message}`);
       setTableColumns([]);
     } finally {
       setIsLoading(false);
@@ -295,7 +349,7 @@ const AddStudentS = () => {
       
       // If guardian exists but user selected "New Guardian", show warning
       if (isGuardianExisting === 'no') {
-        setGuardianSearchError('This phone number is already registered. Please select "Existing Guardian" or use a different phone number.');
+        setGuardianSearchError(t('students.registration.guardianAlreadyRegistered', 'This phone number is already registered. Please select "Existing Guardian" or use a different phone number.'));
       }
     } catch (error) {
       console.error('Guardian search error:', error);
@@ -305,7 +359,7 @@ const AddStudentS = () => {
       if (error.response?.status === 404) {
         // Guardian not found - this is normal for new guardians
         if (isGuardianExisting === 'yes') {
-          setGuardianSearchError('No guardian found with this phone number. Please verify the number or register as a new guardian.');
+          setGuardianSearchError(t('students.registration.guardianNotFound', 'No guardian found with this phone number. Please verify the number or register as a new guardian.'));
         } else {
           // For new guardians, no error - this is expected
           setGuardianSearchError('');
@@ -313,62 +367,10 @@ const AddStudentS = () => {
         }
       } else {
         // Other errors
-        setGuardianSearchError(`Failed to search guardian: ${error.response?.data?.error || error.message}`);
+        setGuardianSearchError(t('students.registration.guardianSearchFailed', 'Failed to search guardian') + `: ${error.response?.data?.error || error.message}`);
       }
     } finally {
       setIsLoading(false);
-    }
-  };
-
-  const handleFileUpload = (e, fieldName = 'image_student', acceptedTypes = 'image/*') => {
-    const file = e.target.files[0];
-    if (file) {
-      // Check file type if specific types are required
-      if (acceptedTypes !== '*/*') {
-        const accepted = acceptedTypes.split(',').map(type => type.trim());
-        const fileType = file.type;
-        const fileName = file.name.toLowerCase();
-        
-        let isValidType = accepted.some(type => {
-          if (type === 'image/*') return fileType.startsWith('image/');
-          if (type === 'application/pdf') return fileType === 'application/pdf';
-          if (type.includes('sheet') || type.includes('excel')) 
-            return fileType.includes('spreadsheet') || fileName.endsWith('.xlsx') || fileName.endsWith('.xls');
-          if (type.includes('document') || type.includes('word')) 
-            return fileType.includes('document') || fileName.endsWith('.docx') || fileName.endsWith('.doc');
-          return fileType === type || fileName.endsWith(type.replace('.', ''));
-        });
-        
-        if (!isValidType) {
-          setErrorMessage(`Invalid file type for ${fieldName}. Accepted types: ${acceptedTypes}`);
-          return;
-        }
-      }
-      
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        if (fieldName === 'image_student') {
-          setPhotoPreview(reader.result);
-        } else {
-          setCustomFilePreviews(prev => ({ ...prev, [fieldName]: reader.result }));
-        }
-      };
-      
-      // Only try to read as data URL for images, for other files just store the file info
-      if (file.type.startsWith('image/')) {
-        reader.readAsDataURL(file);
-      } else {
-        if (fieldName === 'image_student') {
-          setPhotoPreview(null);
-        } else {
-          setCustomFilePreviews(prev => ({ 
-            ...prev, 
-            [fieldName]: `File: ${file.name} (${(file.size / 1024).toFixed(2)} KB)` 
-          }));
-        }
-      }
-      
-      setValue(fieldName, file);
     }
   };
 
@@ -391,8 +393,7 @@ const AddStudentS = () => {
     });
   };
 
-  const handleClassChange = (e) => {
-    const className = e.target.value;
+  const handleClassChange = (className) => {
     setSelectedClass(className);
     setValue('class', className);
     fetchColumns(className);
@@ -407,11 +408,11 @@ const AddStudentS = () => {
         setTableColumns([]);
         setSelectedClass('');
         setValue('class', '');
-        setErrorMessage('');
+        setPageError('');
         setShowSuccess(false);
         setFormStructure({ classes: [], customFields: [] });
       } catch (error) {
-        setErrorMessage('Failed to delete form: ' + error.message);
+        setPageError(t('students.registration.failedToDeleteForm', 'Failed to delete form') + `: ${error.message}`);
       } finally {
         setIsLoading(false);
       }
@@ -432,7 +433,7 @@ const AddStudentS = () => {
       XLSX.utils.book_append_sheet(wb, ws, selectedClass);
       XLSX.writeFile(wb, `${selectedClass}_template.xlsx`);
     } catch (error) {
-      setErrorMessage('Failed to download template: ' + error.message);
+      setPageError(t('students.registration.failedToDownloadTemplate', 'Failed to download template') + `: ${error.message}`);
     }
   };
 
@@ -441,12 +442,12 @@ const AddStudentS = () => {
     if (!file) return;
     
     if (!selectedClass) {
-      setErrorMessage('Please select a class first');
+      setPageError(t('students.registration.selectClassFirst', 'Please select a class first'));
       return;
     }
     
     setIsLoading(true);
-    setErrorMessage('');
+    setPageError('');
     
     try {
       const reader = new FileReader();
@@ -459,7 +460,7 @@ const AddStudentS = () => {
           const data = XLSX.utils.sheet_to_json(ws);
           
           if (data.length === 0) {
-            setErrorMessage('Excel file is empty');
+            setPageError(t('students.registration.excelEmpty', 'Excel file is empty'));
             setIsLoading(false);
             return;
           }
@@ -471,7 +472,7 @@ const AddStudentS = () => {
           }, { timeout: 30000 });
           
           setShowSuccess(true);
-          setErrorMessage('');
+          setPageError('');
           
           // Build detailed message
           let message = `Successfully imported ${response.data.successCount} students`;
@@ -497,55 +498,53 @@ const AddStudentS = () => {
             }
           }
           
-          alert(message);
+          toast.success(message);
           
           // Reset file input
           e.target.value = '';
         } catch (error) {
           console.error('Error processing Excel file:', error);
-          setErrorMessage('Failed to process Excel file: ' + (error.response?.data?.error || error.message));
+          setPageError(t('students.registration.failedToProcessExcel', 'Failed to process Excel file') + `: ${error.response?.data?.error || error.message}`);
         } finally {
           setIsLoading(false);
         }
       };
       reader.readAsBinaryString(file);
     } catch (error) {
-      setErrorMessage('Failed to read Excel file: ' + error.message);
+      setPageError(t('students.registration.failedToReadExcel', 'Failed to read Excel file') + `: ${error.message}`);
       setIsLoading(false);
     }
   };
 
   const onSubmit = async (data) => {
-    if (previewMode) {
-      setPreviewMode(false);
-      return;
-    }
-
     const isValid = await trigger();
     if (!isValid) {
-      setErrorMessage('Please fix the validation errors before submitting.');
+      toast.error(t('students.registration.fixValidationErrors', 'Please fix the validation errors before submitting.'));
       return;
     }
 
     setIsLoading(true);
-    setErrorMessage('');
+    setPageError('');
     setShowSuccess(false);
     try {
       const formData = new FormData();
       
       Object.entries(data).forEach(([key, value]) => {
-        if (value instanceof File) {
-          formData.append(key, value);
-        } else if (value !== null && value !== undefined) {
-          formData.append(key, value.toString());
-        }
-      });
+        if (value === null || value === undefined) return;
 
-      const files = document.querySelectorAll('input[type="file"]');
-      files.forEach(fileInput => {
-        if (fileInput.files[0]) {
-          formData.append(fileInput.name || 'file', fileInput.files[0]);
+        // FileUpload values come as File[]
+        if (Array.isArray(value) && value.length > 0 && value[0] instanceof File) {
+          formData.append(key, value[0]);
+          return;
         }
+
+        if (value instanceof Date) {
+          const formatted = formatDateForApi(value);
+          if (formatted) formData.append(key, formatted);
+          return;
+        }
+
+        formData.append(key, value.toString());
       });
 
       const response = await axios.post(`${API_BASE_URL}/students/add-student`, formData, {
@@ -559,14 +558,14 @@ const AddStudentS = () => {
         guardian_password: response.data.guardian_password
       });
       setShowSuccess(true);
+      toast.success(t('students.registration.studentAdded', 'Student added successfully!'));
       reset();
-      setPhotoPreview(null);
-      setCustomFilePreviews({});
       setFetchedGuardian(null);
       setMultiSelectValues({});
     } catch (err) {
       const errorMsg = err.response?.data?.details || err.response?.data?.error || err.message;
-      setErrorMessage(errorMsg);
+      setPageError(errorMsg);
+      toast.error(errorMsg);
     } finally {
       setIsLoading(false);
     }
@@ -574,41 +573,59 @@ const AddStudentS = () => {
 
   const handleCopy = (text) => {
     navigator.clipboard.writeText(text);
+    toast.success(t('students.registration.copied', 'Copied'));
   };
 
-  const renderUploadOptions = (fieldName, label, acceptTypes = 'image/*') => {
-    const isImageField = fieldName === 'image_student';
-    const acceptString = isImageField ? 'image/*' : acceptTypes;
+  // Multi-step navigation functions
+  const handleNextStep = async () => {
+    let fieldsToValidate = [];
     
-    return (
-      <div className={styles.uploadOptions}>
-        <label className={styles.uploadOption}>
-          <FiUpload />
-          Upload File
-          <input
-            type="file"
-            accept={acceptString}
-            onChange={(e) => handleFileUpload(e, fieldName, acceptString)}
-            className={styles.fileInput}
-            disabled={isLoading}
-          />
-        </label>
-        {isImageField && (
-          <button
-            type="button"
-            onClick={() => {
-              setCameraMode(fieldName);
-              setShowCamera(true);
-            }}
-            className={styles.uploadOption}
-            disabled={isLoading}
-          >
-            <FiCamera />
-            Take Photo
-          </button>
-        )}
-      </div>
-    );
+    // Define fields for each step
+    switch (currentStep) {
+      case 1: // Student Information
+        fieldsToValidate = ['class', 'student_name', 'smachine_id', 'age', 'gender'];
+        break;
+      case 2: // Guardian Information
+        fieldsToValidate = ['isGuardianExisting', 'guardian_phone', 'guardian_name', 'guardian_relation'];
+        break;
+      case 3: // Custom Fields
+        // Validate all custom fields
+        fieldsToValidate = tableColumns
+          .filter(col => !['id', 'school_id', 'class_id', 'image_student', 'student_name', 'smachine_id', 'age', 'gender', 'class', 'guardian_name', 'guardian_phone', 'guardian_relation', 'username', 'password', 'guardian_username', 'guardian_password', 'is_active', 'is_free', 'exemption_type', 'exemption_reason'].includes(col.column_name))
+          .filter(col => col.is_nullable === 'NO')
+          .map(col => col.column_name);
+        break;
+      default:
+        break;
+    }
+    
+    // Validate current step fields
+    const isValid = await trigger(fieldsToValidate);
+    
+    if (isValid) {
+      setCurrentStep(prev => Math.min(prev + 1, totalSteps));
+    } else {
+      toast.error(t('students.registration.fixValidationErrors', 'Please fix the validation errors before continuing.'));
+    }
+  };
+
+  const handlePreviousStep = () => {
+    setCurrentStep(prev => Math.max(prev - 1, 1));
+  };
+
+  const getStepTitle = (step) => {
+    switch (step) {
+      case 1:
+        return t('students.registration.step1Title', 'Student Information');
+      case 2:
+        return t('students.registration.step2Title', 'Guardian Information');
+      case 3:
+        return t('students.registration.step3Title', 'Additional Information');
+      case 4:
+        return t('students.registration.step4Title', 'Review & Submit');
+      default:
+        return '';
+    }
   };
 
   // Render multi-select field
@@ -618,19 +635,17 @@ const AddStudentS = () => {
 
     return (
       <div className={styles.multiSelectContainer}>
-        <div className={styles.multiSelectLabel}>Select options:</div>
+        <div className={styles.multiSelectLabel}>{t('students.registration.selectOptions', 'Select options')}</div>
         <div className={styles.multiSelectOptions}>
           {options.map((option, index) => (
-            <label key={`${column.column_name}-option-${index}`} className={styles.multiSelectOption}>
-              <input
-                type="checkbox"
-                checked={currentValues.includes(option)}
-                onChange={(e) => handleMultiSelectChange(column.column_name, option, e.target.checked)}
-                disabled={previewMode || isLoading}
-                className={styles.multiSelectCheckbox}
-              />
-              <span>{option}</span>
-            </label>
+            <Checkbox
+              key={`${column.column_name}-option-${index}`}
+              label={option}
+              checked={currentValues.includes(option)}
+              onChange={(checked) => handleMultiSelectChange(column.column_name, option, checked)}
+              disabled={isLoading}
+              className={styles.multiSelectCheckbox}
+            />
           ))}
         </div>
         {errors[column.column_name] && (
@@ -640,81 +655,78 @@ const AddStudentS = () => {
     );
   };
 
-  // Render select dropdown field
+  // Render select dropdown field (custom fields)
   const renderSelectField = (column, validationRules) => {
     const options = getFieldOptions(column);
 
     return (
-      <div className={styles.selectWrapper}>
-        <select
-          {...register(column.column_name, validationRules)}
-          disabled={previewMode || isLoading}
-          className={`${styles.select} ${errors[column.column_name] ? styles.error : ''}`}
-        >
-          <option value="">{`Select ${column.column_name.replace(/_/g, ' ')}`}</option>
-          {options.map((option, i) => (
-            <option key={`${column.column_name}-option-${i}`} value={option}>{option}</option>
-          ))}
-        </select>
-        <FiChevronDown className={styles.selectIcon} />
-        {errors[column.column_name] && <span className={styles.errorMessage}>{errors[column.column_name].message}</span>}
-      </div>
+      <Controller
+        name={column.column_name}
+        control={control}
+        rules={validationRules}
+        render={({ field }) => (
+          <Select
+            label={null}
+            options={[
+              { value: '', label: t('common.select', 'Select') + ` ${column.column_name.replace(/_/g, ' ')}` },
+              ...options.map((o) => ({ value: o, label: o }))
+            ]}
+            value={field.value || ''}
+            onChange={(v) => field.onChange(v)}
+            disabled={isLoading}
+            error={errors[column.column_name]?.message}
+          />
+        )}
+      />
     );
   };
 
   // Render upload field
   const renderUploadField = (column, isRequired) => {
-    const preview = customFilePreviews[column.column_name];
-    
     return (
-      <div className={styles.formGroup}>
-        <label>{column.column_name.replace(/_/g, ' ')}{isRequired ? <span className={styles.required}>*</span> : ''}</label>
-        {preview ? (
-          <div className={styles.photoPreview}>
-            {preview.startsWith('data:image') ? (
-              <img src={preview} alt="Preview" />
-            ) : (
-              <div className={styles.filePreview}>
-                <FiFile size={24} />
-                <span>{preview}</span>
+      <Controller
+        name={column.column_name}
+        control={control}
+        rules={isRequired ? { required: `${column.column_name.replace(/_/g, ' ')} ${t('common.required', 'Required')}` } : {}}
+        render={({ field }) => (
+          <div className={styles.formField}>
+            <FileUpload
+              label={column.column_name.replace(/_/g, ' ')}
+              accept="image/*,application/pdf,.xlsx,.xls,.doc,.docx,.txt"
+              multiple={false}
+              value={field.value || []}
+              onChange={(files) => field.onChange(files)}
+              disabled={isLoading}
+              error={errors[column.column_name]?.message}
+              onError={(msg) => toast.error(msg)}
+            />
+            {column.column_name === 'image_student' && (
+              <div className={styles.inlineActions}>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  size="small"
+                  icon={<Camera size={16} />}
+                  onClick={() => {
+                    setCameraMode(column.column_name);
+                    setShowCamera(true);
+                  }}
+                  disabled={isLoading}
+                >
+                  {t('students.registration.takePhoto', 'Take photo')}
+                </Button>
               </div>
             )}
-            {!previewMode && (
-              <button
-                type="button"
-                className={styles.removePhoto}
-                onClick={() => {
-                  setCustomFilePreviews(prev => {
-                    const newPreviews = { ...prev };
-                    delete newPreviews[column.column_name];
-                    return newPreviews;
-                  });
-                  setValue(column.column_name, null);
-                }}
-                disabled={isLoading}
-              >
-                <FiTrash2 />
-              </button>
-            )}
           </div>
-        ) : (
-          !previewMode && renderUploadOptions(
-            column.column_name, 
-            column.column_name.replace(/_/g, ' '),
-            'image/*,application/pdf,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain'
-          )
         )}
-        {errors[column.column_name] && (
-          <span className={styles.errorMessage}>{errors[column.column_name].message}</span>
-        )}
-      </div>
+      />
     );
   };
 
   // Render custom field based on type
   const renderCustomField = (column) => {
     const isRequired = column.is_nullable === 'NO';
-    const validationRules = isRequired ? { required: `${column.column_name.replace(/_/g, ' ')} is required` } : {};
+    const validationRules = isRequired ? { required: `${column.column_name.replace(/_/g, ' ')} ${t('common.required', 'Required')}` } : {};
     const fieldType = getFieldType(column);
 
     // Handle upload field separately
@@ -724,66 +736,106 @@ const AddStudentS = () => {
 
     return (
       <div key={column.column_name} className={styles.formGroup}>
-        <label>{column.column_name.replace(/_/g, ' ')}{isRequired ? <span className={styles.required}>*</span> : ''}</label>
+        <div className={styles.fieldLabel}>
+          {column.column_name.replace(/_/g, ' ')}
+          {isRequired ? <span className={styles.required}>*</span> : null}
+        </div>
         
         {fieldType === 'multi-select' ? (
           renderMultiSelectField(column)
         ) : fieldType === 'select' ? (
           renderSelectField(column, validationRules)
         ) : fieldType === 'checkbox' ? (
-          <div className={styles.checkboxContainer}>
-            <input
-              type="checkbox"
-              {...register(column.column_name)}
-              disabled={previewMode || isLoading}
-              className={styles.checkboxInput}
-            />
-            <label className={styles.checkboxLabel}>
-              {column.column_name.replace(/_/g, ' ')}
-            </label>
-            {errors[column.column_name] && <span className={styles.errorMessage}>{errors[column.column_name].message}</span>}
-          </div>
+          <Controller
+            name={column.column_name}
+            control={control}
+            render={({ field }) => (
+              <Checkbox
+                label={column.column_name.replace(/_/g, ' ')}
+                checked={!!field.value}
+                onChange={(checked) => field.onChange(checked)}
+                disabled={isLoading}
+                error={errors[column.column_name]?.message}
+              />
+            )}
+          />
         ) : fieldType === 'textarea' ? (
-          <textarea
-            {...register(column.column_name, {
+          <Controller
+            name={column.column_name}
+            control={control}
+            rules={{
               ...validationRules,
-              minLength: { value: 2, message: 'Must be at least 2 characters' }
-            })}
-            disabled={previewMode || isLoading}
-            className={`${styles.textarea} ${errors[column.column_name] ? styles.error : ''}`}
-            placeholder={column.column_name.replace(/_/g, ' ')}
-            rows={4}
+              minLength: { value: 2, message: t('students.registration.minLength2', 'Must be at least 2 characters') }
+            }}
+            render={({ field }) => (
+              <Textarea
+                ref={field.ref}
+                value={field.value || ''}
+                onChange={(val) => field.onChange(val)}
+                disabled={isLoading}
+                placeholder={column.column_name.replace(/_/g, ' ')}
+                rows={4}
+                error={errors[column.column_name]?.message}
+              />
+            )}
           />
         ) : fieldType === 'date' ? (
-          <input
-            type="date"
-            {...register(column.column_name, validationRules)}
-            disabled={previewMode || isLoading}
-            className={`${styles.input} ${errors[column.column_name] ? styles.error : ''}`}
+          <Controller
+            name={column.column_name}
+            control={control}
+            rules={validationRules}
+            render={({ field }) => (
+              <DatePicker
+                label={null}
+                value={field.value || null}
+                onChange={(d) => field.onChange(d)}
+                disabled={isLoading}
+                error={errors[column.column_name]?.message}
+                placeholder={t('common.date', 'Date')}
+              />
+            )}
           />
         ) : fieldType === 'number' ? (
-          <input
-            type="number"
-            {...register(column.column_name, {
+          <Controller
+            name={column.column_name}
+            control={control}
+            rules={{
               ...validationRules,
               validate: {
-                validNumber: (value) => !value || !isNaN(value) || 'Must be a valid number'
+                validNumber: (value) => !value || !Number.isNaN(Number(value)) || t('students.registration.mustBeNumber', 'Must be a valid number')
               }
-            })}
-            disabled={previewMode || isLoading}
-            className={`${styles.input} ${errors[column.column_name] ? styles.error : ''}`}
-            placeholder={column.column_name.replace(/_/g, ' ')}
+            }}
+            render={({ field }) => (
+              <Input
+                type="number"
+                label={null}
+                value={field.value ?? ''}
+                onChange={(v) => field.onChange(v)}
+                disabled={isLoading}
+                error={errors[column.column_name]?.message}
+                placeholder={column.column_name.replace(/_/g, ' ')}
+              />
+            )}
           />
         ) : (
-          <input
-            type="text"
-            {...register(column.column_name, {
+          <Controller
+            name={column.column_name}
+            control={control}
+            rules={{
               ...validationRules,
-              minLength: { value: 2, message: 'Must be at least 2 characters' }
-            })}
-            disabled={previewMode || isLoading}
-            className={`${styles.input} ${errors[column.column_name] ? styles.error : ''}`}
-            placeholder={column.column_name.replace(/_/g, ' ')}
+              minLength: { value: 2, message: t('students.registration.minLength2', 'Must be at least 2 characters') }
+            }}
+            render={({ field }) => (
+              <Input
+                type="text"
+                label={null}
+                value={field.value ?? ''}
+                onChange={(v) => field.onChange(v)}
+                disabled={isLoading}
+                error={errors[column.column_name]?.message}
+                placeholder={column.column_name.replace(/_/g, ' ')}
+              />
+            )}
           />
         )}
         {errors[column.column_name] && (
@@ -794,309 +846,481 @@ const AddStudentS = () => {
   };
 
   return (
-    <motion.div className={styles.container} initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+    <div className={styles.container}>
+      <ToastContainer toasts={toast.toasts} onRemove={toast.removeToast} position={toast.position} />
       {showCamera && <CameraModal />}
-      
+
       <form onSubmit={handleSubmit(onSubmit)} className={styles.form}>
-        {showSuccess && newCredentials && (
-          <div className={styles.successMessage}>
-            <p>Student added successfully!</p>
-            <div className={styles.credentials}>
-              <p>Student Username: {newCredentials.student_username} <FiCopy onClick={() => handleCopy(newCredentials.student_username)} /></p>
-              <p>Student Password: {newCredentials.student_password} <FiCopy onClick={() => handleCopy(newCredentials.student_password)} /></p>
-              <p>Guardian Username: {newCredentials.guardian_username} <FiCopy onClick={() => handleCopy(newCredentials.guardian_username)} /></p>
-              <p>Guardian Password: {newCredentials.guardian_password} <FiCopy onClick={() => handleCopy(newCredentials.guardian_password)} /></p>
+        <div className={styles.headerRow}>
+          <div>
+            <h1 className={styles.pageTitle}>{t('students.registration.title', 'Student Registration')}</h1>
+            <p className={styles.pageSubtitle}>{t('students.registration.subtitle', 'Register a new student and link to a guardian account')}</p>
+          </div>
+          <div className={styles.headerActions}>
+            {availableClasses.length > 0 && (
+              <>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  icon={<Download size={18} />}
+                  onClick={handleDownload}
+                  disabled={isLoading}
+                >
+                  {t('common.download', 'Download')}
+                </Button>
+                <label className={styles.excelUploadLabel}>
+                  <input
+                    type="file"
+                    accept=".xlsx,.xls"
+                    onChange={handleExcelUpload}
+                    className={styles.hiddenFileInput}
+                    disabled={isLoading}
+                  />
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    icon={<FileSpreadsheet size={18} />}
+                    disabled={isLoading}
+                  >
+                    {t('common.upload', 'Upload')} Excel
+                  </Button>
+                </label>
+              </>
+            )}
+          </div>
+        </div>
+
+        {/* Multi-step Progress Indicator */}
+        <div className={styles.stepIndicator}>
+          {[1, 2, 3, 4].map((step) => (
+            <div
+              key={step}
+              className={`${styles.stepItem} ${currentStep === step ? styles.stepActive : ''} ${currentStep > step ? styles.stepCompleted : ''}`}
+            >
+              <div className={styles.stepNumber}>{step}</div>
+              <div className={styles.stepLabel}>{getStepTitle(step)}</div>
             </div>
+          ))}
+        </div>
+
+        {showSuccess && newCredentials && (
+          <Card title={t('students.registration.credentialsTitle', 'New credentials')} className={styles.credentialsCard}>
+            <div className={styles.credentialsGrid}>
+              <div className={styles.credentialItem}>
+                <div className={styles.credentialLabel}>{t('students.registration.studentUsername', 'Student username')}</div>
+                <div className={styles.credentialValue}>
+                  <span>{newCredentials.student_username}</span>
+                  <button type="button" className={styles.copyBtn} onClick={() => handleCopy(newCredentials.student_username)} aria-label={t('students.registration.copy', 'Copy')}>
+                    <Copy size={16} />
+                  </button>
+                </div>
+              </div>
+              <div className={styles.credentialItem}>
+                <div className={styles.credentialLabel}>{t('students.registration.studentPassword', 'Student password')}</div>
+                <div className={styles.credentialValue}>
+                  <span>{newCredentials.student_password}</span>
+                  <button type="button" className={styles.copyBtn} onClick={() => handleCopy(newCredentials.student_password)} aria-label={t('students.registration.copy', 'Copy')}>
+                    <Copy size={16} />
+                  </button>
+                </div>
+              </div>
+              <div className={styles.credentialItem}>
+                <div className={styles.credentialLabel}>{t('students.registration.guardianUsername', 'Guardian username')}</div>
+                <div className={styles.credentialValue}>
+                  <span>{newCredentials.guardian_username}</span>
+                  <button type="button" className={styles.copyBtn} onClick={() => handleCopy(newCredentials.guardian_username)} aria-label={t('students.registration.copy', 'Copy')}>
+                    <Copy size={16} />
+                  </button>
+                </div>
+              </div>
+              <div className={styles.credentialItem}>
+                <div className={styles.credentialLabel}>{t('students.registration.guardianPassword', 'Guardian password')}</div>
+                <div className={styles.credentialValue}>
+                  <span>{newCredentials.guardian_password}</span>
+                  <button type="button" className={styles.copyBtn} onClick={() => handleCopy(newCredentials.guardian_password)} aria-label={t('students.registration.copy', 'Copy')}>
+                    <Copy size={16} />
+                  </button>
+                </div>
+              </div>
+            </div>
+          </Card>
+        )}
+
+        {pageError && (
+          <div className={styles.pageError} role="alert">
+            {pageError}
           </div>
         )}
-        {errorMessage && <p className={styles.errorMessage}>{errorMessage}</p>}
-        {isLoading && <p className={styles.loadingMessage}>Loading...</p>}
 
-        <div className={styles.formGrid}>
-          {/* Student Information Section */}
-          <div className={styles.section}>
-            <h2><FiUser /> Student Information</h2>
-            <div className={styles.formGroup}>
-              <label>Class<span className={styles.required}>*</span></label>
-              <div className={styles.selectWrapper}>
-                <select
-                  {...register('class', { required: 'Class is required' })}
-                  onChange={handleClassChange}
-                  disabled={previewMode || isLoading || availableClasses.length === 0}
-                  className={`${styles.select} ${errors.class ? styles.error : ''}`}
-                >
-                  <option value="">Select Class</option>
-                  {availableClasses.map(cls => <option key={cls} value={cls}>{cls}</option>)}
-                </select>
-                <FiChevronDown className={styles.selectIcon} />
-                {errors.class && <span className={styles.errorMessage}>{errors.class.message}</span>}
-              </div>
-            </div>
-            <div className={styles.formGroup}>
-              <label>Student Name<span className={styles.required}>*</span></label>
-              <input
-                {...register('student_name', { 
-                  required: 'Student name is required',
-                  minLength: { value: 2, message: 'Name must be at least 2 characters' },
-                  pattern: {
-                    value: /^[A-Za-z\s]+$/,
-                    message: 'Name can only contain letters and spaces'
-                  }
-                })}
-                disabled={previewMode || isLoading}
-                className={`${styles.input} ${errors.student_name ? styles.error : ''}`}
-                placeholder="Enter student's full name"
+        {/* Step 1: Student Information */}
+        {currentStep === 1 && (
+          <Card
+            title={t('students.registration.studentInfo', 'Student information')}
+            subtitle={t('students.registration.studentInfoSubtitle', 'Basic student details')}
+            className={styles.card}
+          >
+            <div className={styles.cardBody}>
+              <Controller
+                name="class"
+                control={control}
+                rules={{ required: t('students.registration.classRequired', 'Class is required') }}
+                render={({ field }) => (
+                  <Select
+                    label={t('students.class', 'Class')}
+                    options={classOptions}
+                    value={field.value || ''}
+                    onChange={(v) => {
+                      field.onChange(v);
+                      handleClassChange(v);
+                    }}
+                    placeholder={t('students.registration.selectClass', 'Select class')}
+                    required
+                    disabled={isLoading || availableClasses.length === 0}
+                    error={errors.class?.message}
+                  />
+                )}
               />
-              {errors.student_name && <span className={styles.errorMessage}>{errors.student_name.message}</span>}
-            </div>
-            <div className={styles.formGroup}>
-              <label>Student Machine ID<span className={styles.required}>*</span></label>
-              <input
-                type="text"
-                {...register('smachine_id', { 
-                  required: 'Student Machine ID is required',
-                  pattern: {
-                    value: /^[0-9]+$/,
-                    message: 'Machine ID must contain only numbers'
-                  },
-                  minLength: { value: 3, message: 'Machine ID must be at least 3 digits' },
-                  maxLength: { value: 10, message: 'Machine ID must be at most 10 digits' }
-                })}
-                disabled={previewMode || isLoading}
-                className={`${styles.input} ${errors.smachine_id ? styles.error : ''}`}
-                placeholder="Enter machine ID (e.g., 1001)"
+
+              <Controller
+                name="student_name"
+                control={control}
+                rules={{
+                  required: t('students.registration.studentNameRequired', 'Student name is required'),
+                  minLength: { value: 2, message: t('students.registration.minLength2', 'Must be at least 2 characters') }
+                }}
+                render={({ field }) => (
+                  <Input
+                    label={t('students.registration.studentName', 'Student name')}
+                    placeholder={t('students.registration.studentNamePlaceholder', "Enter student's full name")}
+                    value={field.value || ''}
+                    onChange={(v) => field.onChange(v)}
+                    required
+                    disabled={isLoading}
+                    error={errors.student_name?.message}
+                  />
+                )}
               />
-              {errors.smachine_id && <span className={styles.errorMessage}>{errors.smachine_id.message}</span>}
-              <div style={{ fontSize: '0.85rem', color: '#666', marginTop: '4px' }}>
-                Recommended: Use 1000-9999 for students (4 digits)
-              </div>
-            </div>
-            <div className={styles.formGroup}>
-              <label>Age<span className={styles.required}>*</span></label>
-              <input
-                type="number"
-                {...register('age', { 
-                  required: 'Age is required', 
-                  min: { value: 3, message: 'Age must be at least 3' },
-                  max: { value: 100, message: 'Age must be less than 100' }
-                })}
-                disabled={previewMode || isLoading}
-                className={`${styles.input} ${errors.age ? styles.error : ''}`}
-                placeholder="Enter age"
+
+              <Controller
+                name="smachine_id"
+                control={control}
+                rules={{
+                  required: t('students.registration.machineIdRequired', 'Student Machine ID is required'),
+                  pattern: { value: /^[0-9]+$/, message: t('students.registration.machineIdNumbersOnly', 'Machine ID must contain only numbers') },
+                  minLength: { value: 3, message: t('students.registration.machineIdMin', 'Machine ID must be at least 3 digits') },
+                  maxLength: { value: 10, message: t('students.registration.machineIdMax', 'Machine ID must be at most 10 digits') }
+                }}
+                render={({ field }) => (
+                  <Input
+                    label={t('students.registration.machineId', 'Student Machine ID')}
+                    placeholder={t('students.registration.machineIdPlaceholder', 'Enter machine ID (e.g., 1001)')}
+                    value={field.value || ''}
+                    onChange={(v) => field.onChange(v)}
+                    required
+                    disabled={isLoading}
+                    error={errors.smachine_id?.message}
+                    helperText={t('students.registration.machineIdHelper', 'Recommended: 1000–9999 for students (4 digits)')}
+                  />
+                )}
               />
-              {errors.age && <span className={styles.errorMessage}>{errors.age.message}</span>}
-            </div>
-            <div className={styles.formGroup}>
-              <label>Gender<span className={styles.required}>*</span></label>
-              <div className={styles.selectWrapper}>
-                <select
-                  {...register('gender', { required: 'Gender is required' })}
-                  disabled={previewMode || isLoading}
-                  className={`${styles.select} ${errors.gender ? styles.error : ''}`}
-                >
-                  <option value="">Select Gender</option>
-                  {genderOptions.map(opt => <option key={opt} value={opt}>{opt}</option>)}
-                </select>
-                <FiChevronDown className={styles.selectIcon} />
-                {errors.gender && <span className={styles.errorMessage}>{errors.gender.message}</span>}
-              </div>
-            </div>
-            
-            {/* V2 Enhancement: KG and Evening Class Checkboxes */}
-            {task1Config && (task1Config.has_kg || task1Config.has_evening_class) && (
-              <div className={styles.formGroup} style={{ gridColumn: '1 / -1' }}>
-                <label style={{ marginBottom: '12px', display: 'block', fontWeight: '600' }}>
-                  Student Type
-                </label>
-                <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap' }}>
-                  {task1Config.has_kg && (
-                    <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
-                      <input
-                        type="checkbox"
-                        {...register('is_kg')}
-                        disabled={previewMode || isLoading}
-                        style={{ width: '18px', height: '18px', cursor: 'pointer' }}
-                      />
-                      <span>Kindergarten (KG) Student</span>
-                    </label>
-                  )}
-                  {task1Config.has_evening_class && (
-                    <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
-                      <input
-                        type="checkbox"
-                        {...register('is_evening_class')}
-                        disabled={previewMode || isLoading}
-                        style={{ width: '18px', height: '18px', cursor: 'pointer' }}
-                      />
-                      <span>Evening Class Student</span>
-                    </label>
-                  )}
-                </div>
-                <div style={{ fontSize: '0.85rem', color: '#666', marginTop: '8px' }}>
-                  {task1Config.has_kg && task1Config.has_evening_class 
-                    ? 'Select if this student is in KG program and/or evening class'
-                    : task1Config.has_kg 
-                    ? 'Select if this student is in the KG program'
-                    : 'Select if this student is in the evening class'}
-                </div>
-              </div>
-            )}
-            
-            <div className={styles.formGroup}>
-              <label>Student Photo</label>
-              {photoPreview ? (
-                <div className={styles.photoPreview}>
-                  <img src={photoPreview} alt="Student Preview" />
-                  {!previewMode && (
-                    <button
-                      type="button"
-                      className={styles.removePhoto}
-                      onClick={() => {
-                        setPhotoPreview(null);
-                        setValue('image_student', null);
-                      }}
+
+              <div className={styles.row2}>
+                <Controller
+                  name="age"
+                  control={control}
+                  rules={{
+                    required: t('students.registration.ageRequired', 'Age is required'),
+                    min: { value: 3, message: t('students.registration.ageMin', 'Age must be at least 3') },
+                    max: { value: 100, message: t('students.registration.ageMax', 'Age must be less than 100') }
+                  }}
+                  render={({ field }) => (
+                    <Input
+                      type="number"
+                      label={t('students.registration.age', 'Age')}
+                      placeholder={t('students.registration.agePlaceholder', 'Enter age')}
+                      value={field.value ?? ''}
+                      onChange={(v) => field.onChange(v)}
+                      required
                       disabled={isLoading}
-                    >
-                      <FiTrash2 />
-                    </button>
+                      error={errors.age?.message}
+                    />
                   )}
+                />
+
+                <Controller
+                  name="gender"
+                  control={control}
+                  rules={{ required: t('students.registration.genderRequired', 'Gender is required') }}
+                  render={({ field }) => (
+                    <Select
+                      label={t('students.gender', 'Gender')}
+                      options={genderOptions}
+                      value={field.value || ''}
+                      onChange={(v) => field.onChange(v)}
+                      placeholder={t('students.registration.selectGender', 'Select gender')}
+                      required
+                      disabled={isLoading}
+                      error={errors.gender?.message}
+                    />
+                  )}
+                />
+              </div>
+
+              {task1Config && (task1Config.has_kg || task1Config.has_evening_class) && (
+                <div className={styles.studentType}>
+                  <div className={styles.studentTypeTitle}>{t('students.registration.studentType', 'Student type')}</div>
+                  <div className={styles.studentTypeOptions}>
+                    {task1Config.has_kg && (
+                      <Controller
+                        name="is_kg"
+                        control={control}
+                        render={({ field }) => (
+                          <Checkbox
+                            label={t('students.registration.isKg', 'Kindergarten (KG) student')}
+                            checked={!!field.value}
+                            onChange={(checked) => field.onChange(checked)}
+                            disabled={isLoading}
+                          />
+                        )}
+                      />
+                    )}
+                    {task1Config.has_evening_class && (
+                      <Controller
+                        name="is_evening_class"
+                        control={control}
+                        render={({ field }) => (
+                          <Checkbox
+                            label={t('students.registration.isEvening', 'Evening class student')}
+                            checked={!!field.value}
+                            onChange={(checked) => field.onChange(checked)}
+                            disabled={isLoading}
+                          />
+                        )}
+                      />
+                    )}
+                  </div>
                 </div>
-              ) : (
-                !previewMode && renderUploadOptions('image_student', 'Upload Student Photo')
               )}
-            </div>
-          </div>
 
-          {/* Guardian Information Section */}
-          <div className={styles.section}>
-            <h2><FiUser /> Guardian Information</h2>
-            <div className={styles.radioGroup}>
-              <label className={styles.radioOption}>
-                <input type="radio" value="no" {...register('isGuardianExisting')} disabled={isLoading} />
-                New Guardian
-              </label>
-              <label className={styles.radioOption}>
-                <input type="radio" value="yes" {...register('isGuardianExisting')} disabled={isLoading} />
-                Existing Guardian
-              </label>
+              <div className={styles.formField}>
+                {renderUploadField({ column_name: 'image_student' }, false)}
+              </div>
             </div>
-            <div className={styles.formGroup}>
-              <label>Guardian Phone<span className={styles.required}>*</span></label>
-              <input
-                {...register('guardian_phone', { 
-                  required: 'Guardian phone is required',
-                  pattern: {
-                    value: /^[0-9+\-\s()]{10,}$/,
-                    message: 'Please enter a valid phone number'
-                  }
-                })}
-                onBlur={(e) => handleGuardianSearch(e.target.value)}
-                disabled={previewMode || isLoading || (isGuardianExisting === 'yes' && fetchedGuardian)}
-                className={`${styles.input} ${errors.guardian_phone ? styles.error : ''}`}
-                placeholder="Enter guardian's phone number"
+          </Card>
+        )}
+
+        {/* Step 2: Guardian Information */}
+        {currentStep === 2 && (
+          <Card
+            title={t('students.registration.guardianInfo', 'Guardian information')}
+            subtitle={t('students.registration.guardianInfoSubtitle', 'Create or link an existing guardian')}
+            className={styles.card}
+          >
+            <div className={styles.cardBody}>
+              <Controller
+                name="isGuardianExisting"
+                control={control}
+                render={({ field }) => (
+                  <RadioGroup
+                    name="isGuardianExisting"
+                    value={field.value}
+                    onChange={(v) => field.onChange(v)}
+                    options={[
+                      { value: 'no', label: t('students.registration.newGuardian', 'New guardian') },
+                      { value: 'yes', label: t('students.registration.existingGuardian', 'Existing guardian') }
+                    ]}
+                    disabled={isLoading}
+                  />
+                )}
               />
-              {errors.guardian_phone && <span className={styles.errorMessage}>{errors.guardian_phone.message}</span>}
-              {guardianSearchError && <span className={styles.errorMessage}>{guardianSearchError}</span>}
+
+              <Controller
+                name="guardian_phone"
+                control={control}
+                rules={{
+                  required: t('students.registration.guardianPhoneRequired', 'Guardian phone is required'),
+                  pattern: { value: /^[0-9+\-\s()]{10,}$/, message: t('students.registration.guardianPhoneInvalid', 'Please enter a valid phone number') }
+                }}
+                render={({ field }) => (
+                  <Input
+                    label={t('students.registration.guardianPhone', 'Guardian phone')}
+                    placeholder={t('students.registration.guardianPhonePlaceholder', "Enter guardian's phone number")}
+                    value={field.value || ''}
+                    onChange={(v) => field.onChange(v)}
+                    required
+                    disabled={isLoading || (isGuardianExisting === 'yes' && !!fetchedGuardian)}
+                    error={errors.guardian_phone?.message || guardianSearchError}
+                    suffixIcon={<Search size={18} />}
+                    onBlur={() => handleGuardianSearch(getValues('guardian_phone') || '')}
+                  />
+                )}
+              />
+
               {fetchedGuardian && isGuardianExisting === 'yes' && (
-                <span className={styles.confirmMessage}>Guardian found: {fetchedGuardian.name}</span>
+                <div className={styles.helperSuccess}>
+                  {t('students.registration.guardianFound', 'Guardian found')}: {fetchedGuardian.name}
+                </div>
               )}
-            </div>
-            <div className={styles.formGroup}>
-              <label>Guardian Name<span className={styles.required}>*</span></label>
-              <input
-                {...register('guardian_name', { 
-                  required: 'Guardian name is required',
-                  minLength: { value: 2, message: 'Name must be at least 2 characters' },
-                  pattern: {
-                    value: /^[A-Za-z\s]+$/,
-                    message: 'Name can only contain letters and spaces'
-                  }
-                })}
-                disabled={previewMode || isLoading || (isGuardianExisting === 'yes' && fetchedGuardian)}
-                className={`${styles.input} ${errors.guardian_name ? styles.error : ''}`}
-                placeholder="Enter guardian's full name"
-              />
-              {errors.guardian_name && <span className={styles.errorMessage}>{errors.guardian_name.message}</span>}
-            </div>
-            <div className={styles.formGroup}>
-              <label>Guardian Relation<span className={styles.required}>*</span></label>
-              <input
-                {...register('guardian_relation', { 
-                  required: 'Guardian relation is required',
-                  minLength: { value: 2, message: 'Relation must be at least 2 characters' }
-                })}
-                disabled={previewMode || isLoading}
-                className={`${styles.input} ${errors.guardian_relation ? styles.error : ''}`}
-                placeholder="e.g., Father, Mother, Guardian"
-              />
-              {errors.guardian_relation && <span className={styles.errorMessage}>{errors.guardian_relation.message}</span>}
-            </div>
-          </div>
-        </div>
 
-        {/* Custom Fields Section */}
-        <div className={styles.section}>
-          <h2>Custom Fields</h2>
-          <div className={styles.formGrid}>
-            {tableColumns
-              .filter(col => !['id', 'school_id', 'class_id', 'image_student', 'student_name', 'smachine_id', 'age', 'gender', 'class', 'guardian_name', 'guardian_phone', 'guardian_relation', 'username', 'password', 'guardian_username', 'guardian_password', 'is_active', 'is_free', 'exemption_type', 'exemption_reason'].includes(col.column_name))
-              .map(column => renderCustomField(column))
-            }
-          </div>
-        </div>
+              <Controller
+                name="guardian_name"
+                control={control}
+                rules={{
+                  required: t('students.registration.guardianNameRequired', 'Guardian name is required'),
+                  minLength: { value: 2, message: t('students.registration.minLength2', 'Must be at least 2 characters') }
+                }}
+                render={({ field }) => (
+                  <Input
+                    label={t('students.registration.guardianName', 'Guardian name')}
+                    placeholder={t('students.registration.guardianNamePlaceholder', "Enter guardian's full name")}
+                    value={field.value || ''}
+                    onChange={(v) => field.onChange(v)}
+                    required
+                    disabled={isLoading || (isGuardianExisting === 'yes' && !!fetchedGuardian)}
+                    error={errors.guardian_name?.message}
+                  />
+                )}
+              />
 
-        <div className={styles.formFooter}>
-          {!previewMode ? (
-            <button
-              type="submit"
-              className={`${styles.button} ${styles.primary}`}
-              disabled={isLoading || (isGuardianExisting === 'yes' && !fetchedGuardian)}
+              <Controller
+                name="guardian_relation"
+                control={control}
+                rules={{
+                  required: t('students.registration.guardianRelationRequired', 'Guardian relation is required'),
+                  minLength: { value: 2, message: t('students.registration.minLength2', 'Must be at least 2 characters') }
+                }}
+                render={({ field }) => (
+                  <Input
+                    label={t('students.registration.guardianRelation', 'Guardian relation')}
+                    placeholder={t('students.registration.guardianRelationPlaceholder', 'e.g., Father, Mother, Guardian')}
+                    value={field.value || ''}
+                    onChange={(v) => field.onChange(v)}
+                    required
+                    disabled={isLoading}
+                    error={errors.guardian_relation?.message}
+                  />
+                )}
+              />
+            </div>
+          </Card>
+        )}
+
+        {/* Step 3: Custom Fields */}
+        {currentStep === 3 && (
+          <Card
+            title={t('students.registration.customFields', 'Custom fields')}
+            subtitle={t('students.registration.customFieldsSubtitle', 'Additional fields from your form builder')}
+            className={styles.customFieldsCard}
+          >
+            <div className={styles.customFieldsGrid}>
+              {tableColumns
+                .filter(col => !['id', 'school_id', 'class_id', 'image_student', 'student_name', 'smachine_id', 'age', 'gender', 'class', 'guardian_name', 'guardian_phone', 'guardian_relation', 'username', 'password', 'guardian_username', 'guardian_password', 'is_active', 'is_free', 'exemption_type', 'exemption_reason'].includes(col.column_name))
+                .map(column => renderCustomField(column))}
+            </div>
+          </Card>
+        )}
+
+        {/* Step 4: Review & Submit */}
+        {currentStep === 4 && (
+          <div className={styles.reviewSection}>
+            <Card
+              title={t('students.registration.reviewTitle', 'Review your information')}
+              subtitle={t('students.registration.reviewSubtitle', 'Please review all information before submitting')}
             >
-              <FiPlus /> Add Student
-            </button>
-          ) : (
-            <button
-              type="button"
-              className={`${styles.button} ${styles.primary}`}
-              onClick={() => setPreviewMode(false)}
-              disabled={isLoading}
-            >
-              Back to Edit
-            </button>
-          )}
-          {availableClasses.length > 0 && (
-            <>
-              <button
+              <div className={styles.reviewGrid}>
+                <div className={styles.reviewSection}>
+                  <h3 className={styles.reviewSectionTitle}>{t('students.registration.studentInfo', 'Student information')}</h3>
+                  <div className={styles.reviewItem}>
+                    <span className={styles.reviewLabel}>{t('students.class', 'Class')}:</span>
+                    <span className={styles.reviewValue}>{getValues('class')}</span>
+                  </div>
+                  <div className={styles.reviewItem}>
+                    <span className={styles.reviewLabel}>{t('students.registration.studentName', 'Student name')}:</span>
+                    <span className={styles.reviewValue}>{getValues('student_name')}</span>
+                  </div>
+                  <div className={styles.reviewItem}>
+                    <span className={styles.reviewLabel}>{t('students.registration.machineId', 'Machine ID')}:</span>
+                    <span className={styles.reviewValue}>{getValues('smachine_id')}</span>
+                  </div>
+                  <div className={styles.reviewItem}>
+                    <span className={styles.reviewLabel}>{t('students.registration.age', 'Age')}:</span>
+                    <span className={styles.reviewValue}>{getValues('age')}</span>
+                  </div>
+                  <div className={styles.reviewItem}>
+                    <span className={styles.reviewLabel}>{t('students.gender', 'Gender')}:</span>
+                    <span className={styles.reviewValue}>{getValues('gender')}</span>
+                  </div>
+                </div>
+
+                <div className={styles.reviewSection}>
+                  <h3 className={styles.reviewSectionTitle}>{t('students.registration.guardianInfo', 'Guardian information')}</h3>
+                  <div className={styles.reviewItem}>
+                    <span className={styles.reviewLabel}>{t('students.registration.guardianPhone', 'Guardian phone')}:</span>
+                    <span className={styles.reviewValue}>{getValues('guardian_phone')}</span>
+                  </div>
+                  <div className={styles.reviewItem}>
+                    <span className={styles.reviewLabel}>{t('students.registration.guardianName', 'Guardian name')}:</span>
+                    <span className={styles.reviewValue}>{getValues('guardian_name')}</span>
+                  </div>
+                  <div className={styles.reviewItem}>
+                    <span className={styles.reviewLabel}>{t('students.registration.guardianRelation', 'Guardian relation')}:</span>
+                    <span className={styles.reviewValue}>{getValues('guardian_relation')}</span>
+                  </div>
+                </div>
+              </div>
+            </Card>
+          </div>
+        )}
+
+        <div className={styles.footerBar}>
+          <div className={styles.footerLeft}>
+            {currentStep > 1 && (
+              <Button
                 type="button"
-                className={`${styles.button} ${styles.secondary}`}
+                variant="secondary"
+                onClick={handlePreviousStep}
+                disabled={isLoading}
+              >
+                {t('common.previous', 'Previous')}
+              </Button>
+            )}
+            {availableClasses.length > 0 && currentStep === 1 && (
+              <Button
+                type="button"
+                variant="danger"
+                icon={<Trash2 size={18} />}
                 onClick={handleDeleteForm}
                 disabled={isLoading}
               >
-                <FiXCircle /> Delete Form
-              </button>
-              <button
+                {t('students.registration.deleteForm', 'Delete form')}
+              </Button>
+            )}
+          </div>
+          <div className={styles.footerRight}>
+            {currentStep < totalSteps ? (
+              <Button
                 type="button"
-                className={`${styles.button} ${styles.secondary}`}
-                onClick={handleDownload}
+                variant="primary"
+                onClick={handleNextStep}
                 disabled={isLoading}
               >
-                <FiDownload /> Download Excel
-              </button>
-              <label className={`${styles.button} ${styles.secondary}`}>
-                <FiUpload /> Upload Excel
-                <input
-                  type="file"
-                  accept=".xlsx,.xls"
-                  onChange={handleExcelUpload}
-                  className={styles.fileInput}
-                  disabled={isLoading}
-                />
-              </label>
-            </>
-          )}
+                {t('common.next', 'Next')}
+              </Button>
+            ) : (
+              <Button
+                type="submit"
+                variant="primary"
+                icon={<Plus size={18} />}
+                loading={isSubmitting || isLoading}
+                disabled={isLoading || (isGuardianExisting === 'yes' && !fetchedGuardian)}
+              >
+                {t('students.addStudent', 'Add Student')}
+              </Button>
+            )}
+          </div>
         </div>
       </form>
-    </motion.div>
+    </div>
   );
 };
 

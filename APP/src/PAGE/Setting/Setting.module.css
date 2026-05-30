@@ -93,7 +93,7 @@
 
 .tabBtn.active {
   background: var(--primary-gradient);
-  color: white;
+  color: var(--bg-primary);
 }
 
 .tabBtn svg {
@@ -153,7 +153,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: white;
+  color: var(--bg-primary);
   font-size: 48px;
 }
 
@@ -165,7 +165,7 @@
   height: 36px;
   border-radius: 50%;
   background: var(--primary-color);
-  color: white;
+  color: var(--bg-primary);
   border: 3px solid var(--card-bg);
   cursor: pointer;
   display: flex;
@@ -221,7 +221,7 @@
   gap: 8px;
   padding: 14px 28px;
   background: var(--primary-gradient);
-  color: white;
+  color: var(--bg-primary);
   border: none;
   border-radius: 10px;
   font-size: 15px;
@@ -288,7 +288,7 @@
   width: 22px;
   left: 3px;
   bottom: 3px;
-  background-color: white;
+  background-color: var(--bg-primary);
   transition: 0.3s;
   border-radius: 50%;
 }
@@ -376,7 +376,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: white;
+  color: var(--bg-primary);
   font-weight: 600;
   font-size: 16px;
 }
@@ -506,7 +506,7 @@
 
 .uploadBtn:hover {
   background: var(--primary-color);
-  color: white;
+  color: var(--bg-primary);
 }
 
 .iconHint {
@@ -761,7 +761,7 @@
   align-items: center;
   justify-content: center;
   margin: 0 auto 20px;
-  color: white;
+  color: var(--bg-primary);
 }
 
 .appTitle {
@@ -797,7 +797,7 @@
   padding: 14px 24px;
   border: none;
   border-radius: 12px;
-  color: white;
+  color: var(--bg-primary);
   font-weight: 600;
   font-size: 15px;
   cursor: pointer;
@@ -829,7 +829,7 @@
   padding: 14px 20px;
   border: none;
   border-radius: 12px;
-  color: white;
+  color: var(--bg-primary);
   font-weight: 600;
   font-size: 14px;
   cursor: pointer;
@@ -934,8 +934,8 @@
 }
 
 .installMessage {
-  background: linear-gradient(135deg, #667eea, #764ba2);
-  color: white;
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-700));
+  color: var(--bg-primary);
   padding: 16px 24px;
   border-radius: 12px;
   margin-bottom: 24px;
@@ -1006,7 +1006,7 @@
 }
 
 .qrCodeSection {
-  background: linear-gradient(135deg, #667eea15, #764ba215);
+  background: linear-gradient(135deg, var(--color-primary)15, var(--color-primary-700)15);
   border: 1px dashed var(--border-color);
   border-radius: 12px;
   padding: 20px;

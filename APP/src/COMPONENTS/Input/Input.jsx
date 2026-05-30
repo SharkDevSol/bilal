@@ -75,7 +75,7 @@ const Input = forwardRef(({
   // Handle change event
   const handleChange = (e) => {
     if (onChange) {
-      onChange(e.target.value, e);
+      onChange(e);
     }
   };
   

@@ -1,6 +1,28 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import axios from 'axios';
 
+// Apply theme immediately on module load to prevent flash
+const applyThemeEarly = () => {
+  const savedTheme = localStorage.getItem('appTheme');
+  if (savedTheme) {
+    try {
+      const theme = JSON.parse(savedTheme);
+      if (theme.mode === 'dark') {
+        document.body.classList.add('dark-mode');
+        document.documentElement.setAttribute('data-theme', 'dark');
+      } else {
+        document.body.classList.remove('dark-mode');
+        document.documentElement.setAttribute('data-theme', 'light');
+      }
+    } catch (e) {
+      console.error('Error applying early theme:', e);
+    }
+  }
+};
+
+// Call immediately when module loads
+applyThemeEarly();
+
 // Utility function to convert hex color to RGB
 const hexToRgb = (hex) => {
   // Remove # if present
@@ -2132,11 +2154,13 @@ export const AppProvider = ({ children }) => {
       document.documentElement.style.setProperty('--primary-shadow-lg', `rgba(${r}, ${g}, ${b}, 0.35)`);
     }
     
-    // Apply dark mode class
+    // Apply dark mode - set both class and data-theme attribute
     if (themeData.mode === 'dark') {
       document.body.classList.add('dark-mode');
+      document.documentElement.setAttribute('data-theme', 'dark');
     } else {
       document.body.classList.remove('dark-mode');
+      document.documentElement.setAttribute('data-theme', 'light');
     }
   };
 

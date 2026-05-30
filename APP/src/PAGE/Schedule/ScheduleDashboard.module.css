@@ -4,18 +4,18 @@
   margin: 0 auto;
   padding: 2rem;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background: #f8f9fa;
+  background: var(--bg-secondary);
   min-height: 100vh;
 }
 
 /* Header Section */
 .header {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-700) 100%);
   border-radius: 16px;
   padding: 2rem;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
   margin-bottom: 2rem;
-  color: white;
+  color: var(--bg-primary);
   position: relative;
   overflow: hidden;
 }
@@ -56,7 +56,7 @@
 
 .navLink {
   background: rgba(255, 255, 255, 0.2);
-  color: white;
+  color: var(--bg-primary);
   text-decoration: none;
   padding: 0.75rem 1.5rem;
   border-radius: 8px;
@@ -74,7 +74,7 @@
 
 .refreshButton, .forceRefreshButton, .debugButton {
   background: rgba(255, 255, 255, 0.9);
-  color: #667eea;
+  color: var(--color-primary);
   border: none;
   padding: 0.75rem 1.5rem;
   border-radius: 8px;
@@ -85,19 +85,19 @@
 }
 
 .refreshButton:hover, .forceRefreshButton:hover, .debugButton:hover {
-  background: white;
+  background: var(--bg-primary);
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
 .forceRefreshButton {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-700) 100%);
+  color: var(--bg-primary);
 }
 
 .resolveButton {
   background: rgba(46, 204, 113, 0.9);
-  color: white;
+  color: var(--bg-primary);
   border: none;
   padding: 0.75rem 1.5rem;
   border-radius: 8px;
@@ -174,7 +174,7 @@
 
 .weekToggle button.active, .shiftToggle button.active {
   background: rgba(255, 255, 255, 0.9);
-  color: #667eea;
+  color: var(--color-primary);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
   font-weight: 600;
 }
@@ -197,12 +197,12 @@
 
 /* System Status */
 .systemStatus {
-  background: white;
+  background: var(--bg-primary);
   border-radius: 16px;
   padding: 1.5rem;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
   margin-bottom: 2rem;
-  border: 1px solid #e9ecef;
+  border: 1px solid var(--border-primary);
 }
 
 .statusHeader {
@@ -211,12 +211,12 @@
   align-items: center;
   margin-bottom: 1rem;
   padding-bottom: 1rem;
-  border-bottom: 2px solid #f8f9fa;
+  border-bottom: 2px solid var(--bg-secondary);
 }
 
 .statusHeader h3 {
   margin: 0;
-  color: #2c3e50;
+  color: var(--text-primary);
   font-size: 1.3rem;
 }
 
@@ -238,25 +238,25 @@
   justify-content: space-between;
   align-items: center;
   padding: 1rem;
-  background: #f8f9fa;
+  background: var(--bg-secondary);
   border-radius: 8px;
-  border: 1px solid #e9ecef;
+  border: 1px solid var(--border-primary);
 }
 
 .statusLabel {
   font-weight: 500;
-  color: #6c757d;
+  color: var(--text-secondary);
   font-size: 0.9rem;
 }
 
 .statusValue {
   font-weight: 700;
-  color: #2c3e50;
-  background: white;
+  color: var(--text-primary);
+  background: var(--bg-primary);
   padding: 0.25rem 0.75rem;
   border-radius: 20px;
   font-size: 0.9rem;
-  border: 1px solid #e9ecef;
+  border: 1px solid var(--border-primary);
 }
 
 /* Error and Success Messages */
@@ -303,8 +303,8 @@
 .loading {
   text-align: center;
   padding: 4rem 2rem;
-  color: #6c757d;
-  background: white;
+  color: var(--text-secondary);
+  background: var(--bg-primary);
   border-radius: 16px;
   margin: 2rem 0;
 }
@@ -312,8 +312,8 @@
 .spinner {
   width: 60px;
   height: 60px;
-  border: 4px solid #f8f9fa;
-  border-left: 4px solid #667eea;
+  border: 4px solid var(--bg-secondary);
+  border-left: 4px solid var(--color-primary);
   border-radius: 50%;
   animation: spin 1s linear infinite;
   margin: 0 auto 1.5rem;
@@ -332,12 +332,12 @@
 /* Tab Navigation */
 .tabNavigation {
   display: flex;
-  background: white;
+  background: var(--bg-primary);
   border-radius: 12px;
   padding: 0.5rem;
   margin-bottom: 2rem;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  border: 1px solid #e9ecef;
+  border: 1px solid var(--border-primary);
 }
 
 .tabNavigation button {
@@ -349,23 +349,23 @@
   font-weight: 500;
   cursor: pointer;
   transition: all 0.3s ease;
-  color: #6c757d;
+  color: var(--text-secondary);
 }
 
 .tabNavigation button.activeTab {
-  background: #667eea;
-  color: white;
+  background: var(--color-primary);
+  color: var(--bg-primary);
   box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
 }
 
 /* Timetable Container */
 .timetableContainer {
-  background: white;
+  background: var(--bg-primary);
   border-radius: 16px;
   padding: 2rem;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
   margin-bottom: 2rem;
-  border: 1px solid #e9ecef;
+  border: 1px solid var(--border-primary);
 }
 
 .timetableHeader {
@@ -374,12 +374,12 @@
   align-items: center;
   margin-bottom: 2rem;
   padding-bottom: 1.5rem;
-  border-bottom: 2px solid #e9ecef;
+  border-bottom: 2px solid var(--border-primary);
 }
 
 .timetableHeader h2 {
   margin: 0;
-  color: #2c3e50;
+  color: var(--text-primary);
   font-size: 1.8rem;
   font-weight: 600;
 }
@@ -391,10 +391,10 @@
 
 .filterSelect {
   padding: 0.75rem 1rem;
-  border: 1px solid #e9ecef;
+  border: 1px solid var(--border-primary);
   border-radius: 8px;
-  background: white;
-  color: #2c3e50;
+  background: var(--bg-primary);
+  color: var(--text-primary);
   font-weight: 500;
   min-width: 150px;
 }
@@ -403,7 +403,7 @@
 .noScheduleMessage {
   text-align: center;
   padding: 4rem 2rem;
-  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--border-primary) 100%);
   border-radius: 16px;
   border: 2px dashed #dee2e6;
 }
@@ -415,22 +415,22 @@
 }
 
 .noScheduleMessage h4 {
-  color: #2c3e50;
+  color: var(--text-primary);
   margin: 0 0 1rem 0;
   font-size: 1.5rem;
   font-weight: 600;
 }
 
 .noScheduleMessage p {
-  color: #6c757d;
+  color: var(--text-secondary);
   font-size: 1.1rem;
   margin: 0 0 2rem 0;
   line-height: 1.6;
 }
 
 .primaryButton {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-700) 100%);
+  color: var(--bg-primary);
   border: none;
   padding: 1rem 2rem;
   border-radius: 8px;
@@ -454,10 +454,10 @@
 }
 
 .dayTimetable {
-  background: #f8f9fa;
+  background: var(--bg-secondary);
   border-radius: 16px;
   padding: 1.5rem;
-  border: 1px solid #e9ecef;
+  border: 1px solid var(--border-primary);
   transition: all 0.3s ease;
 }
 
@@ -476,14 +476,14 @@
 
 .dayHeader h3 {
   margin: 0;
-  color: #2c3e50;
+  color: var(--text-primary);
   font-size: 1.4rem;
   font-weight: 600;
 }
 
 .dayPeriods {
-  background: #667eea;
-  color: white;
+  background: var(--color-primary);
+  color: var(--bg-primary);
   padding: 0.5rem 1rem;
   border-radius: 20px;
   font-size: 0.8rem;
@@ -494,7 +494,7 @@
   overflow-x: auto;
   border-radius: 12px;
   border: 1px solid #dee2e6;
-  background: white;
+  background: var(--bg-primary);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
   margin-bottom: 1.5rem;
 }
@@ -506,9 +506,9 @@
 }
 
 .timetableTable th {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-700) 100%);
   font-weight: 600;
-  color: white;
+  color: var(--bg-primary);
   text-align: center;
   padding: 1rem;
   border: 1px solid #5a67d8;
@@ -523,7 +523,7 @@
 }
 
 .classHeader {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-700) 100%) !important;
 }
 
 .classStats {
@@ -535,18 +535,18 @@
 
 .timetableTable td {
   padding: 0.75rem;
-  border: 1px solid #e9ecef;
+  border: 1px solid var(--border-primary);
   text-align: center;
   vertical-align: top;
   transition: background 0.2s;
 }
 
 .periodRow {
-  background: white;
+  background: var(--bg-primary);
 }
 
 .periodRow:hover {
-  background: #f8f9fa;
+  background: var(--bg-secondary);
 }
 
 .periodRow:nth-child(even) {
@@ -554,7 +554,7 @@
 }
 
 .periodRow:nth-child(even):hover {
-  background: #f8f9fa;
+  background: var(--bg-secondary);
 }
 
 .periodNumber {
@@ -567,7 +567,7 @@
 
 .periodTime {
   font-size: 0.7rem;
-  color: #6c757d;
+  color: var(--text-secondary);
   margin-top: 0.25rem;
 }
 
@@ -588,13 +588,13 @@
 
 .subjectName {
   font-weight: 600;
-  color: #2c3e50;
+  color: var(--text-primary);
   font-size: 0.95rem;
   line-height: 1.2;
 }
 
 .teacherName {
-  color: #6c757d;
+  color: var(--text-secondary);
   font-size: 0.8rem;
   font-weight: 500;
   line-height: 1.2;
@@ -612,8 +612,8 @@
 }
 
 .subjectCode {
-  background: #f8f9fa;
-  color: #6c757d;
+  background: var(--bg-secondary);
+  color: var(--text-secondary);
   padding: 0.1rem 0.4rem;
   border-radius: 4px;
   font-size: 0.7rem;
@@ -633,7 +633,7 @@
 
 /* Special Slot Styles */
 .emptySlot {
-  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--border-primary) 100%);
   border-left: 3px solid #adb5bd;
 }
 
@@ -648,7 +648,7 @@
 
 .emptyText {
   font-size: 0.85rem;
-  color: #6c757d;
+  color: var(--text-secondary);
   font-style: italic;
 }
 
@@ -664,7 +664,7 @@
 
 .partTimeBadge {
   background: #ff9800;
-  color: white;
+  color: var(--bg-primary);
   font-size: 0.6rem;
   padding: 1px 4px;
   border-radius: 3px;
@@ -708,9 +708,9 @@
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 1rem;
   padding: 1rem;
-  background: white;
+  background: var(--bg-primary);
   border-radius: 8px;
-  border: 1px solid #e9ecef;
+  border: 1px solid var(--border-primary);
 }
 
 .summaryItem {
@@ -719,18 +719,18 @@
 }
 
 .summaryItem strong {
-  color: #2c3e50;
+  color: var(--text-primary);
   display: block;
   margin-bottom: 0.25rem;
 }
 
 /* Teacher Summary */
 .teacherSummary {
-  background: white;
+  background: var(--bg-primary);
   border-radius: 16px;
   padding: 2rem;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-  border: 1px solid #e9ecef;
+  border: 1px solid var(--border-primary);
 }
 
 .sectionHeader {
@@ -739,12 +739,12 @@
   align-items: center;
   margin-bottom: 1.5rem;
   padding-bottom: 1rem;
-  border-bottom: 2px solid #e9ecef;
+  border-bottom: 2px solid var(--border-primary);
 }
 
 .sectionHeader h3 {
   margin: 0;
-  color: #2c3e50;
+  color: var(--text-primary);
   font-size: 1.5rem;
 }
 
@@ -756,7 +756,7 @@
 
 .teacherCount {
   background: #28a745;
-  color: white;
+  color: var(--bg-primary);
   padding: 0.5rem 1rem;
   border-radius: 20px;
   font-size: 0.8rem;
@@ -777,7 +777,7 @@
 }
 
 .partTimeTeachersSection h4, .fullTimeTeachersSection h4 {
-  color: #2c3e50;
+  color: var(--text-primary);
   margin-bottom: 1rem;
   font-size: 1.2rem;
   display: flex;
@@ -792,10 +792,10 @@
 }
 
 .teacherCard {
-  background: #f8f9fa;
+  background: var(--bg-secondary);
   border-radius: 12px;
   padding: 1.5rem;
-  border: 1px solid #e9ecef;
+  border: 1px solid var(--border-primary);
   transition: all 0.3s ease;
   position: relative;
   overflow: hidden;
@@ -808,11 +808,11 @@
   left: 0;
   right: 0;
   height: 3px;
-  background: linear-gradient(90deg, #667eea, #764ba2);
+  background: linear-gradient(90deg, var(--color-primary), var(--color-primary-700));
 }
 
 .teacherCard:hover {
-  border-color: #667eea;
+  border-color: var(--color-primary);
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
 }
@@ -832,7 +832,7 @@
 
 .teacherName {
   margin: 0;
-  color: #2c3e50;
+  color: var(--text-primary);
   font-size: 1.1rem;
   font-weight: 600;
 }
@@ -892,7 +892,7 @@
 }
 
 .detailItem strong {
-  color: #2c3e50;
+  color: var(--text-primary);
 }
 
 .dailyPeriods {
@@ -903,20 +903,20 @@
 }
 
 .dayPeriod {
-  background: #f8f9fa;
+  background: var(--bg-secondary);
   padding: 0.2rem 0.5rem;
   border-radius: 4px;
   font-size: 0.8rem;
-  border: 1px solid #e9ecef;
+  border: 1px solid var(--border-primary);
 }
 
 /* Conflicts Section */
 .conflictsSection {
-  background: white;
+  background: var(--bg-primary);
   border-radius: 16px;
   padding: 2rem;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-  border: 1px solid #e9ecef;
+  border: 1px solid var(--border-primary);
 }
 
 .conflictStats {
@@ -925,15 +925,15 @@
 }
 
 .conflictStat {
-  background: #f8f9fa;
+  background: var(--bg-secondary);
   padding: 0.5rem 1rem;
   border-radius: 8px;
-  border: 1px solid #e9ecef;
+  border: 1px solid var(--border-primary);
   font-size: 0.9rem;
 }
 
 .conflictStat strong {
-  color: #2c3e50;
+  color: var(--text-primary);
 }
 
 .noConflicts {
@@ -1022,7 +1022,7 @@
 }
 
 .conflictExpanded {
-  background: white;
+  background: var(--bg-primary);
   border-top: 1px solid #ffeaa7;
   padding: 1rem 1.5rem;
   animation: slideDown 0.3s ease-out;
@@ -1049,10 +1049,10 @@
   color: #495057;
   white-space: pre-wrap;
   word-wrap: break-word;
-  background: #f8f9fa;
+  background: var(--bg-secondary);
   padding: 1rem;
   border-radius: 6px;
-  border: 1px solid #e9ecef;
+  border: 1px solid var(--border-primary);
   max-height: 200px;
   overflow-y: auto;
 }
@@ -1064,7 +1064,7 @@
 
 .resolveButton {
   background: #28a745;
-  color: white;
+  color: var(--bg-primary);
   border: none;
   padding: 0.5rem 1rem;
   border-radius: 6px;
@@ -1203,7 +1203,7 @@
 /* Auto-Resolution Button */
 .resolveButton, .autoResolveButton {
   background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
-  color: white;
+  color: var(--bg-primary);
   border: none;
   padding: 0.75rem 1.5rem;
   border-radius: 8px;
@@ -1226,25 +1226,25 @@
 
 /* Auto-Resolution Section */
 .conflictResolutionHeader {
-  background: #f8f9fa;
+  background: var(--bg-secondary);
   padding: 1.5rem;
   border-radius: 12px;
   margin-bottom: 1.5rem;
-  border: 1px solid #e9ecef;
+  border: 1px solid var(--border-primary);
 }
 
 .autoResolutionOption {
   text-align: center;
   margin-top: 1rem;
   padding: 1rem;
-  background: white;
+  background: var(--bg-primary);
   border-radius: 8px;
   border: 1px solid #dee2e6;
 }
 
 .autoResolutionHelp {
   font-size: 0.9rem;
-  color: #6c757d;
+  color: var(--text-secondary);
   margin-top: 0.5rem;
   line-height: 1.4;
 }
@@ -1287,7 +1287,7 @@
   width: 16px;
   height: 16px;
   border: 2px solid transparent;
-  border-top: 2px solid white;
+  border-top: 2px solid var(--bg-primary);
   border-radius: 50%;
   animation: spin 1s linear infinite;
   display: inline-block;

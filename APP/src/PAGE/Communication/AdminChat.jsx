@@ -1,12 +1,17 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import axios from 'axios';
 import io from 'socket.io-client';
 import { FiMessageCircle, FiSearch, FiUser, FiSend } from 'react-icons/fi';
 import ChatWindow from '../../COMPONENTS/Chat/ChatWindow';
 import ConversationList from '../../COMPONENTS/Chat/ConversationList';
+import Input from '../../COMPONENTS/Input/Input';
+import Button from '../../COMPONENTS/Button/Button';
+import Badge from '../../COMPONENTS/Badge/Badge';
 import styles from './AdminChat.module.css';
 
 const AdminChat = () => {
+  const { t } = useTranslation();
   const [guardians, setGuardians] = useState([]);
   const [conversations, setConversations] = useState([]);
   const [activeConversation, setActiveConversation] = useState(null);
@@ -242,7 +247,9 @@ const AdminChat = () => {
     } catch (error) {
       console.error('Error sending message:', error);
       console.error('Error response:', error.response?.data);
-      alert('Failed to send message: ' + (error.response?.data?.error || error.message));
+      alert(t('communication.messages.sendFailed', 'Failed to send message: {{error}}', {
+        error: error.response?.data?.error || error.message
+      }));
     } finally {
       setSending(false);
     }
@@ -252,33 +259,40 @@ const AdminChat = () => {
     g.name?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  const totalUnread = conversations.reduce((sum, c) => sum + (c.unreadCount || 0), 0);
+
   return (
-    <div className={styles.container}>
-      <div className={styles.header}>
-        <FiMessageCircle />
-        <h1>Guardian Communications</h1>
-      </div>
+    <main className={styles.container} aria-label={t('communication.messages.title', 'Messages')}>
+      <header className={styles.header}>
+        <FiMessageCircle aria-hidden="true" />
+        <h1>{t('communication.messages.title', 'Messages')}</h1>
+        {totalUnread > 0 && (
+          <Badge variant="error" aria-label={t('communication.messages.unread', 'Unread')}>
+            {totalUnread}
+          </Badge>
+        )}
+      </header>
 
       <div className={styles.content}>
         {/* Guardians List */}
         <div className={styles.sidebar}>
           <div className={styles.sidebarHeader}>
-            <h3>Guardians</h3>
+            <h3>{t('communication.messages.guardians', 'Guardians')}</h3>
           </div>
           <div className={styles.search}>
-            <FiSearch />
-            <input
-              type="text"
-              placeholder="Search guardians..."
+            <Input
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={setSearchQuery}
+              placeholder={t('communication.messages.search', 'Search guardians...')}
+              prefixIcon={<FiSearch size={16} />}
+              ariaLabel={t('communication.messages.search', 'Search guardians')}
             />
           </div>
           <div className={styles.guardianList}>
             {loading ? (
-              <div className={styles.loading}>Loading...</div>
+              <div className={styles.loading}>{t('common.loading', 'Loading...')}</div>
             ) : filteredGuardians.length === 0 ? (
-              <div className={styles.empty}>No guardians found</div>
+              <div className={styles.empty}>{t('communication.messages.noGuardians', 'No guardians found')}</div>
             ) : (
               filteredGuardians.map(guardian => (
                 <div
@@ -292,9 +306,8 @@ const AdminChat = () => {
                     {guardian.phone && <div className={styles.phone}>{guardian.phone}</div>}
                     {guardian.students && guardian.students.length > 0 && (
                       <div className={styles.students}>
-                        Guardian of: {guardian.students.map((s, i) => 
-                          `${s.name} (${s.class})`
-                        ).join(', ')}
+                        {t('communication.messages.guardianOf', 'Guardian of')}:{' '}
+                        {guardian.students.map((s) => `${s.name} (${s.class})`).join(', ')}
                       </div>
                     )}
                   </div>
@@ -312,9 +325,10 @@ const AdminChat = () => {
                 <div className={styles.avatar}><FiUser /></div>
                 <div>
                   <h3>
-                    {activeConversation.participants?.find(p => p.user_id !== currentUserId)?.user_name || 'Guardian'}
+                    {activeConversation.participants?.find(p => p.user_id !== currentUserId)?.user_name ||
+                      t('communication.messages.guardianLabel', 'Guardian')}
                   </h3>
-                  <span>Guardian</span>
+                  <span>{t('communication.messages.guardianLabel', 'Guardian')}</span>
                 </div>
               </div>
               
@@ -329,27 +343,29 @@ const AdminChat = () => {
                       handleSendMessageDirect();
                     }
                   }}
-                  placeholder="Type your message here..."
+                  placeholder={t('communication.messages.typePlaceholder', 'Type your message here...')}
                   rows={2}
                   disabled={sending}
                   className={styles.topInput}
                 />
-                <button
+                <Button
                   className={styles.topSendBtn}
                   onClick={handleSendMessageDirect}
                   disabled={sending || !messageText.trim()}
+                  loading={sending}
+                  icon={<FiSend />}
                 >
-                  {sending ? 'Sending...' : <><FiSend /> Send</>}
-                </button>
+                  {t('communication.messages.send', 'Send')}
+                </Button>
               </div>
 
               {/* Messages below */}
               <div className={styles.messagesArea}>
                 {messagesLoading ? (
-                  <div className={styles.loading}>Loading messages...</div>
+                  <div className={styles.loading}>{t('communication.messages.loadingMessages', 'Loading messages...')}</div>
                 ) : messages.length === 0 ? (
                   <div className={styles.noMessages}>
-                    <p>No messages yet. Start the conversation above!</p>
+                    <p>{t('communication.messages.emptyThread', 'No messages yet. Start the conversation above!')}</p>
                   </div>
                 ) : (
                   <div className={styles.messagesList}>
@@ -382,13 +398,13 @@ const AdminChat = () => {
           ) : (
             <div className={styles.noChat}>
               <FiMessageCircle />
-              <h3>Select a guardian to start chatting</h3>
-              <p>Click on a guardian from the list to begin a conversation</p>
+              <h3>{t('communication.messages.selectGuardian', 'Select a guardian to start chatting')}</h3>
+              <p>{t('communication.messages.selectGuardianHint', 'Click on a guardian from the list to begin a conversation')}</p>
             </div>
           )}
         </div>
       </div>
-    </div>
+    </main>
   );
 };
 

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, File, FileText, Image as ImageIcon, Video, Music, Archive } from 'lucide-react';
 import styles from './FilePreview.module.css';
+import LazyImage from '../LazyImage';
 
 /**
  * FilePreview component for displaying file information and preview
@@ -104,11 +105,12 @@ const FilePreview = ({
       {/* File icon or image preview */}
       <div className={styles.fileIconContainer}>
         {isImage && previewUrl ? (
-          <img 
-            src={previewUrl} 
+          <LazyImage
+            src={previewUrl}
             alt={file.name}
             className={styles.imagePreview}
-            onError={handleImageError}
+            eager
+            imgProps={{ onError: handleImageError }}
           />
         ) : (
           <div className={styles.fileIcon}>

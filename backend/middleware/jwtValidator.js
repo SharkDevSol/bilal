@@ -52,7 +52,13 @@ function validateJWTSecret() {
 // Enhanced token verification with better error messages
 function verifyTokenWithDetails(token) {
   try {
-    const decoded = jwt.verify(token, JWT_SECRET);
+    // Verify with proper options to match generation settings
+    const verifyOptions = {
+      issuer: 'school-management-system',
+      audience: 'school-app'
+    };
+    
+    const decoded = jwt.verify(token, JWT_SECRET, verifyOptions);
     return { success: true, decoded, error: null };
   } catch (error) {
     let userMessage = 'Invalid token';
@@ -73,6 +79,12 @@ function verifyTokenWithDetails(token) {
       } else if (error.message.includes('jwt malformed')) {
         userMessage = 'Malformed token. Please login again.';
         code = 'MALFORMED_TOKEN';
+      } else if (error.message.includes('jwt audience invalid') || error.message.includes('jwt issuer invalid')) {
+        userMessage = 'Token was generated with different settings. Please logout and login again.';
+        code = 'TOKEN_SETTINGS_MISMATCH';
+        console.warn('⚠️  JWT Settings Mismatch Detected!');
+        console.warn('   Token issuer/audience does not match current settings');
+        console.warn('   User needs to logout and login again');
       }
     }
 

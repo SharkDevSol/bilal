@@ -14,18 +14,18 @@
 .header h1 {
   font-size: 28px;
   font-weight: 700;
-  color: #1a1a1a;
+  color: var(--text-primary);
   margin-bottom: 4px;
 }
 
 .header p {
   font-size: 14px;
-  color: #666;
+  color: var(--text-secondary);
 }
 
 .generateButton {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-700) 100%);
+  color: var(--bg-primary);
   border: none;
   padding: 12px 24px;
   border-radius: 8px;
@@ -41,7 +41,7 @@
 }
 
 .filters {
-  background: white;
+  background: var(--bg-primary);
   padding: 20px;
   border-radius: 12px;
   margin-bottom: 24px;
@@ -57,8 +57,8 @@
 
 .filterTab {
   padding: 8px 16px;
-  border: 1px solid #e0e0e0;
-  background: white;
+  border: 1px solid var(--border-primary);
+  background: var(--bg-primary);
   border-radius: 6px;
   cursor: pointer;
   font-size: 14px;
@@ -66,25 +66,25 @@
 }
 
 .filterTab:hover {
-  background: #f5f5f5;
+  background: var(--bg-secondary);
 }
 
 .filterTab.active {
-  background: #667eea;
-  color: white;
-  border-color: #667eea;
+  background: var(--color-primary);
+  color: var(--bg-primary);
+  border-color: var(--color-primary);
 }
 
 .searchInput {
   width: 100%;
   padding: 12px 16px;
-  border: 1px solid #e0e0e0;
+  border: 1px solid var(--border-primary);
   border-radius: 8px;
   font-size: 14px;
 }
 
 .tableContainer {
-  background: white;
+  background: var(--bg-primary);
   border-radius: 12px;
   overflow: hidden;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
@@ -96,7 +96,7 @@
 }
 
 .table thead {
-  background: #f8f9fa;
+  background: var(--bg-secondary);
 }
 
 .table th {
@@ -104,28 +104,28 @@
   text-align: left;
   font-weight: 600;
   font-size: 14px;
-  color: #666;
-  border-bottom: 2px solid #e0e0e0;
+  color: var(--text-secondary);
+  border-bottom: 2px solid var(--border-primary);
 }
 
 .table td {
   padding: 16px;
-  border-bottom: 1px solid #f0f0f0;
+  border-bottom: 1px solid var(--border-primary);
   font-size: 14px;
 }
 
 .table tbody tr:hover {
-  background: #f8f9fa;
+  background: var(--bg-secondary);
 }
 
 .invoiceNumber {
   font-weight: 600;
-  color: #667eea;
+  color: var(--color-primary);
 }
 
 .balance {
   font-weight: 600;
-  color: #F44336;
+  color: var(--color-danger);
 }
 
 .statusBadge {
@@ -134,7 +134,7 @@
   border-radius: 12px;
   font-size: 12px;
   font-weight: 600;
-  color: white;
+  color: var(--bg-primary);
 }
 
 .actions {
@@ -153,19 +153,19 @@
 }
 
 .actionButton:hover {
-  background: #f0f0f0;
+  background: var(--border-primary);
 }
 
 .noData {
   text-align: center;
   padding: 40px !important;
-  color: #999;
+  color: var(--text-tertiary);
 }
 
 .loading {
   text-align: center;
   padding: 40px;
-  color: #666;
+  color: var(--text-secondary);
 }
 
 /* Modal Styles */
@@ -183,7 +183,7 @@
 }
 
 .modal {
-  background: white;
+  background: var(--bg-primary);
   border-radius: 12px;
   width: 90%;
   max-width: 500px;
@@ -196,7 +196,7 @@
   justify-content: space-between;
   align-items: center;
   padding: 24px;
-  border-bottom: 1px solid #e0e0e0;
+  border-bottom: 1px solid var(--border-primary);
 }
 
 .modalHeader h2 {
@@ -210,7 +210,7 @@
   border: none;
   font-size: 28px;
   cursor: pointer;
-  color: #999;
+  color: var(--text-tertiary);
   line-height: 1;
 }
 
@@ -227,14 +227,14 @@
   margin-bottom: 8px;
   font-weight: 500;
   font-size: 14px;
-  color: #333;
+  color: var(--text-primary);
 }
 
 .formGroup input,
 .formGroup select {
   width: 100%;
   padding: 10px 12px;
-  border: 1px solid #e0e0e0;
+  border: 1px solid var(--border-primary);
   border-radius: 6px;
   font-size: 14px;
 }
@@ -248,8 +248,8 @@
 
 .cancelButton {
   padding: 10px 20px;
-  border: 1px solid #e0e0e0;
-  background: white;
+  border: 1px solid var(--border-primary);
+  background: var(--bg-primary);
   border-radius: 6px;
   cursor: pointer;
   font-size: 14px;
@@ -257,8 +257,8 @@
 
 .submitButton {
   padding: 10px 20px;
-  background: #667eea;
-  color: white;
+  background: var(--color-primary);
+  color: var(--bg-primary);
   border: none;
   border-radius: 6px;
   cursor: pointer;

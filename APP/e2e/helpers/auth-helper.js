@@ -131,9 +131,17 @@ export async function isAuthenticated(page) {
  * @param {import('@playwright/test').Page} page - Playwright page object
  */
 export async function clearAuth(page) {
-  await page.evaluate(() => {
-    localStorage.removeItem('authToken');
-    localStorage.removeItem('branchCode');
-    localStorage.removeItem('user');
-  });
+  try {
+    await page.evaluate(() => {
+      try {
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('branchCode');
+        localStorage.removeItem('user');
+      } catch (e) {
+        // Ignore localStorage errors when on about:blank
+      }
+    });
+  } catch (err) {
+    // Ignore evaluation error
+  }
 }

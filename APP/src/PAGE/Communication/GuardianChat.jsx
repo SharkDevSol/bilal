@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import axios from 'axios';
 import io from 'socket.io-client';
 import { FiMessageCircle, FiArrowLeft } from 'react-icons/fi';
@@ -7,6 +8,7 @@ import ConversationList from '../../COMPONENTS/Chat/ConversationList';
 import styles from './GuardianChat.module.css';
 
 const GuardianChat = () => {
+  const { t } = useTranslation();
   const [conversations, setConversations] = useState([]);
   const [activeConversation, setActiveConversation] = useState(null);
   const [messages, setMessages] = useState([]);
@@ -114,20 +116,20 @@ const GuardianChat = () => {
   };
 
   return (
-    <div className={styles.container}>
+    <main className={styles.container} aria-label={t('communication.messages.title', 'Messages')}>
       {!activeConversation ? (
         <>
-          <div className={styles.header}>
-            <FiMessageCircle />
-            <h1>Messages</h1>
-          </div>
+          <header className={styles.header}>
+            <FiMessageCircle aria-hidden="true" />
+            <h1>{t('communication.messages.title', 'Messages')}</h1>
+          </header>
           <div className={styles.conversationsList}>
             {loading ? (
-              <div className={styles.loading}>Loading...</div>
+              <div className={styles.loading}>{t('common.loading', 'Loading...')}</div>
             ) : conversations.length === 0 ? (
               <div className={styles.empty}>
-                <FiMessageCircle />
-                <p>No messages yet</p>
+                <FiMessageCircle aria-hidden="true" />
+                <p>{t('communication.messages.noMessagesYet', 'No messages yet')}</p>
               </div>
             ) : (
               <ConversationList
@@ -142,14 +144,14 @@ const GuardianChat = () => {
       ) : (
         <>
           <div className={styles.chatHeader}>
-            <button onClick={handleBackToList} className={styles.backButton}>
+            <button type="button" onClick={handleBackToList} className={styles.backButton} aria-label={t('common.back', 'Back')}>
               <FiArrowLeft />
             </button>
             <div className={styles.headerInfo}>
               <h3>
                 {activeConversation.participants?.find(p => p.user_id !== currentUserId)?.user_name}
               </h3>
-              <span>Admin</span>
+              <span>{t('communication.messages.adminLabel', 'Admin')}</span>
             </div>
           </div>
           <ChatWindow
@@ -164,7 +166,7 @@ const GuardianChat = () => {
           />
         </>
       )}
-    </div>
+    </main>
   );
 };
 

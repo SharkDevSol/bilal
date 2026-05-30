@@ -1,11 +1,20 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import axios from 'axios';
-import styles from '../Finance/PaymentManagement.module.css';
+import { Plus } from 'lucide-react';
+import styles from './LeaveManagement.module.css';
 import { getCurrentEthiopianMonth, getEthiopianMonthName } from '../../utils/ethiopianCalendar';
+import Card from '../../COMPONENTS/Card/Card';
+import Button from '../../COMPONENTS/Button/Button';
+import Select from '../../COMPONENTS/Select/Select';
+import Input from '../../COMPONENTS/Input/Input';
+import Table from '../../components/Table/Table';
+import Badge from '../../COMPONENTS/Badge/Badge';
 
 const API_URL = import.meta.env.VITE_API_URL || 'https://iqrab3.skoolific.com';
 
 const LeaveManagement = () => {
+  const { t } = useTranslation();
   const [attendanceIssues, setAttendanceIssues] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('PENDING'); // PENDING, APPROVED, REJECTED, ALL
@@ -262,73 +271,59 @@ const LeaveManagement = () => {
     totalLeaveDays: leaveRecords.reduce((sum, record) => sum + (record.total_days || 0), 0)
   };
 
+  const monthOptions = useMemo(
+    () => ethiopianMonths.map((month, index) => ({ value: String(index + 1), label: month })),
+    [ethiopianMonths]
+  );
+
+  const statusFilterOptions = useMemo(
+    () => [
+      { value: 'PENDING', label: t('hr.leave.status.pending', 'Pending') },
+      { value: 'APPROVED', label: t('hr.leave.status.approved', 'Approved') },
+      { value: 'REJECTED', label: t('hr.leave.status.rejected', 'Rejected') },
+      { value: 'ALL', label: t('common.all', 'All') }
+    ],
+    [t]
+  );
+
   return (
-    <div className={styles.container}>
-      <div className={styles.header}>
+    <main className={styles.container} aria-label={t('hr.leave.title', 'Leave Management')}>
+      <header className={styles.header}>
         <div>
-          <h1>📋 Leave & Permission Management</h1>
-          <p>Manage attendance issues and permission requests</p>
+          <h1>{t('hr.leave.title', 'Leave Management')}</h1>
+          <p>{t('hr.leave.subtitle', 'Manage attendance issues and permission requests')}</p>
         </div>
-        <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-          <button
-            onClick={() => setShowLeaveRequestModal(true)}
-            style={{
-              padding: '10px 20px',
-              background: '#2196F3',
-              color: 'white',
-              border: 'none',
-              borderRadius: '8px',
-              cursor: 'pointer',
-              fontSize: '14px',
-              fontWeight: 600,
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px'
-            }}
-          >
-            🏖️ Grant Leave
-          </button>
-          <select
-            value={selectedEthMonth}
-            onChange={(e) => setSelectedEthMonth(parseInt(e.target.value))}
-            style={{
-              padding: '10px',
-              borderRadius: '8px',
-              border: '1px solid #e0e0e0',
-              fontSize: '14px',
-              minWidth: '150px'
-            }}
-          >
-            {ethiopianMonths.map((month, index) => (
-              <option key={index + 1} value={index + 1}>
-                {month}
-              </option>
-            ))}
-          </select>
-          <input
+        <Button variant="primary" icon={<Plus size={16} />} onClick={() => setShowLeaveRequestModal(true)}>
+          {t('hr.leave.grantLeave', 'Grant Leave')}
+        </Button>
+      </header>
+
+      <Card className={styles.filtersCard}>
+        <div className={styles.filters}>
+          <Select
+            label={t('hr.leave.month', 'Month')}
+            value={String(selectedEthMonth)}
+            onChange={(val) => setSelectedEthMonth(parseInt(val, 10))}
+            options={monthOptions}
+          />
+          <Input
+            label={t('hr.leave.year', 'Year')}
             type="number"
-            value={selectedEthYear}
-            onChange={(e) => setSelectedEthYear(parseInt(e.target.value))}
-            min="2010"
-            max="2030"
-            style={{
-              padding: '10px',
-              borderRadius: '8px',
-              border: '1px solid #e0e0e0',
-              fontSize: '14px',
-              width: '100px'
-            }}
+            value={String(selectedEthYear)}
+            onChange={(val) => setSelectedEthYear(parseInt(val, 10) || currentEthMonth.year)}
+            min={2010}
+            max={2030}
+          />
+          <Select
+            label={t('hr.leave.statusFilter', 'Status')}
+            value={filter}
+            onChange={setFilter}
+            options={statusFilterOptions}
           />
         </div>
-      </div>
+      </Card>
 
-      {/* Summary Cards */}
-      <div style={{ 
-        display: 'grid', 
-        gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', 
-        gap: '20px', 
-        marginBottom: '24px' 
-      }}>
+      <div className={styles.statsRow}>
         <div style={{ background: 'white', padding: '20px', borderRadius: '12px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
           <div style={{ fontSize: '14px', color: '#666', marginBottom: '8px' }}>Total Issues</div>
           <div style={{ fontSize: '32px', fontWeight: 700, color: '#333' }}>{stats.total}</div>
@@ -698,7 +693,7 @@ const LeaveManagement = () => {
           }}
         />
       )}
-    </div>
+    </main>
   );
 };
 

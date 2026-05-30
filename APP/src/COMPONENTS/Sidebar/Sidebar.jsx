@@ -16,6 +16,7 @@ import { Menu, X } from 'lucide-react';
  * @param {Function} props.onNavigate - Callback when menu item is clicked
  * @param {string} props.userRole - Current user role for filtering menu items
  * @param {string} props.className - Additional CSS classes
+ * @param {Object} props.branding - Branding configuration (logo, name, tagline)
  */
 const Sidebar = ({
   collapsed = false,
@@ -24,7 +25,12 @@ const Sidebar = ({
   activeItem = '',
   onNavigate,
   userRole = 'admin',
-  className = ''
+  className = '',
+  branding = {
+    name: 'Skoolific',
+    tagline: 'SCHOOL MANAGEMENT SYSTEM',
+    logo: null
+  }
 }) => {
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -77,19 +83,45 @@ const Sidebar = ({
       )}
 
       {/* Sidebar */}
-      <aside className={sidebarClasses} role="navigation" aria-label="Main navigation">
-        {/* Desktop Toggle Button */}
-        <button
-          className={styles.toggleButton}
-          onClick={onToggle}
-          aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-          aria-expanded={!collapsed}
-        >
-          <Menu size={20} />
-        </button>
+      <aside className={sidebarClasses}>
+        {/* Logo and Brand Section */}
+        <div className={styles.brandSection}>
+          <div className={styles.logoContainer}>
+            {branding.logo ? (
+              <img src={branding.logo} alt={branding.name} className={styles.logo} />
+            ) : (
+              <div className={styles.logoIcon}>
+                <img 
+                  src="/skoolific-icon.png" 
+                  alt={branding.name} 
+                  className={styles.logoImage}
+                  onError={(e) => {
+                    e.target.style.display = 'none';
+                    e.target.parentElement.innerHTML = '<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>';
+                  }}
+                />
+              </div>
+            )}
+          </div>
+          {!collapsed && (
+            <div className={styles.brandInfo}>
+              <h1 className={styles.brandName}>{branding.name}</h1>
+              <p className={styles.brandTagline}>{branding.tagline}</p>
+            </div>
+          )}
+          {/* Desktop Toggle Button */}
+          <button
+            className={styles.toggleButton}
+            onClick={onToggle}
+            aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+            aria-expanded={!collapsed}
+          >
+            <Menu size={18} />
+          </button>
+        </div>
 
         {/* Menu Items */}
-        <nav className={styles.menuContainer}>
+        <nav className={styles.menuContainer} aria-label="Main navigation">
           {filteredMenuItems.map(item => (
             <MenuItem
               key={item.id}
@@ -122,7 +154,12 @@ Sidebar.propTypes = {
   activeItem: PropTypes.string,
   onNavigate: PropTypes.func.isRequired,
   userRole: PropTypes.string,
-  className: PropTypes.string
+  className: PropTypes.string,
+  branding: PropTypes.shape({
+    name: PropTypes.string,
+    tagline: PropTypes.string,
+    logo: PropTypes.string
+  })
 };
 
 export default Sidebar;

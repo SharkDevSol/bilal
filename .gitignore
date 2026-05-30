@@ -4,16 +4,20 @@ backend/node_modules/
 APP/node_modules/
 packages/*/node_modules/
 
-# Environment files
+# Environment files (NEVER commit real secrets)
 .env
-.env.local
-.env.production
+.env.*
+!.env.example
 backend/.env
+backend/.env.*
+!backend/.env.example
 APP/.env.local
-APP/.env.production
+APP/.env.*
+!APP/.env.example
 packages/*/.env
-packages/*/.env.local
-packages/*/.env.production
+packages/*/.env.*
+!packages/*/.env.example
+super-admin-dashboard/**/.env
 
 # Build output
 APP/dist/

@@ -5,6 +5,8 @@ import Sidebar from './Sidebar';
 import { Home, Users, Settings } from 'lucide-react';
 import { ThemeProvider } from '../../contexts/ThemeContext';
 import { LanguageProvider } from '../../contexts/LanguageContext';
+import styles from './Sidebar.module.css';
+import menuItemStyles from './MenuItem.module.css';
 
 // Wrapper component with all necessary providers
 const AllTheProviders = ({ children }) => {
@@ -72,7 +74,7 @@ describe('Sidebar', () => {
   it('highlights active menu item', () => {
     renderWithProviders(<Sidebar {...defaultProps} activeItem="students" />);
     const studentsButton = screen.getByText('Students').closest('button');
-    expect(studentsButton).toHaveClass('active');
+    expect(studentsButton).toHaveClass(menuItemStyles.active);
   });
 
   it('calls onNavigate when menu item is clicked', () => {
@@ -132,7 +134,8 @@ describe('Sidebar', () => {
 
   it('applies collapsed class when collapsed', () => {
     const { container } = renderWithProviders(<Sidebar {...defaultProps} collapsed={true} />);
-    expect(container.querySelector('.sidebar')).toHaveClass('collapsed');
+    const sidebar = container.querySelector(`.${styles.sidebar}`);
+    expect(sidebar).toHaveClass(styles.collapsed);
   });
 
   it('has proper ARIA labels', () => {
@@ -199,6 +202,87 @@ describe('Sidebar', () => {
     const { container } = renderWithProviders(
       <Sidebar {...defaultProps} className="custom-class" />
     );
-    expect(container.querySelector('.sidebar')).toHaveClass('custom-class');
+    const sidebar = container.querySelector(`.${styles.sidebar}`);
+    expect(sidebar).toHaveClass('custom-class');
+  });
+
+  describe('Light Mode', () => {
+    it('renders correctly in light mode', () => {
+      // Light mode is the default
+      renderWithProviders(<Sidebar {...defaultProps} />);
+      expect(screen.getByRole('navigation')).toBeInTheDocument();
+      expect(screen.getByText('Dashboard')).toBeInTheDocument();
+    });
+
+    it('applies correct styles in light mode', () => {
+      const { container } = renderWithProviders(<Sidebar {...defaultProps} />);
+      const sidebar = container.querySelector(`.${styles.sidebar}`);
+      expect(sidebar).toHaveClass(styles.sidebar);
+    });
+  });
+
+  describe('Dark Mode', () => {
+    beforeEach(() => {
+      document.documentElement.setAttribute('data-theme', 'dark');
+      document.body.classList.add('dark-mode');
+    });
+
+    afterEach(() => {
+      document.documentElement.removeAttribute('data-theme');
+      document.body.classList.remove('dark-mode');
+    });
+
+    it('renders correctly in dark mode', () => {
+      renderWithProviders(<Sidebar {...defaultProps} />);
+      expect(screen.getByRole('navigation')).toBeInTheDocument();
+      expect(screen.getByText('Dashboard')).toBeInTheDocument();
+    });
+
+    it('applies correct styles in dark mode', () => {
+      const { container } = renderWithProviders(<Sidebar {...defaultProps} />);
+      const sidebar = container.querySelector(`.${styles.sidebar}`);
+      expect(sidebar).toHaveClass(styles.sidebar);
+    });
+
+    it('maintains functionality in dark mode', () => {
+      const onNavigate = vi.fn();
+      renderWithProviders(<Sidebar {...defaultProps} onNavigate={onNavigate} />);
+      
+      const studentsButton = screen.getByText('Students');
+      fireEvent.click(studentsButton);
+      
+      expect(onNavigate).toHaveBeenCalledWith('/students', 'students');
+    });
+  });
+
+  describe('Theme Switching', () => {
+    it('maintains structure when switching from light to dark mode', () => {
+      const { rerender } = renderWithProviders(<Sidebar {...defaultProps} />);
+      
+      // Light mode
+      expect(screen.getByText('Dashboard')).toBeInTheDocument();
+      
+      // Switch to dark mode
+      document.documentElement.setAttribute('data-theme', 'dark');
+      rerender(<Sidebar {...defaultProps} />);
+      
+      expect(screen.getByText('Dashboard')).toBeInTheDocument();
+      expect(screen.getByRole('navigation')).toBeInTheDocument();
+    });
+
+    it('maintains structure when switching from dark to light mode', () => {
+      document.documentElement.setAttribute('data-theme', 'dark');
+      const { rerender } = renderWithProviders(<Sidebar {...defaultProps} />);
+      
+      // Dark mode
+      expect(screen.getByText('Dashboard')).toBeInTheDocument();
+      
+      // Switch to light mode
+      document.documentElement.removeAttribute('data-theme');
+      rerender(<Sidebar {...defaultProps} />);
+      
+      expect(screen.getByText('Dashboard')).toBeInTheDocument();
+      expect(screen.getByRole('navigation')).toBeInTheDocument();
+    });
   });
 });

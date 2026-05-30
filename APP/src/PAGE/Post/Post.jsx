@@ -1,7 +1,12 @@
 // Post.jsx - Modern Redesigned Social Feed
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import api from '../../utils/api';
 import styles from './Post.module.css';
+import Card from '../../COMPONENTS/Card/Card';
+import Button from '../../COMPONENTS/Button/Button';
+import FileUpload from '../../COMPONENTS/FileUpload';
+import LazyImage from '../../COMPONENTS/LazyImage';
 import { 
   FiEdit, FiImage, FiFile, FiShare2, FiMessageSquare, 
   FiHeart, FiX, FiCheck, FiPlus, FiLink, FiSend,
@@ -14,7 +19,8 @@ import { useApp } from '../../context/AppContext';
 const API_BASE_URL = import.meta.env.VITE_API_URL?.replace('/api', '') || 'https://iqrab3.skoolific.com';
 
 const Post = () => {
-  const { t } = useApp();
+  const { t: appT } = useApp();
+  const { t } = useTranslation();
   const [posts, setPosts] = useState([]);
   const [isCreating, setIsCreating] = useState(false);
   const [formData, setFormData] = useState({
@@ -160,9 +166,9 @@ const Post = () => {
           if (item.mimetype?.startsWith('image/')) {
             return (
               <div key={index} className={styles.mediaItem}>
-                <img 
-                  src={`${API_BASE_URL}/Uploads/posts/${item.filename}`} 
-                  alt="Post media" 
+                <LazyImage
+                  src={`${API_BASE_URL}/Uploads/posts/${item.filename}`}
+                  alt={t('communication.postMedia', { defaultValue: 'Post media' })}
                 />
                 {media.length > 4 && index === 3 && (
                   <div className={styles.moreMedia}>+{media.length - 4}</div>
@@ -211,14 +217,13 @@ const Post = () => {
     return (
       <div className={styles.loadingContainer}>
         <div className={styles.loadingSpinner}></div>
-        <p>Loading posts...</p>
+        <p>{t('communication.posts.loading', 'Loading posts...')}</p>
       </div>
     );
   }
 
   return (
-    <div className={styles.postPage}>
-      {/* Header */}
+    <main className={styles.postPage} aria-label={t('communication.posts.title', 'Posts')}>
       <motion.div 
         className={styles.pageHeader}
         initial={{ opacity: 0, y: -20 }}
@@ -228,8 +233,8 @@ const Post = () => {
           <div className={styles.headerTitle}>
             <FiEdit className={styles.headerIcon} />
             <div>
-              <h1>Social Feed</h1>
-              <p>Share updates and stay connected</p>
+              <h1>{t('communication.posts.title', 'Posts')}</h1>
+              <p>{t('communication.posts.subtitle', 'Share updates and stay connected')}</p>
             </div>
           </div>
           <motion.button 
@@ -503,7 +508,7 @@ const Post = () => {
           </AnimatePresence>
         )}
       </div>
-    </div>
+    </main>
   );
 };
 

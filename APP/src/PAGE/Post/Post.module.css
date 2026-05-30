@@ -1,16 +1,16 @@
 /* Post.module.css - Premium Social Feed Design */
 
 :root {
-  --post-primary: #6366f1;
-  --post-primary-light: #eef2ff;
-  --post-gradient: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a855f7 100%);
+  --post-primary: var(--color-primary);
+  --post-primary-light: var(--color-primary-light);
+  --post-gradient: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary) 50%, var(--color-primary-600) 100%);
   --post-card-shadow: 0 4px 24px rgba(99, 102, 241, 0.12);
   --post-hover-shadow: 0 12px 40px rgba(99, 102, 241, 0.2);
 }
 
 .postPage {
   min-height: 100vh;
-  background: linear-gradient(180deg, #f8fafc 0%, #eef2ff 100%);
+  background: linear-gradient(180deg, var(--bg-secondary) 0%, var(--color-primary-light) 100%);
   padding: 20px;
   padding-bottom: 100px;
 }
@@ -60,7 +60,7 @@
   display: flex;
   align-items: center;
   gap: 20px;
-  color: white;
+  color: var(--bg-primary);
 }
 
 .headerIcon {
@@ -88,8 +88,8 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  background: white;
-  color: #6366f1;
+  background: var(--bg-primary);
+  color: var(--color-primary);
   border: none;
   padding: 14px 28px;
   border-radius: 16px;
@@ -116,14 +116,14 @@
   align-items: center;
   justify-content: center;
   min-height: 70vh;
-  color: #64748b;
+  color: var(--text-secondary);
 }
 
 .loadingSpinner {
   width: 56px;
   height: 56px;
-  border: 4px solid #e2e8f0;
-  border-top-color: #6366f1;
+  border: 4px solid var(--border-primary);
+  border-top-color: var(--color-primary);
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
   margin-bottom: 20px;
@@ -150,7 +150,7 @@
 }
 
 .createModal {
-  background: white;
+  background: var(--bg-primary);
   border-radius: 28px;
   width: 100%;
   max-width: 560px;
@@ -176,8 +176,8 @@
   justify-content: space-between;
   align-items: center;
   padding: 24px 28px;
-  border-bottom: 1px solid #f1f5f9;
-  background: linear-gradient(180deg, #fafbfc 0%, white 100%);
+  border-bottom: 1px solid var(--bg-tertiary);
+  background: linear-gradient(180deg, var(--bg-tertiary) 0%, var(--bg-primary) 100%);
   border-radius: 28px 28px 0 0;
 }
 
@@ -185,14 +185,14 @@
   margin: 0;
   font-size: 1.4rem;
   font-weight: 700;
-  color: #1e293b;
+  color: var(--text-primary);
 }
 
 .closeBtn {
-  background: #f1f5f9;
+  background: var(--bg-tertiary);
   border: none;
   font-size: 1.3rem;
-  color: #64748b;
+  color: var(--text-secondary);
   cursor: pointer;
   padding: 10px;
   border-radius: 12px;
@@ -203,8 +203,8 @@
 }
 
 .closeBtn:hover {
-  background: #e2e8f0;
-  color: #334155;
+  background: var(--border-primary);
+  color: var(--text-primary);
   transform: rotate(90deg);
 }
 
@@ -220,49 +220,49 @@
 .titleInput {
   width: 100%;
   padding: 18px 20px;
-  border: 2px solid #e2e8f0;
+  border: 2px solid var(--border-primary);
   border-radius: 16px;
   font-size: 1.15rem;
   font-weight: 600;
   outline: none;
   transition: all 0.2s;
-  background: #fafbfc;
+  background: var(--bg-tertiary);
 }
 
 .titleInput:focus {
-  border-color: #6366f1;
-  background: white;
+  border-color: var(--color-primary);
+  background: var(--bg-primary);
   box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
 }
 
 .titleInput::placeholder {
-  color: #94a3b8;
+  color: var(--text-tertiary);
   font-weight: 500;
 }
 
 .formGroup textarea {
   width: 100%;
   padding: 18px 20px;
-  border: 2px solid #e2e8f0;
+  border: 2px solid var(--border-primary);
   border-radius: 16px;
   font-size: 1rem;
   outline: none;
   resize: vertical;
   min-height: 120px;
   transition: all 0.2s;
-  background: #fafbfc;
+  background: var(--bg-tertiary);
   font-family: inherit;
   line-height: 1.6;
 }
 
 .formGroup textarea:focus {
-  border-color: #6366f1;
-  background: white;
+  border-color: var(--color-primary);
+  background: var(--bg-primary);
   box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
 }
 
 .formGroup textarea::placeholder {
-  color: #94a3b8;
+  color: var(--text-tertiary);
 }
 
 .linkInput {
@@ -270,20 +270,20 @@
   align-items: center;
   gap: 14px;
   padding: 14px 18px;
-  border: 2px solid #e2e8f0;
+  border: 2px solid var(--border-primary);
   border-radius: 16px;
-  background: #fafbfc;
+  background: var(--bg-tertiary);
   transition: all 0.2s;
 }
 
 .linkInput:focus-within {
-  border-color: #6366f1;
-  background: white;
+  border-color: var(--color-primary);
+  background: var(--bg-primary);
   box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
 }
 
 .linkInput svg {
-  color: #94a3b8;
+  color: var(--text-tertiary);
   font-size: 1.3rem;
 }
 
@@ -299,7 +299,7 @@
   display: block;
   margin-bottom: 14px;
   font-weight: 700;
-  color: #334155;
+  color: var(--text-primary);
   font-size: 0.95rem;
 }
 
@@ -314,14 +314,14 @@
   align-items: center;
   gap: 8px;
   padding: 12px 20px;
-  border: 2px solid #e2e8f0;
+  border: 2px solid var(--border-primary);
   border-radius: 50px;
   cursor: pointer;
   transition: all 0.2s;
   font-size: 0.9rem;
   font-weight: 600;
-  color: #64748b;
-  background: #fafbfc;
+  color: var(--text-secondary);
+  background: var(--bg-tertiary);
 }
 
 .audienceChip input {
@@ -329,15 +329,15 @@
 }
 
 .audienceChip:hover {
-  border-color: #6366f1;
-  color: #6366f1;
-  background: #eef2ff;
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  background: var(--color-primary-light);
 }
 
 .audienceChip.selected {
   background: var(--post-gradient);
   border-color: transparent;
-  color: white;
+  color: var(--bg-primary);
   box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
 }
 
@@ -347,19 +347,19 @@
   justify-content: center;
   gap: 10px;
   padding: 20px;
-  border: 2px dashed #d1d5db;
+  border: 2px dashed var(--border-secondary);
   border-radius: 16px;
   cursor: pointer;
-  color: #64748b;
+  color: var(--text-secondary);
   transition: all 0.2s;
   font-weight: 600;
-  background: #fafbfc;
+  background: var(--bg-tertiary);
 }
 
 .mediaUpload:hover {
-  border-color: #6366f1;
-  color: #6366f1;
-  background: #eef2ff;
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  background: var(--color-primary-light);
 }
 
 .mediaUpload input {
@@ -378,17 +378,17 @@
   align-items: center;
   gap: 10px;
   padding: 10px 14px;
-  background: #f1f5f9;
+  background: var(--bg-tertiary);
   border-radius: 12px;
   font-size: 0.85rem;
   font-weight: 500;
-  color: #475569;
+  color: var(--text-secondary);
 }
 
 .previewItem button {
   background: none;
   border: none;
-  color: #ef4444;
+  color: var(--color-danger);
   cursor: pointer;
   padding: 4px;
   display: flex;
@@ -404,19 +404,19 @@
 .cancelBtn {
   flex: 1;
   padding: 16px;
-  border: 2px solid #e2e8f0;
-  background: white;
+  border: 2px solid var(--border-primary);
+  background: var(--bg-primary);
   border-radius: 14px;
   font-size: 1rem;
   font-weight: 600;
-  color: #64748b;
+  color: var(--text-secondary);
   cursor: pointer;
   transition: all 0.2s;
 }
 
 .cancelBtn:hover {
-  background: #f8fafc;
-  border-color: #cbd5e1;
+  background: var(--bg-secondary);
+  border-color: var(--border-secondary);
 }
 
 .submitBtn {
@@ -431,7 +431,7 @@
   border-radius: 14px;
   font-size: 1rem;
   font-weight: 700;
-  color: white;
+  color: var(--bg-primary);
   cursor: pointer;
   transition: all 0.3s;
   box-shadow: 0 4px 16px rgba(99, 102, 241, 0.3);
@@ -468,7 +468,7 @@
 }
 
 .filterIcon {
-  color: #94a3b8;
+  color: var(--text-tertiary);
   font-size: 1.3rem;
 }
 
@@ -484,26 +484,26 @@
   border-radius: 12px;
   font-size: 0.9rem;
   font-weight: 600;
-  color: #64748b;
+  color: var(--text-secondary);
   cursor: pointer;
   transition: all 0.2s;
 }
 
 .filterTab:hover {
-  background: #f1f5f9;
-  color: #475569;
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
 }
 
 .filterTab.active {
   background: var(--post-gradient);
-  color: white;
+  color: var(--bg-primary);
   box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25);
 }
 
 .viewToggle {
   display: flex;
   gap: 4px;
-  background: #f1f5f9;
+  background: var(--bg-tertiary);
   padding: 6px;
   border-radius: 14px;
 }
@@ -513,15 +513,15 @@
   border: none;
   background: transparent;
   border-radius: 10px;
-  color: #94a3b8;
+  color: var(--text-tertiary);
   cursor: pointer;
   transition: all 0.2s;
   font-size: 1.1rem;
 }
 
 .viewToggle button.active {
-  background: white;
-  color: #6366f1;
+  background: var(--bg-primary);
+  color: var(--color-primary);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
@@ -549,7 +549,7 @@
   align-items: center;
   justify-content: center;
   padding: 80px 32px;
-  background: white;
+  background: var(--bg-primary);
   border-radius: 24px;
   text-align: center;
   box-shadow: var(--post-card-shadow);
@@ -557,20 +557,20 @@
 
 .emptyIcon {
   font-size: 5rem;
-  color: #e2e8f0;
+  color: var(--border-primary);
   margin-bottom: 20px;
 }
 
 .emptyState h3 {
   margin: 0 0 10px;
-  color: #334155;
+  color: var(--text-primary);
   font-size: 1.4rem;
   font-weight: 700;
 }
 
 .emptyState p {
   margin: 0 0 28px;
-  color: #94a3b8;
+  color: var(--text-tertiary);
   font-size: 1rem;
 }
 
@@ -582,7 +582,7 @@
   background: var(--post-gradient);
   border: none;
   border-radius: 14px;
-  color: white;
+  color: var(--bg-primary);
   font-weight: 700;
   font-size: 1rem;
   cursor: pointer;
@@ -597,7 +597,7 @@
 
 /* Post Card - Premium Design */
 .postCard {
-  background: white;
+  background: var(--bg-primary);
   border-radius: 24px;
   overflow: hidden;
   box-shadow: var(--post-card-shadow);
@@ -630,7 +630,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: white;
+  color: var(--bg-primary);
   font-size: 1.3rem;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
@@ -643,20 +643,20 @@
 
 .authorName {
   font-weight: 700;
-  color: #1e293b;
+  color: var(--text-primary);
   font-size: 1rem;
 }
 
 .postTime {
   font-size: 0.85rem;
-  color: #94a3b8;
+  color: var(--text-tertiary);
   font-weight: 500;
 }
 
 .moreBtn {
-  background: #f8fafc;
+  background: var(--bg-secondary);
   border: none;
-  color: #94a3b8;
+  color: var(--text-tertiary);
   cursor: pointer;
   padding: 10px;
   border-radius: 12px;
@@ -664,8 +664,8 @@
 }
 
 .moreBtn:hover {
-  background: #f1f5f9;
-  color: #64748b;
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
 }
 
 /* Audience Tags */
@@ -678,11 +678,11 @@
 
 .audienceTag {
   padding: 6px 14px;
-  background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);
+  background: linear-gradient(135deg, var(--color-primary-light) 0%, var(--color-primary-light) 100%);
   border-radius: 20px;
   font-size: 0.75rem;
   font-weight: 700;
-  color: #6366f1;
+  color: var(--color-primary);
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
@@ -696,13 +696,13 @@
   margin: 0 0 12px;
   font-size: 1.2rem;
   font-weight: 700;
-  color: #1e293b;
+  color: var(--text-primary);
   line-height: 1.4;
 }
 
 .postContent p {
   margin: 0;
-  color: #475569;
+  color: var(--text-secondary);
   line-height: 1.7;
   font-size: 0.95rem;
 }
@@ -713,9 +713,9 @@
   gap: 8px;
   margin-top: 16px;
   padding: 10px 16px;
-  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+  background: linear-gradient(135deg, var(--color-info-light) 0%, var(--color-info-light) 100%);
   border-radius: 12px;
-  color: #0284c7;
+  color: var(--color-info-dark);
   text-decoration: none;
   font-size: 0.85rem;
   font-weight: 600;
@@ -723,7 +723,7 @@
 }
 
 .postLink:hover {
-  background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%);
+  background: linear-gradient(135deg, var(--color-info-light) 0%, var(--color-info-light) 100%);
 }
 
 /* Media Grid */
@@ -765,7 +765,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: white;
+  color: var(--bg-primary);
   font-size: 1.8rem;
   font-weight: 700;
 }
@@ -775,9 +775,9 @@
   align-items: center;
   gap: 10px;
   padding: 14px 18px;
-  background: #f8fafc;
+  background: var(--bg-secondary);
   border-radius: 12px;
-  color: #475569;
+  color: var(--text-secondary);
   text-decoration: none;
   font-size: 0.9rem;
   font-weight: 600;
@@ -786,8 +786,8 @@
 }
 
 .fileAttachment:hover {
-  background: #f1f5f9;
-  color: #334155;
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
 }
 
 /* Post Actions - Modern Style */
@@ -795,8 +795,8 @@
   display: flex;
   gap: 8px;
   padding: 16px 24px;
-  border-top: 1px solid #f1f5f9;
-  background: #fafbfc;
+  border-top: 1px solid var(--bg-tertiary);
+  background: var(--bg-tertiary);
 }
 
 .actionBtn {
@@ -804,10 +804,10 @@
   align-items: center;
   gap: 8px;
   padding: 12px 18px;
-  background: white;
+  background: var(--bg-primary);
   border: none;
   border-radius: 12px;
-  color: #64748b;
+  color: var(--text-secondary);
   font-size: 0.9rem;
   font-weight: 600;
   cursor: pointer;
@@ -816,13 +816,13 @@
 }
 
 .actionBtn:hover {
-  background: #f1f5f9;
-  color: #475569;
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
   transform: translateY(-1px);
 }
 
 .actionBtn.liked {
-  color: #ef4444;
+  color: var(--color-danger);
   background: #fef2f2;
 }
 

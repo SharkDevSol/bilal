@@ -1,12 +1,39 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import axios from 'axios';
-import { FiCalendar, FiUsers, FiCheckCircle, FiXCircle, FiClock, FiEdit2, FiX, FiSave } from 'react-icons/fi';
+import { useTranslation } from 'react-i18next';
+import {
+  Calendar,
+  Users,
+  CheckCircle,
+  XCircle,
+  Clock,
+  RefreshCw,
+  Printer,
+  BarChart3,
+  ChevronDown,
+  ChevronUp
+} from 'lucide-react';
 import styles from './StudentAttendanceSystem.module.css';
+
+import Button from '../../COMPONENTS/Button/Button';
+import Select from '../../COMPONENTS/Select/Select';
+import Input from '../../COMPONENTS/Input/Input';
+import Card from '../../COMPONENTS/Card/Card';
+import Modal from '../../COMPONENTS/Modal/Modal';
+import StatCard from '../../COMPONENTS/StatCard/StatCard';
+import Textarea from '../../COMPONENTS/Textarea/Textarea';
+import { useToast } from '../../COMPONENTS/Toast/useToast';
+import ToastContainer from '../../COMPONENTS/Toast/ToastContainer';
 
 // API base URL
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://iqrab3.skoolific.com/api';
 
+const ATTENDANCE_STATUSES = ['PRESENT', 'ABSENT', 'LATE', 'LEAVE'];
+
 const StudentAttendanceSystem = ({ preSelectedClass = null }) => {
+  const { t } = useTranslation();
+  const toast = useToast();
+
   const [selectedClass, setSelectedClass] = useState(preSelectedClass || '');
   const [selectedYear, setSelectedYear] = useState(2018);
   const [selectedWeekId, setSelectedWeekId] = useState('');
@@ -42,10 +69,51 @@ const StudentAttendanceSystem = ({ preSelectedClass = null }) => {
   const [reportLoading, setReportLoading] = useState(false);
   const [reportSummary, setReportSummary] = useState({ present: 0, absent: 0, leave: 0, late: 0, total: 0 });
 
-  const ethiopianMonths = [
-    'Meskerem', 'Tikimt', 'Hidar', 'Tahsas', 'Tir', 'Yekatit',
-    'Megabit', 'Miazia', 'Ginbot', 'Sene', 'Hamle', 'Nehase', 'Pagume'
-  ];
+  const ethiopianMonths = useMemo(
+    () => [
+      'Meskerem', 'Tikimt', 'Hidar', 'Tahsas', 'Tir', 'Yekatit',
+      'Megabit', 'Miazia', 'Ginbot', 'Sene', 'Hamle', 'Nehase', 'Pagume'
+    ],
+    []
+  );
+
+  const studentTypeOptions = useMemo(
+    () => [
+      { value: 'all', label: t('students.attendance.allTypes', 'All Student Types') },
+      { value: 'regular', label: t('students.attendance.regular', 'Regular Students') },
+      { value: 'kg', label: t('students.attendance.kg', 'KG Students') },
+      { value: 'evening', label: t('students.attendance.evening', 'Evening Class Students') },
+      { value: 'kg_evening', label: t('students.attendance.kgEvening', 'KG + Evening Students') }
+    ],
+    [t]
+  );
+
+  const classSelectOptions = useMemo(
+    () => classes.map((cls) => ({ value: cls, label: cls })),
+    [classes]
+  );
+
+  const weekSelectOptions = useMemo(
+    () =>
+      schoolWeeks.map((week) => ({
+        value: week.id,
+        label: `${week.label}${week.isCurrent ? ` ${t('students.attendance.currentWeekLabel', '(Current)')}` : ''}`
+      })),
+    [schoolWeeks, t]
+  );
+
+  const reportClassOptions = useMemo(
+    () => [
+      { value: '', label: t('students.attendance.selectClass', 'Select Class') },
+      ...classes.map((cls) => ({ value: cls, label: cls }))
+    ],
+    [classes, t]
+  );
+
+  const monthSelectOptions = useMemo(
+    () => ethiopianMonths.map((month, index) => ({ value: String(index + 1), label: month })),
+    [ethiopianMonths]
+  );
 
   // Fetch initial data
   useEffect(() => {
@@ -597,217 +665,277 @@ const StudentAttendanceSystem = ({ preSelectedClass = null }) => {
     window.print();
   };
 
+  const getTodayDayInfo = useCallback(() => {
+    const week = schoolWeeks.find((w) => w.id === selectedWeekId);
+    if (!week?.days || !currentEthiopianDate) return null;
+    return (
+      week.days.find(
+        (d) =>
+          d.year === currentEthiopianDate.year &&
+          d.month === currentEthiopianDate.month &&
+          d.day === currentEthiopianDate.day
+      ) || null
+    );
+  }, [schoolWeeks, selectedWeekId, currentEthiopianDate]);
+
+  const handleQuickMarkStatus = async (student, status) => {
+    const dayInfo = getTodayDayInfo();
+    if (!dayInfo) {
+      toast.error(
+        t(
+          'students.attendance.notSchoolDay',
+          'Today is not a school day in the selected week, or no week is selected.'
+        )
+      );
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      const response = await axios.put(`${API_BASE_URL}/academic/student-attendance/update`, {
+        studentId: student.student_id,
+        className: student.class_name,
+        ethYear: dayInfo.year,
+        ethMonth: dayInfo.month,
+        ethDay: dayInfo.day,
+        status,
+        checkInTime: '08:00:00',
+        notes: ''
+      });
+
+      if (response.data.success) {
+        await fetchAttendance();
+      }
+    } catch (err) {
+      console.error('Error marking attendance:', err);
+      toast.error(t('students.attendance.failedToSave', 'Failed to save attendance'));
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const getStatusButtonVariant = (currentStatus, buttonStatus) => {
+    if (currentStatus !== buttonStatus) return 'secondary';
+    switch (buttonStatus) {
+      case 'PRESENT':
+        return 'success';
+      case 'ABSENT':
+        return 'danger';
+      case 'LATE':
+        return 'warning';
+      default:
+        return 'primary';
+    }
+  };
+
   const selectedWeek = getSelectedWeek();
+  const todayDayInfo = getTodayDayInfo();
+
+  const editModalFooter = (
+    <>
+      <Button type="button" variant="secondary" onClick={closeModal}>
+        {t('students.attendance.cancel', 'Cancel')}
+      </Button>
+      <Button
+        type="button"
+        variant="primary"
+        onClick={handleSaveAttendance}
+        loading={isLoading}
+        disabled={isLoading}
+      >
+        {isLoading
+          ? t('students.attendance.saving', 'Saving...')
+          : t('students.attendance.save', 'Save')}
+      </Button>
+    </>
+  );
+
+  const statusEditOptions = [
+    { value: 'PRESENT', label: t('students.attendance.present', 'Present') },
+    { value: 'ABSENT', label: t('students.attendance.absent', 'Absent') },
+    { value: 'LEAVE', label: t('students.attendance.leave', 'Leave') },
+    { value: 'LATE', label: t('students.attendance.late', 'Late') }
+  ];
 
   return (
     <div className={styles.container}>
-      <div className={styles.header}>
+      <ToastContainer toasts={toast.toasts} onRemove={toast.removeToast} position={toast.position} />
+
+      <header className={styles.pageHeader}>
         <div>
-          <h1><FiUsers /> Student Attendance System</h1>
-          <p>School week attendance tracking with Ethiopian calendar</p>
+          <h1 className={styles.pageTitle}>
+            <Users size={28} aria-hidden="true" />
+            {t('students.attendance.title', 'Student Attendance')}
+          </h1>
+          <p className={styles.pageSubtitle}>
+            {t('students.attendance.subtitle', 'School week attendance tracking with Ethiopian calendar')}
+          </p>
         </div>
         {currentEthiopianDate && (
-          <div className={styles.currentDate}>
-            <FiCalendar />
-            <span>Today: {ethiopianMonths[currentEthiopianDate.month - 1]} {currentEthiopianDate.day}, {currentEthiopianDate.year}</span>
+          <div className={styles.todayBadge}>
+            <Calendar size={18} aria-hidden="true" />
+            <span>
+              {t('students.attendance.today', 'Today')}: {ethiopianMonths[currentEthiopianDate.month - 1]}{' '}
+              {currentEthiopianDate.day}, {currentEthiopianDate.year}
+            </span>
           </div>
         )}
-      </div>
+      </header>
 
-      {error && <div className={styles.error}>{error}</div>}
+      {error && (
+        <div className={styles.error} role="alert">
+          {error}
+        </div>
+      )}
 
-      {/* Live Time Card */}
-      <div className={styles.timeCard}>
+      <Card className={styles.timeCard} padding="md">
         <div className={styles.timeCardHeader}>
-          <FiClock className={styles.timeCardIcon} />
-          <span>Current Time</span>
+          <Clock size={18} className={styles.timeCardIcon} aria-hidden="true" />
+          <span>{t('students.attendance.currentTime', 'Current Time')}</span>
         </div>
         <div className={styles.timeCardBody}>
-          <div className={styles.currentTime}>{formatCurrentTime()}</div>
-          <div className={styles.currentDate}>{formatCurrentDate()}</div>
+          <div className={styles.liveClock}>{formatCurrentTime()}</div>
+          <div className={styles.liveDate}>{formatCurrentDate()}</div>
         </div>
-      </div>
+      </Card>
 
-      {/* Filters */}
-      <div className={styles.filters}>
-        {preSelectedClass ? (
-          <div className={styles.filterGroup}>
-            <label>Assigned Class</label>
-            <div className={styles.assignedClassBadge}>
-              {selectedClass}
+      <Card title={t('common.filter', 'Filter')} className={styles.filtersCard} padding="lg">
+        <div className={styles.filtersGrid}>
+          {preSelectedClass ? (
+            <div className={styles.filterField}>
+              <span className={styles.filterLabel}>{t('students.attendance.assignedClass', 'Assigned Class')}</span>
+              <div className={styles.assignedClassBadge}>{selectedClass}</div>
+            </div>
+          ) : (
+            <Select
+              label={t('students.attendance.class', 'Class')}
+              options={classSelectOptions}
+              value={selectedClass}
+              onChange={setSelectedClass}
+              disabled={classes.length === 0}
+            />
+          )}
+
+          <Select
+            label={t('students.attendance.studentType', 'Student Type')}
+            options={studentTypeOptions}
+            value={filterStudentType}
+            onChange={setFilterStudentType}
+          />
+
+          <Input
+            type="number"
+            label={t('students.attendance.year', 'Year')}
+            value={String(selectedYear)}
+            onChange={(v) => setSelectedYear(parseInt(v, 10) || selectedYear)}
+            min={2000}
+            max={2100}
+          />
+
+          <Select
+            label={t('students.attendance.schoolWeek', 'School Week')}
+            options={
+              schoolWeeks.length === 0
+                ? [{ value: '', label: t('students.attendance.loadingWeeks', 'Loading weeks...') }]
+                : weekSelectOptions
+            }
+            value={selectedWeekId}
+            onChange={setSelectedWeekId}
+            disabled={schoolWeeks.length === 0}
+          />
+
+          <div className={styles.filterActions}>
+            <span className={styles.filterLabel}>{t('students.attendance.quickActions', 'Quick Actions')}</span>
+            <div className={styles.buttonGroup}>
+              <Button
+                type="button"
+                variant="secondary"
+                icon={<Calendar size={18} />}
+                onClick={goToCurrentWeek}
+                disabled={schoolWeeks.length === 0}
+              >
+                {t('students.attendance.currentWeek', 'Current Week')}
+              </Button>
+              <Button
+                type="button"
+                variant="primary"
+                icon={<RefreshCw size={18} />}
+                onClick={() => fetchAttendance()}
+                disabled={!selectedClass || !selectedWeekId}
+                loading={isLoading}
+              >
+                {t('students.attendance.refresh', 'Refresh')}
+              </Button>
             </div>
           </div>
-        ) : (
-          <div className={styles.filterGroup}>
-            <label>Class</label>
-            <select
-              value={selectedClass}
-              onChange={(e) => setSelectedClass(e.target.value)}
-              className={styles.select}
-            >
-              {classes.map(cls => (
-                <option key={cls} value={cls}>{cls}</option>
-              ))}
-            </select>
-          </div>
-        )}
-
-        <div className={styles.filterGroup}>
-          <label>Student Type</label>
-          <select
-            value={filterStudentType}
-            onChange={(e) => setFilterStudentType(e.target.value)}
-            className={styles.select}
-          >
-            <option value="all">All Student Types</option>
-            <option value="regular">Regular Students</option>
-            <option value="kg">KG Students</option>
-            <option value="evening">Evening Class Students</option>
-            <option value="kg_evening">KG + Evening Students</option>
-          </select>
         </div>
+      </Card>
 
-        <div className={styles.filterGroup}>
-          <label>Year</label>
-          <input
-            type="number"
-            value={selectedYear}
-            onChange={(e) => setSelectedYear(parseInt(e.target.value))}
-            className={styles.input}
-            min="2000"
-            max="2100"
-          />
-        </div>
-
-        <div className={styles.filterGroup}>
-          <label>School Week</label>
-          <select
-            value={selectedWeekId}
-            onChange={(e) => setSelectedWeekId(e.target.value)}
-            className={styles.select}
-            disabled={schoolWeeks.length === 0}
-          >
-            {schoolWeeks.length === 0 ? (
-              <option>Loading weeks...</option>
-            ) : (
-              schoolWeeks.map(week => (
-                <option key={week.id} value={week.id}>
-                  {week.label} {week.isCurrent ? '(Current)' : ''}
-                </option>
-              ))
-            )}
-          </select>
-        </div>
-
-        <div className={styles.filterGroup}>
-          <label>Quick Actions</label>
-          <div className={styles.buttonGroup}>
-            <button
-              onClick={goToCurrentWeek}
-              disabled={schoolWeeks.length === 0}
-              className={styles.currentWeekButton}
-              title="Jump to current week"
-            >
-              📅 Current Week
-            </button>
-            <button
-              onClick={() => {
-                fetchAttendance();
-                // Summary will auto-calculate when attendanceData updates
-              }}
-              disabled={!selectedClass || !selectedWeekId}
-              className={styles.refreshButton}
-              title="Refresh attendance data (auto-refreshes every 30 seconds)"
-            >
-              🔄 Refresh
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Report Section */}
-      <div className={styles.reportSection}>
-        <div className={styles.reportHeader}>
-          <h2>📊 Attendance Report by Date</h2>
-          <button 
+      <Card
+        className={styles.reportSection}
+        title={t('students.attendance.reportTitle', 'Attendance Report by Date')}
+        actions={
+          <Button
+            type="button"
+            variant="ghost"
+            icon={showReport ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
             onClick={() => setShowReport(!showReport)}
-            className={styles.toggleReportButton}
           >
-            {showReport ? '▼ Hide Report' : '▶ Show Report'}
-          </button>
-        </div>
+            {showReport
+              ? t('students.attendance.hideReport', 'Hide Report')
+              : t('students.attendance.showReport', 'Show Report')}
+          </Button>
+        }
+      >
 
         {showReport && (
           <div className={styles.reportContent}>
             <div className={styles.reportFilters}>
-              <div className={styles.filterGroup}>
-                <label>Class</label>
-                <select
-                  value={reportClass}
-                  onChange={(e) => setReportClass(e.target.value)}
-                  className={styles.select}
-                >
-                  <option value="">Select Class</option>
-                  {classes.map(cls => (
-                    <option key={cls} value={cls}>{cls}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div className={styles.filterGroup}>
-                <label>Year</label>
-                <input
-                  type="number"
-                  value={reportDate.year}
-                  onChange={(e) => setReportDate({ ...reportDate, year: parseInt(e.target.value) })}
-                  className={styles.input}
-                  min="2000"
-                  max="2100"
-                />
-              </div>
-
-              <div className={styles.filterGroup}>
-                <label>Month</label>
-                <select
-                  value={reportDate.month}
-                  onChange={(e) => setReportDate({ ...reportDate, month: parseInt(e.target.value) })}
-                  className={styles.select}
-                >
-                  {ethiopianMonths.map((month, index) => (
-                    <option key={index} value={index + 1}>{month}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div className={styles.filterGroup}>
-                <label>Day</label>
-                <input
-                  type="number"
-                  value={reportDate.day}
-                  onChange={(e) => setReportDate({ ...reportDate, day: parseInt(e.target.value) })}
-                  className={styles.input}
-                  min="1"
-                  max="30"
-                />
-              </div>
-
-              <div className={styles.filterGroup}>
-                <label>Actions</label>
+              <Select
+                label={t('students.attendance.class', 'Class')}
+                options={reportClassOptions}
+                value={reportClass}
+                onChange={setReportClass}
+              />
+              <Input
+                type="number"
+                label={t('students.attendance.year', 'Year')}
+                value={String(reportDate.year)}
+                onChange={(v) => setReportDate({ ...reportDate, year: parseInt(v, 10) || reportDate.year })}
+                min={2000}
+                max={2100}
+              />
+              <Select
+                label={t('students.attendance.month', 'Month')}
+                options={monthSelectOptions}
+                value={String(reportDate.month)}
+                onChange={(v) => setReportDate({ ...reportDate, month: parseInt(v, 10) })}
+              />
+              <Input
+                type="number"
+                label={t('students.attendance.day', 'Day')}
+                value={String(reportDate.day)}
+                onChange={(v) => setReportDate({ ...reportDate, day: parseInt(v, 10) || reportDate.day })}
+                min={1}
+                max={30}
+              />
+              <div className={styles.filterActions}>
+                <span className={styles.filterLabel}>{t('students.attendance.actions', 'Actions')}</span>
                 <div className={styles.buttonGroup}>
-                  <button
+                  <Button
+                    type="button"
+                    variant="primary"
+                    icon={<BarChart3 size={18} />}
                     onClick={fetchReportData}
                     disabled={!reportClass || reportLoading}
-                    className={styles.generateReportButton}
+                    loading={reportLoading}
                   >
-                    {reportLoading ? '⏳ Loading...' : '📊 Generate Report'}
-                  </button>
+                    {t('students.attendance.generateReport', 'Generate Report')}
+                  </Button>
                   {reportData.length > 0 && (
-                    <button
-                      onClick={printReport}
-                      className={styles.printButton}
-                    >
-                      🖨️ Print
-                    </button>
+                    <Button type="button" variant="secondary" icon={<Printer size={18} />} onClick={printReport}>
+                      {t('students.attendance.print', 'Print')}
+                    </Button>
                   )}
                 </div>
               </div>
@@ -817,47 +945,15 @@ const StudentAttendanceSystem = ({ preSelectedClass = null }) => {
               <>
                 {/* Report Summary */}
                 <div className={styles.reportSummary}>
-                  <h3>Report for {reportClass} - {ethiopianMonths[reportDate.month - 1]} {reportDate.day}, {reportDate.year}</h3>
+                  <h3 className={styles.reportSummaryTitle}>
+                    {reportClass} — {ethiopianMonths[reportDate.month - 1]} {reportDate.day}, {reportDate.year}
+                  </h3>
                   <div className={styles.summaryCards}>
-                    <div className={`${styles.card} ${styles.presentCard}`}>
-                      <FiCheckCircle className={styles.cardIcon} />
-                      <div className={styles.cardContent}>
-                        <h3>{reportSummary.present}</h3>
-                        <p>Present</p>
-                      </div>
-                    </div>
-
-                    <div className={`${styles.card} ${styles.lateCard}`}>
-                      <FiClock className={styles.cardIcon} />
-                      <div className={styles.cardContent}>
-                        <h3>{reportSummary.late}</h3>
-                        <p>Late</p>
-                      </div>
-                    </div>
-
-                    <div className={`${styles.card} ${styles.absentCard}`}>
-                      <FiXCircle className={styles.cardIcon} />
-                      <div className={styles.cardContent}>
-                        <h3>{reportSummary.absent}</h3>
-                        <p>Absent</p>
-                      </div>
-                    </div>
-
-                    <div className={`${styles.card} ${styles.leaveCard}`}>
-                      <FiClock className={styles.cardIcon} />
-                      <div className={styles.cardContent}>
-                        <h3>{reportSummary.leave}</h3>
-                        <p>On Leave</p>
-                      </div>
-                    </div>
-
-                    <div className={`${styles.card} ${styles.totalCard}`}>
-                      <FiCalendar className={styles.cardIcon} />
-                      <div className={styles.cardContent}>
-                        <h3>{reportSummary.total}</h3>
-                        <p>Total</p>
-                      </div>
-                    </div>
+                    <StatCard title={t('students.attendance.present', 'Present')} value={reportSummary.present} icon={<CheckCircle size={24} />} variant="success" />
+                    <StatCard title={t('students.attendance.late', 'Late')} value={reportSummary.late} icon={<Clock size={24} />} variant="warning" />
+                    <StatCard title={t('students.attendance.absent', 'Absent')} value={reportSummary.absent} icon={<XCircle size={24} />} variant="error" />
+                    <StatCard title={t('students.attendance.leave', 'Leave')} value={reportSummary.leave} icon={<Calendar size={24} />} variant="secondary" />
+                    <StatCard title={t('students.attendance.totalRecords', 'Total')} value={reportSummary.total} icon={<Users size={24} />} variant="primary" />
                   </div>
                 </div>
 
@@ -895,79 +991,123 @@ const StudentAttendanceSystem = ({ preSelectedClass = null }) => {
 
             {reportData.length === 0 && !reportLoading && reportClass && (
               <div className={styles.noData}>
-                No attendance records found for the selected date.
+                {t('students.attendance.noReportData', 'No attendance records found for the selected date.')}
               </div>
             )}
           </div>
         )}
-      </div>
+      </Card>
 
-      {/* Summary Cards */}
       <div className={styles.summaryCards}>
-        <div className={`${styles.card} ${styles.presentCard}`}>
-          <FiCheckCircle className={styles.cardIcon} />
-          <div className={styles.cardContent}>
-            <h3>{summary.present}</h3>
-            <p>Present</p>
-          </div>
-        </div>
-
-        <div className={`${styles.card} ${styles.lateCard}`}>
-          <FiClock className={styles.cardIcon} />
-          <div className={styles.cardContent}>
-            <h3>{summary.late}</h3>
-            <p>Late</p>
-          </div>
-        </div>
-
-        <div className={`${styles.card} ${styles.absentCard}`}>
-          <FiXCircle className={styles.cardIcon} />
-          <div className={styles.cardContent}>
-            <h3>{summary.absent}</h3>
-            <p>Absent</p>
-          </div>
-        </div>
-
-        <div className={`${styles.card} ${styles.leaveCard}`}>
-          <FiClock className={styles.cardIcon} />
-          <div className={styles.cardContent}>
-            <h3>{summary.leave}</h3>
-            <p>On Leave</p>
-          </div>
-        </div>
-
-        <div className={`${styles.card} ${styles.totalCard}`}>
-          <FiCalendar className={styles.cardIcon} />
-          <div className={styles.cardContent}>
-            <h3>{summary.total}</h3>
-            <p>Total Records</p>
-          </div>
-        </div>
+        <StatCard
+          title={t('students.attendance.presentCount', 'Present')}
+          value={summary.present}
+          icon={<CheckCircle size={24} />}
+          variant="success"
+        />
+        <StatCard
+          title={t('students.attendance.lateCount', 'Late')}
+          value={summary.late}
+          icon={<Clock size={24} />}
+          variant="warning"
+        />
+        <StatCard
+          title={t('students.attendance.absentCount', 'Absent')}
+          value={summary.absent}
+          icon={<XCircle size={24} />}
+          variant="error"
+        />
+        <StatCard
+          title={t('students.attendance.leaveCount', 'On Leave')}
+          value={summary.leave}
+          icon={<Calendar size={24} />}
+          variant="secondary"
+        />
+        <StatCard
+          title={t('students.attendance.totalRecords', 'Total Records')}
+          value={summary.total}
+          icon={<Users size={24} />}
+          variant="primary"
+        />
       </div>
 
-      {/* School Days Info */}
-      {settings && settings.school_days && (
+      {settings?.school_days && (
         <div className={styles.schoolDaysInfo}>
-          <strong>📅 School Days:</strong> {settings.school_days.join(', ')}
-          <span className={styles.hint}>(Weeks start from Monday and show only these days)</span>
+          <strong>{t('students.attendance.schoolDays', 'School Days')}:</strong> {settings.school_days.join(', ')}
+          <span className={styles.hint}>
+            ({t('students.attendance.schoolDaysHint', 'Weeks start from Monday and show only these days')})
+          </span>
         </div>
       )}
 
-      {/* Attendance Table */}
+      <Card
+        title={t('students.attendance.markToday', "Mark today's attendance")}
+        subtitle={t('students.attendance.markTodaySubtitle', 'Use toggle buttons to mark present, absent, late, or leave')}
+        className={styles.markTodayCard}
+      >
+        {!todayDayInfo ? (
+          <p className={styles.noData}>
+            {t(
+              'students.attendance.notSchoolDay',
+              'Today is not a school day in the selected week, or no week is selected.'
+            )}
+          </p>
+        ) : students.length === 0 ? (
+          <p className={styles.noData}>{t('students.attendance.noStudents', 'No students found for this class')}</p>
+        ) : (
+          <ul className={styles.markTodayList}>
+            {students.map((student) => {
+              const record = getAttendanceRecord(student.student_id, todayDayInfo);
+              const currentStatus = record?.status || null;
+              return (
+                <li key={`${student.student_id}-${student.class_name}`} className={styles.markTodayRow}>
+                  <div className={styles.studentMeta}>
+                    <span className={styles.studentName}>{student.student_name}</span>
+                    <span className={styles.studentMetaSub}>
+                      {t('students.attendance.classId', 'Class ID')}: {student.class_id || 'N/A'} ·{' '}
+                      {t('students.attendance.machineId', 'Machine ID')}: {student.smachine_id || '—'}
+                    </span>
+                  </div>
+                  <div className={styles.statusToggles} role="group" aria-label={student.student_name}>
+                    {ATTENDANCE_STATUSES.map((status) => (
+                      <Button
+                        key={status}
+                        type="button"
+                        size="small"
+                        variant={getStatusButtonVariant(currentStatus, status)}
+                        onClick={() => handleQuickMarkStatus(student, status)}
+                        disabled={isLoading}
+                        aria-pressed={currentStatus === status}
+                      >
+                        {status === 'PRESENT' && t('students.attendance.present', 'Present')}
+                        {status === 'ABSENT' && t('students.attendance.absent', 'Absent')}
+                        {status === 'LATE' && t('students.attendance.late', 'Late')}
+                        {status === 'LEAVE' && t('students.attendance.leave', 'Leave')}
+                      </Button>
+                    ))}
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </Card>
+
+      <Card title={t('students.attendance.weeklyView', 'Weekly attendance')} className={styles.weeklyCard} padding="none">
       <div className={styles.tableContainer}>
         {isLoading ? (
-          <div className={styles.loading}>Loading...</div>
+          <div className={styles.loading}>{t('students.attendance.loading', 'Loading...')}</div>
         ) : !selectedWeek ? (
-          <div className={styles.noData}>Please select a school week</div>
+          <div className={styles.noData}>{t('students.attendance.selectWeek', 'Please select a school week')}</div>
         ) : students.length === 0 ? (
-          <div className={styles.noData}>No students found for this class</div>
+          <div className={styles.noData}>{t('students.attendance.noStudents', 'No students found for this class')}</div>
         ) : (
           <table className={styles.table}>
             <thead>
               <tr>
-                <th>Student Name</th>
-                <th>Class ID</th>
-                <th>Machine ID</th>
+                <th>{t('students.attendance.studentName', 'Student Name')}</th>
+                <th>{t('students.attendance.classId', 'Class ID')}</th>
+                <th>{t('students.attendance.machineId', 'Machine ID')}</th>
                 {selectedWeek.days.map((dayInfo, index) => (
                   <th key={index}>
                     {ethiopianMonths[dayInfo.month - 1]?.substring(0, 3)} {dayInfo.day} ({dayInfo.dayOfWeek?.substring(0, 3)})
@@ -986,7 +1126,7 @@ const StudentAttendanceSystem = ({ preSelectedClass = null }) => {
                       key={index} 
                       className={`${styles.statusCell} ${styles.clickable}`}
                       onClick={() => handleCellClick(student, dayInfo)}
-                      title="Click to edit"
+                      title={t('students.attendance.clickToEdit', 'Click to edit')}
                     >
                       {renderStatusBadge(getAttendanceRecord(student.student_id, dayInfo))}
                     </td>
@@ -997,206 +1137,176 @@ const StudentAttendanceSystem = ({ preSelectedClass = null }) => {
           </table>
         )}
       </div>
+      </Card>
 
-      {/* Info Section */}
-      <div className={styles.infoSection}>
-        <h3>How it works:</h3>
-        <ul>
-          <li>✓ = Present (Green) - Student checked in on time</li>
-          <li>⏰ = Late (Orange) - Student checked in late</li>
-          <li>✗ = Absent (Red) - Student did not check in</li>
-          <li>L = Leave (Purple) - Student on approved leave</li>
-          <li>- = No data - No record for this day</li>
+      <Card className={styles.infoSection} padding="md">
+        <h3 className={styles.infoTitle}>{t('students.attendance.howItWorks', 'How it works')}</h3>
+        <ul className={styles.infoList}>
+          <li>{t('students.attendance.legendPresent', 'Present — student checked in on time')}</li>
+          <li>{t('students.attendance.legendLate', 'Late — student checked in late')}</li>
+          <li>{t('students.attendance.legendAbsent', 'Absent — student did not check in')}</li>
+          <li>{t('students.attendance.legendLeave', 'Leave — student on approved leave')}</li>
+          <li>{t('students.attendance.legendNoData', 'No data — no record for this day')}</li>
         </ul>
-        <p className={styles.note}>
-          School weeks always start from Monday and show only configured school days. 
-          Weeks can span across months (e.g., Tir 29 - Yek 7).
-          Check-in times are shown in 12-hour format (AM/PM) in UTC+3 timezone.
-        </p>
-        <p className={styles.note}>
-          💡 Click on any cell in the attendance table to manually edit the attendance status.
-        </p>
-      </div>
+        <p className={styles.note}>{t('students.attendance.weeklyNote', 'School weeks start from Monday.')}</p>
+        <p className={styles.note}>{t('students.attendance.editHint', 'Click any cell in the weekly table to edit attendance details.')}</p>
+      </Card>
 
-      {/* Edit Modal */}
-      {editModal.show && (
-        <div className={styles.modalOverlay} onClick={closeModal}>
-          <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
-            <div className={styles.modalHeader}>
-              <h3><FiEdit2 /> Edit Attendance</h3>
-              <button onClick={closeModal} className={styles.closeButton}>
-                <FiX />
-              </button>
-            </div>
-
-            <div className={styles.modalBody}>
-              <div className={styles.modalInfo}>
-                <p><strong>Student:</strong> {editModal.student?.student_name}</p>
-                <p><strong>Date:</strong> {ethiopianMonths[editModal.dayInfo?.month - 1]} {editModal.dayInfo?.day}, {editModal.dayInfo?.year} ({editModal.dayInfo?.dayOfWeek})</p>
-                <p><strong>Current Status:</strong> {editModal.currentStatus || 'Not Marked'}</p>
-              </div>
-
-              <div className={styles.formGroup}>
-                <label>Status</label>
-                <select
-                  value={editForm.status}
-                  onChange={(e) => setEditForm({ ...editForm, status: e.target.value })}
-                  className={styles.select}
-                >
-                  <option value="PRESENT">✓ Present</option>
-                  <option value="ABSENT">✗ Absent</option>
-                  <option value="LEAVE">L Leave</option>
-                  <option value="LATE">⏰ Late</option>
-                </select>
-              </div>
-
-              <div className={styles.formGroup}>
-                <label>Check-in Time</label>
-                <input
-                  type="time"
-                  value={editForm.checkInTime}
-                  onChange={(e) => setEditForm({ ...editForm, checkInTime: e.target.value })}
-                  className={styles.input}
-                />
-              </div>
-
-              <div className={styles.formGroup}>
-                <label>Notes (Optional)</label>
-                <textarea
-                  value={editForm.notes}
-                  onChange={(e) => setEditForm({ ...editForm, notes: e.target.value })}
-                  className={styles.textarea}
-                  placeholder="Add any notes about this attendance record..."
-                  rows={3}
-                />
-              </div>
-            </div>
-
-            <div className={styles.modalFooter}>
-              <button onClick={closeModal} className={styles.cancelButton}>
-                Cancel
-              </button>
-              <button 
-                onClick={handleSaveAttendance} 
-                className={styles.saveButton}
-                disabled={isLoading}
-              >
-                <FiSave />
-                {isLoading ? 'Saving...' : 'Save'}
-              </button>
-            </div>
-          </div>
+      <Modal
+        isOpen={editModal.show}
+        onClose={closeModal}
+        title={t('students.attendance.editAttendance', 'Edit Attendance')}
+        footer={editModalFooter}
+        size="medium"
+      >
+        <div className={styles.modalInfo}>
+          <p>
+            <strong>{t('students.attendance.studentName', 'Student Name')}:</strong> {editModal.student?.student_name}
+          </p>
+          <p>
+            <strong>{t('students.attendance.date', 'Date')}:</strong>{' '}
+            {ethiopianMonths[editModal.dayInfo?.month - 1]} {editModal.dayInfo?.day}, {editModal.dayInfo?.year} (
+            {editModal.dayInfo?.dayOfWeek})
+          </p>
+          <p>
+            <strong>{t('students.attendance.currentStatus', 'Current Status')}:</strong>{' '}
+            {editModal.currentStatus || t('students.attendance.notMarked', 'Not Marked')}
+          </p>
         </div>
-      )}
 
-      {/* Current Week Info Modal */}
+        <Select
+          label={t('students.attendance.status', 'Status')}
+          options={statusEditOptions}
+          value={editForm.status}
+          onChange={(v) => setEditForm({ ...editForm, status: v })}
+        />
+
+        <Input
+          type="time"
+          label={t('students.attendance.checkInTime', 'Check-in Time')}
+          value={editForm.checkInTime}
+          onChange={(v) => setEditForm({ ...editForm, checkInTime: v })}
+        />
+
+        <Textarea
+          label={t('students.attendance.notes', 'Notes (Optional)')}
+          value={editForm.notes}
+          onChange={(v) => setEditForm({ ...editForm, notes: v })}
+          placeholder={t('students.attendance.notesPlaceholder', 'Add any notes about this attendance record...')}
+          rows={3}
+        />
+      </Modal>
+
       {showCurrentWeekModal && (() => {
         const weekInfo = getCurrentWeekInfo();
+        const currentWeekFooter = (
+          <>
+            <Button type="button" variant="secondary" onClick={() => setShowCurrentWeekModal(false)}>
+              {t('students.attendance.close', 'Close')}
+            </Button>
+            {weekInfo?.currentWeek && (
+              <Button type="button" variant="primary" icon={<Calendar size={18} />} onClick={navigateToCurrentWeek}>
+                {t('students.attendance.goToThisWeek', 'Go to This Week')}
+              </Button>
+            )}
+            {weekInfo && !weekInfo.isCurrentYear && (
+              <Button
+                type="button"
+                variant="primary"
+                icon={<Calendar size={18} />}
+                onClick={() => {
+                  setSelectedYear(weekInfo.today.year);
+                  setShowCurrentWeekModal(false);
+                }}
+              >
+                {t('students.attendance.switchToYear', 'Switch to Year {{year}}', { year: weekInfo.today.year })}
+              </Button>
+            )}
+          </>
+        );
+
         return (
-          <div className={styles.modalOverlay} onClick={() => setShowCurrentWeekModal(false)}>
-            <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
-              <div className={styles.modalHeader}>
-                <h3><FiCalendar /> Current Week Information</h3>
-                <button onClick={() => setShowCurrentWeekModal(false)} className={styles.closeButton}>
-                  <FiX />
-                </button>
-              </div>
+          <Modal
+            isOpen={showCurrentWeekModal}
+            onClose={() => setShowCurrentWeekModal(false)}
+            title={t('students.attendance.currentWeekInfo', 'Current Week Information')}
+            footer={currentWeekFooter}
+            size="medium"
+          >
+            {weekInfo ? (
+              <div className={styles.currentWeekInfo}>
+                <div className={styles.weekModalToday}>
+                  <Calendar size={32} aria-hidden="true" />
+                  <div>
+                    <h4>{t('students.attendance.todayDate', "Today's Date")}</h4>
+                    <p className={styles.todayDateText}>{weekInfo.todayFormatted}</p>
+                  </div>
+                </div>
 
-              <div className={styles.modalBody}>
-                {weekInfo ? (
-                  <>
-                    <div className={styles.currentWeekInfo}>
-                      <div className={styles.todayBadge}>
-                        <FiCalendar size={32} />
-                        <div>
-                          <h4>Today's Date</h4>
-                          <p className={styles.todayDate}>{weekInfo.todayFormatted}</p>
-                        </div>
-                      </div>
+                {!weekInfo.isCurrentYear && (
+                  <div className={styles.warningBox}>
+                    <strong>{t('students.attendance.differentYear', 'Different Year')}</strong>
+                    <p>
+                      {t('students.attendance.viewingYear', 'You are viewing year {{year}}, but today is in year {{todayYear}}.', {
+                        year: selectedYear,
+                        todayYear: weekInfo.today.year
+                      })}
+                    </p>
+                  </div>
+                )}
 
-                      {!weekInfo.isCurrentYear && (
-                        <div className={styles.warningBox}>
-                          <strong>⚠️ Different Year</strong>
-                          <p>You are viewing year {selectedYear}, but today is in year {weekInfo.today.year}.</p>
-                        </div>
-                      )}
-
-                      {weekInfo.currentWeek ? (
-                        <div className={styles.weekDetailsBox}>
-                          <h4>📅 Current Week Found</h4>
-                          <p className={styles.weekRange}>{weekInfo.currentWeek.label}</p>
-                          
-                          <div className={styles.weekDaysList}>
-                            <strong>School Days in This Week:</strong>
-                            <ul>
-                              {weekInfo.currentWeek.days.map((day, index) => (
-                                <li key={index} className={
-                                  day.year === weekInfo.today.year && 
-                                  day.month === weekInfo.today.month && 
-                                  day.day === weekInfo.today.day ? styles.todayHighlight : ''
-                                }>
-                                  {ethiopianMonths[day.month - 1]} {day.day} ({day.dayOfWeek})
-                                  {day.year === weekInfo.today.year && 
-                                   day.month === weekInfo.today.month && 
-                                   day.day === weekInfo.today.day && ' ← Today'}
-                                </li>
-                              ))}
-                            </ul>
-                            <p className={styles.weekNote}>
-                              💡 Today ({weekInfo.todayFormatted}) falls within this school week range.
-                            </p>
-                          </div>
-                        </div>
-                      ) : (
-                        <div className={styles.warningBox}>
-                          <strong>❌ Current Week Not Found</strong>
-                          <p>Today's date ({weekInfo.todayFormatted}) is not in any of the {weekInfo.totalWeeks} generated school weeks.</p>
-                          <p><strong>Possible reasons:</strong></p>
-                          <ul>
-                            <li>Today is not a configured school day</li>
-                            <li>Weeks are still loading</li>
-                            <li>There was an error generating weeks</li>
-                          </ul>
-                          <p>Check your school days settings or try refreshing the page.</p>
-                        </div>
-                      )}
+                {weekInfo.currentWeek ? (
+                  <div className={styles.weekDetailsBox}>
+                    <h4>{t('students.attendance.currentWeekFound', 'Current Week Found')}</h4>
+                    <p className={styles.weekRange}>{weekInfo.currentWeek.label}</p>
+                    <div className={styles.weekDaysList}>
+                      <strong>{t('students.attendance.schoolDaysInWeek', 'School Days in This Week')}:</strong>
+                      <ul>
+                        {weekInfo.currentWeek.days.map((day, index) => (
+                          <li
+                            key={index}
+                            className={
+                              day.year === weekInfo.today.year &&
+                              day.month === weekInfo.today.month &&
+                              day.day === weekInfo.today.day
+                                ? styles.todayHighlight
+                                : ''
+                            }
+                          >
+                            {ethiopianMonths[day.month - 1]} {day.day} ({day.dayOfWeek})
+                            {day.year === weekInfo.today.year &&
+                              day.month === weekInfo.today.month &&
+                              day.day === weekInfo.today.day &&
+                              ` — ${t('students.attendance.todayInWeek', 'Today')}`}
+                          </li>
+                        ))}
+                      </ul>
+                      <p className={styles.weekNote}>{t('students.attendance.todayInWeekNote', 'Today falls within this school week range.')}</p>
                     </div>
-                  </>
+                  </div>
                 ) : (
                   <div className={styles.warningBox}>
-                    <p>Loading calendar information...</p>
+                    <strong>{t('students.attendance.currentWeekNotFound', 'Current Week Not Found')}</strong>
+                    <p>
+                      {t('students.attendance.currentWeekNotFoundDetail', "Today's date is not in any of the {{count}} generated school weeks.", {
+                        count: weekInfo.totalWeeks
+                      })}
+                    </p>
+                    <ul>
+                      <li>{t('students.attendance.notSchoolDayReason', 'Today is not a configured school day')}</li>
+                      <li>{t('students.attendance.weeksLoading', 'Weeks are still loading')}</li>
+                      <li>{t('students.attendance.weeksError', 'There was an error generating weeks')}</li>
+                    </ul>
+                    <p>{t('students.attendance.checkSettings', 'Check your school days settings or try refreshing the page.')}</p>
                   </div>
                 )}
               </div>
-
-              <div className={styles.modalFooter}>
-                <button onClick={() => setShowCurrentWeekModal(false)} className={styles.cancelButton}>
-                  Close
-                </button>
-                {weekInfo && weekInfo.currentWeek && (
-                  <button 
-                    onClick={navigateToCurrentWeek} 
-                    className={styles.saveButton}
-                  >
-                    <FiCalendar />
-                    Go to This Week
-                  </button>
-                )}
-                {weekInfo && !weekInfo.isCurrentYear && (
-                  <button 
-                    onClick={() => {
-                      setSelectedYear(weekInfo.today.year);
-                      setShowCurrentWeekModal(false);
-                    }} 
-                    className={styles.saveButton}
-                  >
-                    <FiCalendar />
-                    Switch to Year {weekInfo.today.year}
-                  </button>
-                )}
+            ) : (
+              <div className={styles.warningBox}>
+                <p>{t('students.attendance.loadingCalendar', 'Loading calendar information...')}</p>
               </div>
-            </div>
-          </div>
+            )}
+          </Modal>
         );
       })()}
     </div>

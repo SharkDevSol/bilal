@@ -1,7 +1,17 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
+import { Plus, Search } from 'lucide-react';
 import styles from './InvoiceManagement.module.css';
 
+import Button from '../../COMPONENTS/Button/Button';
+import Input from '../../COMPONENTS/Input/Input';
+import Select from '../../COMPONENTS/Select/Select';
+import Card from '../../COMPONENTS/Card/Card';
+import Table from '../../components/Table/Table';
+import Badge from '../../COMPONENTS/Badge/Badge';
+
 const InvoiceManagement = () => {
+  const { t } = useTranslation();
   const [invoices, setInvoices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('ALL');
@@ -51,103 +61,97 @@ const InvoiceManagement = () => {
     invoice.studentId.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  const statusFilterOptions = useMemo(
+    () =>
+      ['ALL', 'ISSUED', 'PARTIALLY_PAID', 'PAID', 'OVERDUE'].map((status) => ({
+        value: status,
+        label: status === 'ALL' ? t('common.all', 'All') : status.replace(/_/g, ' ')
+      })),
+    [t]
+  );
+
+  const tableColumns = useMemo(
+    () => [
+      { key: 'invoiceNumber', header: t('finance.invoices.number', 'Invoice #'), accessor: 'invoiceNumber' },
+      { key: 'studentId', header: t('finance.invoices.student', 'Student ID'), accessor: 'studentId' },
+      {
+        key: 'issueDate',
+        header: t('finance.invoices.issueDate', 'Issue date'),
+        render: (row) => new Date(row.issueDate).toLocaleDateString()
+      },
+      {
+        key: 'dueDate',
+        header: t('finance.invoices.dueDate', 'Due date'),
+        render: (row) => new Date(row.dueDate).toLocaleDateString()
+      },
+      {
+        key: 'totalAmount',
+        header: t('finance.invoices.total', 'Total'),
+        render: (row) => `$${parseFloat(row.totalAmount).toFixed(2)}`
+      },
+      {
+        key: 'paidAmount',
+        header: t('finance.invoices.paid', 'Paid'),
+        render: (row) => `$${parseFloat(row.paidAmount || 0).toFixed(2)}`
+      },
+      {
+        key: 'balance',
+        header: t('finance.invoices.balance', 'Balance'),
+        render: (row) => `$${parseFloat(row.balance || 0).toFixed(2)}`
+      },
+      {
+        key: 'status',
+        header: t('finance.invoices.status', 'Status'),
+        render: (row) => (
+          <Badge variant={row.status === 'PAID' ? 'success' : row.status === 'OVERDUE' ? 'error' : 'default'}>
+            {row.status.replace(/_/g, ' ')}
+          </Badge>
+        )
+      }
+    ],
+    [t]
+  );
+
   return (
     <div className={styles.container}>
       <div className={styles.header}>
         <div>
-          <h1>Invoice Management</h1>
-          <p>Generate and manage student invoices</p>
+          <h1>{t('finance.invoices.title', 'Invoices')}</h1>
+          <p>{t('finance.invoices.subtitle', 'Generate and manage student invoices')}</p>
         </div>
-        <button 
-          className={styles.generateButton}
-          onClick={() => setShowGenerateModal(true)}
-        >
-          + Generate Invoice
-        </button>
+        <Button variant="primary" icon={<Plus size={16} />} onClick={() => setShowGenerateModal(true)}>
+          {t('finance.invoices.generate', 'Generate invoice')}
+        </Button>
       </div>
 
-      {/* Filters */}
-      <div className={styles.filters}>
-        <div className={styles.filterTabs}>
-          {['ALL', 'ISSUED', 'PARTIALLY_PAID', 'PAID', 'OVERDUE'].map(status => (
-            <button
-              key={status}
-              className={`${styles.filterTab} ${filter === status ? styles.active : ''}`}
-              onClick={() => setFilter(status)}
-            >
-              {status.replace('_', ' ')}
-            </button>
-          ))}
+      <Card className={styles.filtersCard}>
+        <div className={styles.filters}>
+          <Select
+            label={t('finance.invoices.status', 'Status')}
+            value={filter}
+            onChange={setFilter}
+            options={statusFilterOptions}
+          />
+          <Input
+            label={t('common.search', 'Search')}
+            value={searchTerm}
+            onChange={setSearchTerm}
+            placeholder={t('finance.invoices.searchPlaceholder', 'Invoice or student...')}
+            prefixIcon={<Search size={16} />}
+          />
         </div>
-        
-        <input
-          type="text"
-          placeholder="Search by invoice number or student..."
-          className={styles.searchInput}
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-        />
-      </div>
+      </Card>
 
-      {/* Invoices Table */}
       {loading ? (
-        <div className={styles.loading}>Loading invoices...</div>
+        <div className={styles.loading}>{t('common.loading', 'Loading...')}</div>
       ) : (
-        <div className={styles.tableContainer}>
-          <table className={styles.table}>
-            <thead>
-              <tr>
-                <th>Invoice #</th>
-                <th>Student ID</th>
-                <th>Issue Date</th>
-                <th>Due Date</th>
-                <th>Total Amount</th>
-                <th>Paid Amount</th>
-                <th>Balance</th>
-                <th>Status</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredInvoices.length === 0 ? (
-                <tr>
-                  <td colSpan="9" className={styles.noData}>
-                    No invoices found
-                  </td>
-                </tr>
-              ) : (
-                filteredInvoices.map(invoice => (
-                  <tr key={invoice.id}>
-                    <td className={styles.invoiceNumber}>{invoice.invoiceNumber}</td>
-                    <td>{invoice.studentId}</td>
-                    <td>{new Date(invoice.issueDate).toLocaleDateString()}</td>
-                    <td>{new Date(invoice.dueDate).toLocaleDateString()}</td>
-                    <td>${parseFloat(invoice.netAmount).toFixed(2)}</td>
-                    <td>${parseFloat(invoice.paidAmount).toFixed(2)}</td>
-                    <td className={styles.balance}>
-                      ${(parseFloat(invoice.netAmount) - parseFloat(invoice.paidAmount)).toFixed(2)}
-                    </td>
-                    <td>
-                      <span 
-                        className={styles.statusBadge}
-                        style={{ backgroundColor: getStatusColor(invoice.status) }}
-                      >
-                        {invoice.status.replace('_', ' ')}
-                      </span>
-                    </td>
-                    <td>
-                      <div className={styles.actions}>
-                        <button className={styles.actionButton} title="View">👁️</button>
-                        <button className={styles.actionButton} title="Download">📥</button>
-                        <button className={styles.actionButton} title="Record Payment">💳</button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
+        <Table
+          columns={tableColumns}
+          data={filteredInvoices}
+          paginated
+          pageSize={15}
+          emptyMessage={t('finance.invoices.empty', 'No invoices found')}
+        />
       )}
 
       {/* Generate Invoice Modal */}

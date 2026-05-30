@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import axios from 'axios';
 import io from 'socket.io-client';
 import { FiMessageCircle, FiUser, FiPlus, FiX, FiSearch, FiArrowLeft } from 'react-icons/fi';
@@ -8,6 +9,7 @@ import ConversationList from '../../COMPONENTS/Chat/ConversationList';
 import styles from './TeacherChat.module.css';
 
 const TeacherChat = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [conversations, setConversations] = useState([]);
   const [activeConversation, setActiveConversation] = useState(null);
@@ -163,7 +165,7 @@ const TeacherChat = () => {
     } catch (error) {
       console.error('Error starting conversation:', error);
       console.error('Error details:', error.response?.data);
-      alert('Failed to start conversation. Please try again.');
+      alert(t('communication.messages.startFailed', 'Failed to start conversation. Please try again.'));
     }
   };
 
@@ -173,22 +175,22 @@ const TeacherChat = () => {
   );
 
   return (
-    <div className={styles.container}>
-      <div className={styles.header}>
-        <button className={styles.backButton} onClick={() => navigate(-1)}>
+    <main className={styles.container} aria-label={t('communication.messages.title', 'Messages')}>
+      <header className={styles.header}>
+        <button type="button" className={styles.backButton} onClick={() => navigate(-1)} aria-label={t('common.back', 'Back')}>
           <FiArrowLeft />
         </button>
-        <FiMessageCircle />
-        <h1>Messages</h1>
-      </div>
+        <FiMessageCircle aria-hidden="true" />
+        <h1>{t('communication.messages.title', 'Messages')}</h1>
+      </header>
 
       <div className={styles.content}>
         {/* Conversations List */}
         <div className={styles.conversations}>
           <div className={styles.conversationsHeader}>
-            <h3>Conversations</h3>
-            <button className={styles.newChatBtn} onClick={handleNewChat}>
-              <FiPlus /> New
+            <h3>{t('communication.messages.conversations', 'Conversations')}</h3>
+            <button type="button" className={styles.newChatBtn} onClick={handleNewChat}>
+              <FiPlus /> {t('communication.messages.new', 'New')}
             </button>
           </div>
           <ConversationList
@@ -210,7 +212,9 @@ const TeacherChat = () => {
                     {activeConversation.participants?.find(p => p.user_id !== currentUserId)?.user_name}
                   </h3>
                   <span>
-                    {activeConversation.participants?.find(p => p.user_id !== currentUserId)?.user_type === 'guardian' ? 'Guardian' : 'Admin'}
+                    {activeConversation.participants?.find(p => p.user_id !== currentUserId)?.user_type === 'guardian'
+                      ? t('communication.messages.guardianLabel', 'Guardian')
+                      : t('communication.messages.adminLabel', 'Admin')}
                   </span>
                 </div>
               </div>
@@ -228,7 +232,7 @@ const TeacherChat = () => {
           ) : (
             <div className={styles.noChat}>
               <FiMessageCircle />
-              <h3>Select a conversation to start chatting</h3>
+              <h3>{t('communication.messages.selectConversation', 'Select a conversation to start chatting')}</h3>
             </div>
           )}
         </div>
@@ -239,7 +243,7 @@ const TeacherChat = () => {
         <div className={styles.modalOverlay} onClick={() => setShowNewChatModal(false)}>
           <div className={styles.modal} onClick={e => e.stopPropagation()}>
             <div className={styles.modalHeader}>
-              <h2>New Conversation</h2>
+              <h2>{t('communication.messages.newConversation', 'New Conversation')}</h2>
               <button className={styles.closeBtn} onClick={() => setShowNewChatModal(false)}>
                 <FiX />
               </button>
@@ -249,7 +253,7 @@ const TeacherChat = () => {
               <FiSearch />
               <input
                 type="text"
-                placeholder="Search guardians or students..."
+                placeholder={t('communication.messages.searchGuardiansStudents', 'Search guardians or students...')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
@@ -257,7 +261,7 @@ const TeacherChat = () => {
 
             <div className={styles.modalContent}>
               {guardiansLoading ? (
-                <div className={styles.modalLoading}>Loading guardians...</div>
+                <div className={styles.modalLoading}>{t('communication.messages.loadingGuardians', 'Loading guardians...')}</div>
               ) : filteredGuardians.length > 0 ? (
                 <div className={styles.guardiansList}>
                   {filteredGuardians.map(guardian => (
@@ -273,7 +277,8 @@ const TeacherChat = () => {
                         <h4>{guardian.name}</h4>
                         {guardian.students && guardian.students.length > 0 && (
                           <p className={styles.guardianStudents}>
-                            Guardian of: {guardian.students.map(s => `${s.name} (${s.class})`).join(', ')}
+                            {t('communication.messages.guardianOf', 'Guardian of')}:{' '}
+                            {guardian.students.map(s => `${s.name} (${s.class})`).join(', ')}
                           </p>
                         )}
                       </div>
@@ -283,14 +288,14 @@ const TeacherChat = () => {
               ) : (
                 <div className={styles.modalEmpty}>
                   <FiUser />
-                  <p>No guardians found</p>
+                  <p>{t('communication.messages.noGuardians', 'No guardians found')}</p>
                 </div>
               )}
             </div>
           </div>
         </div>
       )}
-    </div>
+    </main>
   );
 };
 

@@ -22,6 +22,16 @@
   font-size: 1.1rem;
 }
 
+.filtersCard {
+  margin-bottom: var(--spacing-lg, 24px);
+}
+
+.filtersRow {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--spacing-md, 16px);
+}
+
 /* Cards */
 .statusCard,
 .infoCard,

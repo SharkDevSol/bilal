@@ -119,12 +119,11 @@ const optionalAuth = (req, res, next) => {
     return next();
   }
 
-  jwt.verify(token, JWT_SECRET, (err, user) => {
-    if (!err) {
-      req.user = user;
-    }
-    next();
-  });
+  const result = verifyTokenWithDetails(token);
+  if (result.success) {
+    req.user = result.decoded;
+  }
+  next();
 };
 
 module.exports = { authenticateToken, authorizeRoles, optionalAuth, JWT_SECRET };

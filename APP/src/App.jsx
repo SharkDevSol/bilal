@@ -1,144 +1,183 @@
-// Updated App.jsx
+// Updated App.jsx with Code Splitting and Lazy Loading
 import { Routes, Route, Navigate } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { lazy, Suspense } from "react";
 import LoadingScreen from "./COMPONENTS/LoadingScreen";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { LanguageProvider } from "./contexts/LanguageContext";
 import "./i18n/config"; // Initialize i18n
-import "./styles/theme.css"; // Import theme CSS
-import ComponentShowcase from "./pages/ComponentShowcase"; // UI Component Showcase
-import Home from "./PAGE/Home";
-import CreateRegisterStaff from "./PAGE/CreateRegister/CreateRegisterStaff/CreateRegisterStaff";
-import CreateRegisterStudent from "./PAGE/CreateRegister/CreateRegisterStudent/CreateRegisterStudent";
-import StudentFormBuilder from "./PAGE/CreateRegister/CreateRegisterStudent/StudentFormBuilder";
-import StaffFormBuilder from "./PAGE/CreateRegister/CreateRegisterStaff/StaffFormBuilder";
-import ListStudent from "./PAGE/List/ListStudent/ListStudent";
-import ListStaff from "./PAGE/List/ListStaff/ListStaff";
-import EditStaff from "./PAGE/List/ListStaff/EditStaff";
-import ListGuardian from "./PAGE/List/ListGuardian/ListGuardian";
-import { EvaluationManager } from "./PAGE/Evaluation/Evaluation";  // Changed to named import
-import EvaluationFormPage from "./PAGE/Evaluation/EvaluationFormPage";
-import EvaluationFormDisplay from "./PAGE/Evaluation/EvaluationFormDisplay";
-import EvaluationDetailsView from "./PAGE/Evaluation/EvaluationDetailsView";
-import ErrorBoundary from "./COMPONENTS/ErrorBoundary";
-import MarkListView from "./PAGE/MarkListView/MarkListView";
-import StudentAttendanceSystem from "./PAGE/Academic/StudentAttendanceSystem";
-import StudentAttendanceTimeSettings from "./PAGE/Academic/StudentAttendanceTimeSettings";
-import AITestGenerator from "./PAGE/Academic/AITestGenerator";
-// Counsellor removed - not used
-import Post from "./PAGE/Post/Post";
-import MarkListSystem from "./PAGE/CreateMarklist/CreateMarklist/CreateMarklist";
-import MarkListManagement from "./PAGE/CreateMarklist/MarkListManagement";
-import SubjectMappingSetup from "./PAGE/CreateMarklist/SubjectMappingSetup";
-import "./PAGE/CreateMarklist/CreateMarklist/MarkListFrontend.css";
-import ReportCard from "./PAGE/CreateMarklist/ReportCard/ReportCard";
-// Roaster removed - not used
-import CreateAccounts from "./PAGE/CreateAccounts/CreateAccounts";
-// PaymentList removed
-// BranchCreate removed - not used
-import Dashboard from "./PAGE/Dashboard/Dashboard";
-import DashboardPage from "./PAGE/Dashboard/DashboardPage";
-import StudentFaults from "./PAGE/StudentFaults/StudentFaultsS";
-import ScheduleDashboard from "./PAGE/Schedule/ScheduleDashboard";
-import ScheduleTimetable from "./PAGE/Schedule/ScheduleTimetable";
-import ClassRequirementsForm from './PAGE/Schedule/ClassRequirementsForm';
-import ClassShiftForm from './PAGE/Schedule/ClassShiftForm';
-import Setting from "./PAGE/Setting/Setting";
-import InstallStudentApp from "./PAGE/InstallApp/InstallStudentApp";
-import InstallStaffApp from "./PAGE/InstallApp/InstallStaffApp";
-import InstallGuardianApp from "./PAGE/InstallApp/InstallGuardianApp";
-import Students from "./Students/Students";
-import Staff from "./Staff/Staff";
-import PostStudents from "./Students/PostStudents/PostStudents";
-import ClassStudents from "./Students/ClassStudents/ClassStudents";
-import CommunicationStudents from "./Students/CommunicationStudents/CommunicationStudents";
-import ProfileStudents from "./Students/ProfileStudents/ProfileStudents";
-import AboutUs from "./PAGE/AboutUs/AboutUs";
-import POSTS from "./Staff/POSTS/POSTS";
-import PF from "./Staff/PF/PF";
-import MRLIST from "./Staff/MRLIST/MRLIST";
-import EVA from "./Staff/EVA/EVA";
-import PV from "./Staff/PV/PV";
-import COMSTA from "./Staff/COMSTA/COMSTA";
-import TeacherClassAttendance from "./Staff/ATTENDANCE/TeacherClassAttendance";
-import ExamCreationStaff from "./Staff/EXAM/ExamCreationStaff";
-import ClassTeacherAssignment from "./PAGE/AttendanceView/ClassTeacherAssignment";
-import LiveAttendanceMonitor from "./PAGE/LiveAttendanceMonitor";
-import StaffLogin from "./COMPONENTS/StaffLogin";
-import StaffProfile from "./COMPONENTS/StaffProfile";
-import StudentProfile from "./COMPONENTS/StudentProfile";
-import GuardianProfile from "./COMPONENTS/GuardianProfile";
-import StudentLogin from "./COMPONENTS/StudentLogin";
-import GuardianLogin from "./COMPONENTS/GuardianLogin";
-import AdminChat from "./PAGE/Communication/AdminChat";
-import GuardianChat from "./PAGE/Communication/GuardianChat";
-import TeacherChat from "./PAGE/Communication/TeacherChat";
-import AdminCommunications from "./PAGE/Communication/AdminCommunications";
-import GuardianNotifications from "./PAGE/Communication/GuardianNotifications";
-import { EvaluationBookFormBuilder, TeacherAssignmentManager, TeacherClassList, DailyEvaluationForm, GuardianEvaluationInbox, GuardianFeedbackForm, EvaluationBookReports } from "./PAGE/EvaluationBook";
+import "./styles/theme.css";
+import "./styles/global.css";
+import "./styles/animations.css";
 import { Provider } from 'react-redux';
 import { store } from '../src/PAGE/store';
+import { useParams } from "react-router-dom";
+
+// Critical components - loaded immediately (needed for initial render)
 import InitialRedirect from "./COMPONENTS/InitialRedirect";  
 import ProtectedRoute from "./COMPONENTS/ProtectedRoute";
 import RoleProtectedRoute from "./COMPONENTS/RoleProtectedRoute";
+import ErrorBoundary from "./COMPONENTS/ErrorBoundary";
 import Login from "./PAGE/Login/Login";
-import TaskPage from "./PAGE/TaskPage";  
-import TaskDetail from "./PAGE/TaskDetail";  
-import StaffForm from "./PAGE/CreateRegister/CreateRegisterStaff/StaffForm"; 
-import AdminSubAccounts from "./PAGE/AdminSubAccounts/AdminSubAccounts";
-import { useParams } from "react-router-dom";
+import Home from "./PAGE/Home";
 
-// Guardian App Components
-import Guardian from "./Guardian/Guardian";
-import GuardianHome from "./Guardian/GuardianHome/GuardianHome";
-import GuardianProfilePage from "./Guardian/GuardianProfilePage/GuardianProfilePage";
-import GuardianWards from "./Guardian/GuardianWards/GuardianWards";
-import GuardianAttendance from "./Guardian/GuardianAttendance/GuardianAttendance";
-import GuardianMarks from "./Guardian/GuardianMarks/GuardianMarks";
-import GuardianMessages from "./Guardian/GuardianMessages/GuardianMessages";
-import GuardianNotificationsPage from "./Guardian/GuardianNotifications/GuardianNotifications";
+// Lazy-loaded components - loaded on demand
+// Core Pages
+const ComponentShowcase = lazy(() => import("./pages/ComponentShowcase"));
+const DashboardPage = lazy(() => import("./PAGE/Dashboard/DashboardPage"));
+const Dashboard = lazy(() => import("./PAGE/Dashboard/Dashboard"));
+const ModernDashboard = lazy(() => import("./PAGE/Dashboard/ModernDashboard"));
+const AboutUs = lazy(() => import("./PAGE/AboutUs/AboutUs"));
+const Setting = lazy(() => import("./PAGE/Setting/Setting"));
+const Diagnostics = lazy(() => import("./PAGE/Diagnostics/Diagnostics"));
 
-// Finance Module Components
-import FinanceDashboard from "./PAGE/Finance/FinanceDashboard";
-import ChartOfAccounts from "./PAGE/Finance/ChartOfAccounts/ChartOfAccounts";
-import FeeManagement from "./PAGE/Finance/FeeManagement/FeeManagement";
-import InvoiceManagement from "./PAGE/Finance/InvoiceManagement";
-import FeePaymentManagement from "./PAGE/Finance/FeePaymentManagement";
-import ExpenseManagement from "./PAGE/Finance/ExpenseManagement";
-import ExpenseApproval from "./PAGE/Finance/ExpenseApproval";
-import BudgetManagement from "./PAGE/Finance/BudgetManagement";
-import PayrollManagement from "./PAGE/Finance/PayrollManagement";
-import FinanceReports from "./PAGE/Finance/FinanceReports";
-import ComingSoon from "./PAGE/Finance/ComingSoon";
-import MonthlyPayments from "./PAGE/Finance/MonthlyPaymentsNew";
-import MonthlyPaymentSettings from "./PAGE/Finance/MonthlyPaymentSettings";
+// Student Management
+const CreateRegisterStudent = lazy(() => import("./PAGE/CreateRegister/CreateRegisterStudent/CreateRegisterStudent"));
+const StudentFormBuilder = lazy(() => import("./PAGE/CreateRegister/CreateRegisterStudent/StudentFormBuilder"));
+const ListStudent = lazy(() => import("./PAGE/List/ListStudent/ListStudent"));
+const StudentFaults = lazy(() => import("./PAGE/StudentFaults/StudentFaultsS"));
+
+// Staff Management
+const CreateRegisterStaff = lazy(() => import("./PAGE/CreateRegister/CreateRegisterStaff/CreateRegisterStaff"));
+const StaffFormBuilder = lazy(() => import("./PAGE/CreateRegister/CreateRegisterStaff/StaffFormBuilder"));
+const StaffForm = lazy(() => import("./PAGE/CreateRegister/CreateRegisterStaff/StaffForm"));
+const ListStaff = lazy(() => import("./PAGE/List/ListStaff/ListStaff"));
+const EditStaff = lazy(() => import("./PAGE/List/ListStaff/EditStaff"));
+
+// Guardian Management
+const ListGuardian = lazy(() => import("./PAGE/List/ListGuardian/ListGuardian"));
+
+// Academic Module
+const EvaluationManager = lazy(() => import("./PAGE/Evaluation/Evaluation").then(module => ({ default: module.EvaluationManager })));
+const EvaluationFormPage = lazy(() => import("./PAGE/Evaluation/EvaluationFormPage"));
+const EvaluationFormDisplay = lazy(() => import("./PAGE/Evaluation/EvaluationFormDisplay"));
+const EvaluationDetailsView = lazy(() => import("./PAGE/Evaluation/EvaluationDetailsView"));
+const MarkListView = lazy(() => import("./PAGE/MarkListView/MarkListView"));
+const StudentAttendanceSystem = lazy(() => import("./PAGE/Academic/StudentAttendanceSystem"));
+const StudentAttendanceTimeSettings = lazy(() => import("./PAGE/Academic/StudentAttendanceTimeSettings"));
+const AITestGenerator = lazy(() => import("./PAGE/Academic/AITestGenerator"));
+const MarkListSystem = lazy(() => import("./PAGE/CreateMarklist/CreateMarklist/CreateMarklist"));
+const MarkListManagement = lazy(() => import("./PAGE/CreateMarklist/MarkListManagement"));
+const SubjectMappingSetup = lazy(() => import("./PAGE/CreateMarklist/SubjectMappingSetup"));
+const ReportCard = lazy(() => import("./PAGE/CreateMarklist/ReportCard/ReportCard"));
+
+// Communication
+const Post = lazy(() => import("./PAGE/Post/Post"));
+const AdminChat = lazy(() => import("./PAGE/Communication/AdminChat"));
+const GuardianChat = lazy(() => import("./PAGE/Communication/GuardianChat"));
+const TeacherChat = lazy(() => import("./PAGE/Communication/TeacherChat"));
+const AdminCommunications = lazy(() => import("./PAGE/Communication/AdminCommunications"));
+const GuardianNotifications = lazy(() => import("./PAGE/Communication/GuardianNotifications"));
+
+// Schedule
+const ScheduleDashboard = lazy(() => import("./PAGE/Schedule/ScheduleDashboard"));
+const ScheduleTimetable = lazy(() => import("./PAGE/Schedule/ScheduleTimetable"));
+const ClassRequirementsForm = lazy(() => import('./PAGE/Schedule/ClassRequirementsForm'));
+const ClassShiftForm = lazy(() => import('./PAGE/Schedule/ClassShiftForm'));
+
+// Accounts & Tasks
+const CreateAccounts = lazy(() => import("./PAGE/CreateAccounts/CreateAccounts"));
+const AdminSubAccounts = lazy(() => import("./PAGE/AdminSubAccounts/AdminSubAccounts"));
+const TaskPage = lazy(() => import("./PAGE/TaskPage"));
+const TaskDetail = lazy(() => import("./PAGE/TaskDetail"));
+
+// Mobile App Installation
+const InstallStudentApp = lazy(() => import("./PAGE/InstallApp/InstallStudentApp"));
+const InstallStaffApp = lazy(() => import("./PAGE/InstallApp/InstallStaffApp"));
+const InstallGuardianApp = lazy(() => import("./PAGE/InstallApp/InstallGuardianApp"));
+
+// Student App
+const Students = lazy(() => import("./Students/Students"));
+const PostStudents = lazy(() => import("./Students/PostStudents/PostStudents"));
+const ClassStudents = lazy(() => import("./Students/ClassStudents/ClassStudents"));
+const CommunicationStudents = lazy(() => import("./Students/CommunicationStudents/CommunicationStudents"));
+const ProfileStudents = lazy(() => import("./Students/ProfileStudents/ProfileStudents"));
+
+// Staff App
+const Staff = lazy(() => import("./Staff/Staff"));
+const POSTS = lazy(() => import("./Staff/POSTS/POSTS"));
+const MRLIST = lazy(() => import("./Staff/MRLIST/MRLIST"));
+const EVA = lazy(() => import("./Staff/EVA/EVA"));
+const COMSTA = lazy(() => import("./Staff/COMSTA/COMSTA"));
+const TeacherClassAttendance = lazy(() => import("./Staff/ATTENDANCE/TeacherClassAttendance"));
+const ExamCreationStaff = lazy(() => import("./Staff/EXAM/ExamCreationStaff"));
+const ClassTeacherAssignment = lazy(() => import("./PAGE/AttendanceView/ClassTeacherAssignment"));
+const LiveAttendanceMonitor = lazy(() => import("./PAGE/LiveAttendanceMonitor"));
+
+// Mobile Profiles
+const StaffLogin = lazy(() => import("./COMPONENTS/StaffLogin"));
+const StaffProfile = lazy(() => import("./COMPONENTS/StaffProfile"));
+const StudentProfile = lazy(() => import("./COMPONENTS/StudentProfile"));
+const GuardianProfile = lazy(() => import("./COMPONENTS/GuardianProfile"));
+const StudentLogin = lazy(() => import("./COMPONENTS/StudentLogin"));
+const GuardianLogin = lazy(() => import("./COMPONENTS/GuardianLogin"));
+
+// Evaluation Book
+const EvaluationBookFormBuilder = lazy(() => import("./PAGE/EvaluationBook").then(module => ({ default: module.EvaluationBookFormBuilder })));
+const TeacherAssignmentManager = lazy(() => import("./PAGE/EvaluationBook").then(module => ({ default: module.TeacherAssignmentManager })));
+const TeacherClassList = lazy(() => import("./PAGE/EvaluationBook").then(module => ({ default: module.TeacherClassList })));
+const DailyEvaluationForm = lazy(() => import("./PAGE/EvaluationBook").then(module => ({ default: module.DailyEvaluationForm })));
+const GuardianEvaluationInbox = lazy(() => import("./PAGE/EvaluationBook").then(module => ({ default: module.GuardianEvaluationInbox })));
+const GuardianFeedbackForm = lazy(() => import("./PAGE/EvaluationBook").then(module => ({ default: module.GuardianFeedbackForm })));
+const EvaluationBookReports = lazy(() => import("./PAGE/EvaluationBook").then(module => ({ default: module.EvaluationBookReports })));
+
+// Guardian App
+const Guardian = lazy(() => import("./Guardian/Guardian"));
+const GuardianHome = lazy(() => import("./Guardian/GuardianHome/GuardianHome"));
+const GuardianProfilePage = lazy(() => import("./Guardian/GuardianProfilePage/GuardianProfilePage"));
+const GuardianWards = lazy(() => import("./Guardian/GuardianWards/GuardianWards"));
+const GuardianAttendance = lazy(() => import("./Guardian/GuardianAttendance/GuardianAttendance"));
+const GuardianMarks = lazy(() => import("./Guardian/GuardianMarks/GuardianMarks"));
+const GuardianMessages = lazy(() => import("./Guardian/GuardianMessages/GuardianMessages"));
+const GuardianNotificationsPage = lazy(() => import("./Guardian/GuardianNotifications/GuardianNotifications"));
+
+// Finance Module
+const FinanceDashboard = lazy(() => import("./PAGE/Finance/FinanceDashboard"));
+const ChartOfAccounts = lazy(() => import("./PAGE/Finance/ChartOfAccounts/ChartOfAccounts"));
+const FeeManagement = lazy(() => import("./PAGE/Finance/FeeManagement/FeeManagement"));
+const InvoiceManagement = lazy(() => import("./PAGE/Finance/InvoiceManagement"));
+const FeePaymentManagement = lazy(() => import("./PAGE/Finance/FeePaymentManagement"));
+const ExpenseManagement = lazy(() => import("./PAGE/Finance/ExpenseManagement"));
+const ExpenseApproval = lazy(() => import("./PAGE/Finance/ExpenseApproval"));
+const BudgetManagement = lazy(() => import("./PAGE/Finance/BudgetManagement"));
+const PayrollManagement = lazy(() => import("./PAGE/Finance/PayrollManagement"));
+const FinanceReports = lazy(() => import("./PAGE/Finance/FinanceReports"));
+const ComingSoon = lazy(() => import("./PAGE/Finance/ComingSoon"));
+const MonthlyPayments = lazy(() => import("./PAGE/Finance/MonthlyPaymentsNew"));
+const MonthlyPaymentSettings = lazy(() => import("./PAGE/Finance/MonthlyPaymentSettings"));
 
 // Report Pages
-import StudentsReport from "./PAGE/Reports/StudentsReport";
-import StaffReport from "./PAGE/Reports/StaffReport";
-import AcademicReport from "./PAGE/Reports/AcademicReport";
-import AttendanceReport from "./PAGE/Reports/AttendanceReport";
-import BehaviorReport from "./PAGE/Reports/BehaviorReport";
-import EvaluationsReport from "./PAGE/Reports/EvaluationsReport";
+const StudentsReport = lazy(() => import("./PAGE/Reports/StudentsReport"));
+const StaffReport = lazy(() => import("./PAGE/Reports/StaffReport"));
+const AcademicReport = lazy(() => import("./PAGE/Reports/AcademicReport"));
+const AttendanceReport = lazy(() => import("./PAGE/Reports/AttendanceReport"));
+const BehaviorReport = lazy(() => import("./PAGE/Reports/BehaviorReport"));
+const EvaluationsReport = lazy(() => import("./PAGE/Reports/EvaluationsReport"));
 
 // Faults Page
-import FaultsPage from "./PAGE/Faults/FaultsPage";
+const FaultsPage = lazy(() => import("./PAGE/Faults/FaultsPage"));
 
-// Inventory & Asset modules - Coming Soon
-// Using ComingSoon component for all inventory and asset pages
+// HR & Staff Management Module
+const HRDashboard = lazy(() => import("./PAGE/HR/HRDashboard"));
+const SalaryManagement = lazy(() => import("./PAGE/HR/SalaryManagement"));
+const AttendanceSystem = lazy(() => import("./PAGE/HR/AttendanceSystem"));
+const AttendanceDeductionSettings = lazy(() => import("./PAGE/HR/AttendanceDeductionSettings"));
+const AttendanceTimeSettings = lazy(() => import("./PAGE/HR/AttendanceTimeSettingsCombined"));
+const StaffSpecificTiming = lazy(() => import("./PAGE/HR/StaffSpecificTiming"));
+const DeviceStatus = lazy(() => import("./PAGE/HR/DeviceStatus"));
+const LeaveManagement = lazy(() => import("./PAGE/HR/LeaveManagement"));
+const PayrollSystem = lazy(() => import("./PAGE/HR/PayrollSystem"));
+const PerformanceManagement = lazy(() => import("./PAGE/HR/PerformanceManagement"));
+const HRReports = lazy(() => import("./PAGE/HR/HRReports"));
 
-// HR & Staff Management Module Components
-import HRDashboard from "./PAGE/HR/HRDashboard";
-import SalaryManagement from "./PAGE/HR/SalaryManagement";
-import AttendanceSystem from "./PAGE/HR/AttendanceSystem";
-import AttendanceDeductionSettings from "./PAGE/HR/AttendanceDeductionSettings";
-import AttendanceTimeSettings from "./PAGE/HR/AttendanceTimeSettingsCombined";
-import StaffSpecificTiming from "./PAGE/HR/StaffSpecificTiming";
-import DeviceStatus from "./PAGE/HR/DeviceStatus";
-import LeaveManagement from "./PAGE/HR/LeaveManagement";
-import PayrollSystem from "./PAGE/HR/PayrollSystem";
-import PerformanceManagement from "./PAGE/HR/PerformanceManagement";
-import HRReports from "./PAGE/HR/HRReports";
+// Loading fallback component - renders LoadingScreen directly without wrapper
+const PageLoader = () => <LoadingScreen />;
+
+// Wrapper component for lazy-loaded routes
+const LazyRoute = ({ component: Component, ...props }) => (
+  <Suspense fallback={<PageLoader />}>
+    <Component {...props} />
+  </Suspense>
+);
 
 // Redirect components for legacy routes with params
 const StudentProfileRedirect = () => {
@@ -152,33 +191,20 @@ const GuardianProfileRedirect = () => {
 };
 
 function App() {
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    // Minimum loading time for smooth experience
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 2000); // 2 seconds
-
-    return () => clearTimeout(timer);
-  }, []);
-
-  if (isLoading) {
-    return <LoadingScreen />;
-  }
-
   return (
     <ThemeProvider>
       <LanguageProvider>
         <div>
           <Provider store={store}>
-            <Routes>
+            <Suspense fallback={<PageLoader />}>
+              <Routes>
           {/* Public Routes */}
           <Route path="/login" element={<Login />} />
-          <Route path="/about-us" element={<AboutUs />} />
+          <Route path="/about-us" element={<Suspense fallback={<PageLoader />}><AboutUs /></Suspense>} />
+          <Route path="/diagnostics" element={<Suspense fallback={<PageLoader />}><Diagnostics /></Suspense>} />
           
           {/* UI Component Showcase - Public for testing */}
-          <Route path="/showcase" element={<ComponentShowcase />} />
+          <Route path="/showcase" element={<Suspense fallback={<PageLoader />}><ComponentShowcase /></Suspense>} />
           
           {/* Protected Routes */}
           <Route path="/" element={
@@ -188,30 +214,31 @@ function App() {
               </InitialRedirect>
             </ProtectedRoute>
           }>
-              <Route index element={<DashboardPage />} />
-              <Route path="dashboard" element={<DashboardPage />} />
-              <Route path="dashboard-old" element={<Dashboard />} />
+              <Route index element={<Suspense fallback={<PageLoader />}><ModernDashboard /></Suspense>} />
+              <Route path="dashboard" element={<Suspense fallback={<PageLoader />}><ModernDashboard /></Suspense>} />
+              <Route path="dashboard-detailed" element={<Suspense fallback={<PageLoader />}><DashboardPage /></Suspense>} />
+              <Route path="dashboard-old" element={<Suspense fallback={<PageLoader />}><Dashboard /></Suspense>} />
               
               {/* Tasks routes - separate from dashboard */}
-              <Route path="tasks" element={<TaskPage />} />
-              <Route path="tasks/:taskId" element={<TaskDetail />} />
+              <Route path="tasks" element={<LazyRoute component={TaskPage} />} />
+              <Route path="tasks/:taskId" element={<LazyRoute component={TaskDetail} />} />
               
               {/* Report Pages */}
-              <Route path="reports/students" element={<StudentsReport />} />
-              <Route path="reports/staff" element={<StaffReport />} />
-              <Route path="reports/academic" element={<AcademicReport />} />
-              <Route path="reports/attendance" element={<AttendanceReport />} />
-              <Route path="reports/behavior" element={<BehaviorReport />} />
-              <Route path="reports/evaluations" element={<EvaluationsReport />} />
+              <Route path="reports/students" element={<LazyRoute component={StudentsReport} />} />
+              <Route path="reports/staff" element={<LazyRoute component={StaffReport} />} />
+              <Route path="reports/academic" element={<LazyRoute component={AcademicReport} />} />
+              <Route path="reports/attendance" element={<LazyRoute component={AttendanceReport} />} />
+              <Route path="reports/behavior" element={<LazyRoute component={BehaviorReport} />} />
+              <Route path="reports/evaluations" element={<LazyRoute component={EvaluationsReport} />} />
               
-              <Route path="create-register-student" element={<CreateRegisterStudent />} />
-              <Route path="Student-Form-Builder" element={<StudentFormBuilder />} />
-              <Route path="Staff-Form-Builder" element={<StaffFormBuilder />} />
-              <Route path="create-register-staff" element={<CreateRegisterStaff />} />
-              <Route path="list-student" element={<ListStudent />} />
-              <Route path="list-staff" element={<ListStaff />} />
-              <Route path="edit-staff/:staffType/:className/:uniqueId" element={<EditStaff />} />
-              <Route path="list-guardian" element={<ListGuardian />} />
+              <Route path="create-register-student" element={<LazyRoute component={CreateRegisterStudent} />} />
+              <Route path="Student-Form-Builder" element={<LazyRoute component={StudentFormBuilder} />} />
+              <Route path="Staff-Form-Builder" element={<LazyRoute component={StaffFormBuilder} />} />
+              <Route path="create-register-staff" element={<LazyRoute component={CreateRegisterStaff} />} />
+              <Route path="list-student" element={<LazyRoute component={ListStudent} />} />
+              <Route path="list-staff" element={<LazyRoute component={ListStaff} />} />
+              <Route path="edit-staff/:staffType/:className/:uniqueId" element={<LazyRoute component={EditStaff} />} />
+              <Route path="list-guardian" element={<LazyRoute component={ListGuardian} />} />
               <Route
                 path="evaluation"
                 element={
@@ -386,10 +413,11 @@ function App() {
             <Route path="/guardian-profile/:username" element={<GuardianProfileRedirect />} />
             <Route path="/staff-profile" element={<Navigate to="/app/staff" replace />} />
           </Routes>
-        </Provider>
-      </div>
-    </LanguageProvider>
-  </ThemeProvider>
+            </Suspense>
+          </Provider>
+        </div>
+      </LanguageProvider>
+    </ThemeProvider>
   );
 }
 

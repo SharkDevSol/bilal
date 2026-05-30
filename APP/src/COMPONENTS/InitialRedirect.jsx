@@ -1,5 +1,5 @@
 // COMPONENTS/InitialRedirect.jsx
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { getPermissionByKey } from '../config/adminPermissions';
 
@@ -9,12 +9,16 @@ const TOTAL_TASKS = 7;
 function InitialRedirect({ children }) {
   const navigate = useNavigate();
   const location = useLocation();
+  const hasRedirected = useRef(false); // Prevent multiple redirects
 
   useEffect(() => {
-    // Only redirect if we're at the root path
-    if (location.pathname !== '/') {
+    // Only redirect if we're at the root path and haven't redirected yet
+    if (location.pathname !== '/' || hasRedirected.current) {
       return;
     }
+
+    // Mark as redirected to prevent multiple calls
+    hasRedirected.current = true;
 
     const userType = localStorage.getItem('userType') || 'admin';
 
@@ -47,7 +51,7 @@ function InitialRedirect({ children }) {
         navigate('/dashboard', { replace: true });
       }
     }
-  }, [location.pathname, navigate]);
+  }, []); // Empty dependency array - only run once on mount
 
   return children;
 }

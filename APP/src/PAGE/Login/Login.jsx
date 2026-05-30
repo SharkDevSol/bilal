@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import { Building2, User as UserIcon, Lock } from 'lucide-react';
@@ -12,6 +13,7 @@ import LanguageSelector from '../../components/LanguageSelector/LanguageSelector
 import Toast from '../../components/Toast/Toast';
 
 const Login = () => {
+  const { t } = useTranslation();
   const [credentials, setCredentials] = useState({
     username: '',
     password: '',
@@ -116,7 +118,7 @@ const Login = () => {
     
     // If there are errors, don't submit
     if (Object.keys(newErrors).length > 0) {
-      setToastMessage('Please fix the errors before submitting');
+      setToastMessage(t('auth.fixErrors', 'Please fix the errors before submitting'));
       setToastType('error');
       setShowToast(true);
       return;
@@ -169,7 +171,7 @@ const Login = () => {
         navigate(redirectPath, { replace: true });
       }
     } catch (error) {
-      setToastMessage(error.response?.data?.error || 'Login failed. Please check your credentials.');
+      setToastMessage(error.response?.data?.error || t('auth.loginFailed', 'Login failed. Please check your credentials.'));
       setToastType('error');
       setShowToast(true);
     } finally {
@@ -188,32 +190,32 @@ const Login = () => {
         <div className={styles.loginCard}>
           <div className={styles.logoSection}>
             <img src="/skoolific-icon.png" alt="Skoolific" className={styles.logo} />
-            <h1 className={styles.title}>School Management System</h1>
-            <p className={styles.subtitle}>Admin Login</p>
+            <h1 className={styles.title}>{t('auth.adminPortalTitle', 'School Management System')}</h1>
+            <p className={styles.subtitle}>{t('auth.adminPortalSubtitle', 'Admin Login')}</p>
           </div>
           
           <form onSubmit={handleSubmit} className={styles.form}>
             <Input
-              label="Branch Code"
+              label={t('auth.branchCode', 'Branch Code')}
               name="branchCode"
               value={credentials.branchCode}
               onChange={handleInputChange}
               onBlur={() => handleBlur('branchCode')}
               icon={<Building2 size={20} />}
-              placeholder="Enter branch code"
+              placeholder={t('auth.branchCodePlaceholder', 'Enter branch code')}
               error={touched.branchCode && errors.branchCode}
               disabled={isLoading}
               required
             />
             
             <Input
-              label="Username"
+              label={t('auth.username', 'Username')}
               name="username"
               value={credentials.username}
               onChange={handleInputChange}
               onBlur={() => handleBlur('username')}
               icon={<UserIcon size={20} />}
-              placeholder="Enter admin username"
+              placeholder={t('auth.adminUsernamePlaceholder', 'Enter admin username')}
               error={touched.username && errors.username}
               disabled={isLoading}
               autoComplete="username"
@@ -221,14 +223,14 @@ const Login = () => {
             />
             
             <Input
-              label="Password"
+              label={t('auth.password', 'Password')}
               type="password"
               name="password"
               value={credentials.password}
               onChange={handleInputChange}
               onBlur={() => handleBlur('password')}
               icon={<Lock size={20} />}
-              placeholder="Enter password"
+              placeholder={t('auth.passwordPlaceholder', 'Enter your password')}
               error={touched.password && errors.password}
               disabled={isLoading}
               autoComplete="current-password"
@@ -242,9 +244,9 @@ const Login = () => {
                   checked={rememberMe}
                   onChange={(e) => setRememberMe(e.target.checked)}
                 />
-                <span>Remember me</span>
+                <span>{t('auth.rememberMe', 'Remember me')}</span>
               </label>
-              <a href="#" className={styles.forgotPassword}>Forgot password?</a>
+              <a href="#" className={styles.forgotPassword}>{t('auth.forgotPassword', 'Forgot password?')}</a>
             </div>
             
             <Button 
@@ -254,12 +256,12 @@ const Login = () => {
               loading={isLoading}
               className={styles.loginButton}
             >
-              Sign In
+              {t('auth.signIn', 'Sign In')}
             </Button>
           </form>
           
           <div className={styles.footer}>
-            <p>© 2025 Skoolific. All rights reserved.</p>
+            <p>© 2025 Skoolific. {t('common.allRightsReserved', 'All rights reserved.')}</p>
           </div>
         </div>
       </div>

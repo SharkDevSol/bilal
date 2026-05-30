@@ -1,16 +1,28 @@
-import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  FiPlus, FiTrash2, FiEdit2, FiSave, FiRefreshCw, 
-  FiCheckCircle, FiAlertCircle, FiLoader 
-} from 'react-icons/fi';
+import { useState, useEffect, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
+import {
+  Plus,
+  Trash2,
+  Edit2,
+  Save,
+  RefreshCw,
+  CheckCircle,
+  AlertCircle,
+  Loader2
+} from 'lucide-react';
 import styles from './AITestGenerator.module.css';
-import { useApp } from '../../context/AppContext';
 import axios from 'axios';
 import API_CONFIG from '../../config/api.config';
 
+import Card from '../../COMPONENTS/Card/Card';
+import Button from '../../COMPONENTS/Button/Button';
+import Input from '../../COMPONENTS/Input/Input';
+import Select from '../../COMPONENTS/Select/Select';
+import Textarea from '../../COMPONENTS/Textarea/Textarea';
+import Checkbox from '../../COMPONENTS/Checkbox/Checkbox';
+
 const AITestGenerator = () => {
-  const { t, theme } = useApp();
+  const { t } = useTranslation();
   
   // Form state for exam configuration
   const [examConfig, setExamConfig] = useState({
@@ -312,309 +324,188 @@ const AITestGenerator = () => {
     }
   };
 
+  const classOptions = useMemo(
+    () => classes.map((cls) => ({ value: cls.name, label: cls.name })),
+    [classes]
+  );
+  const subjectOptions = useMemo(
+    () => subjects.map((subj) => ({ value: subj.name, label: subj.name })),
+    [subjects]
+  );
+  const termOptions = useMemo(
+    () => terms.map((term) => ({ value: term, label: term })),
+    [terms]
+  );
+  const componentOptions = useMemo(
+    () => components.map((comp) => ({ value: comp, label: comp })),
+    []
+  );
+  const languageOptions = useMemo(
+    () => languages.map((lang) => ({ value: lang, label: lang })),
+    []
+  );
+  const difficultyOptions = useMemo(
+    () => difficultyLevels.map((level) => ({ value: level, label: level })),
+    []
+  );
+
   return (
     <div className={styles.container}>
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className={styles.header}
-      >
-        <h1 className={styles.title}>AI Test Generator</h1>
+      <div className={styles.header}>
+        <h1 className={styles.title}>{t('academic.exam.title', 'AI Test Generator')}</h1>
         <p className={styles.subtitle}>
-          Generate exams automatically using AI or create them manually
+          {t('academic.exam.subtitle', 'Generate exams with AI or add questions manually')}
         </p>
-      </motion.div>
+      </div>
 
-      {/* Alert Messages */}
-      <AnimatePresence>
-        {error && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            className={styles.alert + ' ' + styles.alertError}
-          >
-            <FiAlertCircle /> {error}
-          </motion.div>
-        )}
-        {success && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            className={styles.alert + ' ' + styles.alertSuccess}
-          >
-            <FiCheckCircle /> {success}
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {error && (
+        <div className={`${styles.alert} ${styles.alertError}`}>
+          <AlertCircle size={18} /> {error}
+        </div>
+      )}
+      {success && (
+        <div className={`${styles.alert} ${styles.alertSuccess}`}>
+          <CheckCircle size={18} /> {success}
+        </div>
+      )}
 
-      {/* Exam Configuration Form */}
       {!generatedExam && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className={styles.configSection}
-        >
-          <h2 className={styles.sectionTitle}>Exam Configuration</h2>
-          
+        <Card title={t('academic.exam.config', 'Exam Configuration')} className={styles.configSection}>
           <div className={styles.formGrid}>
-            {/* Class Selection */}
-            <div className={styles.formGroup}>
-              <label className={styles.label}>Class *</label>
-              <select
-                className={styles.select}
-                value={examConfig.class}
-                onChange={(e) => handleConfigChange('class', e.target.value)}
-              >
-                <option value="">Select Class</option>
-                {classes.map(cls => (
-                  <option key={cls.id} value={cls.name}>{cls.name}</option>
-                ))}
-              </select>
-            </div>
-
-            {/* Subject Selection */}
-            <div className={styles.formGroup}>
-              <label className={styles.label}>Subject *</label>
-              <select
-                className={styles.select}
-                value={examConfig.subject}
-                onChange={(e) => handleConfigChange('subject', e.target.value)}
-              >
-                <option value="">Select Subject</option>
-                {subjects.map(subj => (
-                  <option key={subj.id} value={subj.name}>{subj.name}</option>
-                ))}
-              </select>
-            </div>
-
-            {/* Term Selection */}
-            <div className={styles.formGroup}>
-              <label className={styles.label}>Term *</label>
-              <select
-                className={styles.select}
-                value={examConfig.term}
-                onChange={(e) => handleConfigChange('term', e.target.value)}
-              >
-                <option value="">Select Term</option>
-                {terms.map((term, idx) => (
-                  <option key={idx} value={term}>{term}</option>
-                ))}
-              </select>
-            </div>
-
-            {/* Component Selection */}
-            <div className={styles.formGroup}>
-              <label className={styles.label}>Component *</label>
-              <select
-                className={styles.select}
-                value={examConfig.component}
-                onChange={(e) => handleConfigChange('component', e.target.value)}
-              >
-                <option value="">Select Component</option>
-                {components.map((comp, idx) => (
-                  <option key={idx} value={comp}>{comp}</option>
-                ))}
-              </select>
-            </div>
-
-            {/* Language Selection */}
-            <div className={styles.formGroup}>
-              <label className={styles.label}>Language</label>
-              <select
-                className={styles.select}
-                value={examConfig.language}
-                onChange={(e) => handleConfigChange('language', e.target.value)}
-              >
-                {languages.map((lang, idx) => (
-                  <option key={idx} value={lang}>{lang}</option>
-                ))}
-              </select>
-            </div>
-
-            {/* Difficulty Level */}
-            <div className={styles.formGroup}>
-              <label className={styles.label}>Difficulty Level</label>
-              <select
-                className={styles.select}
-                value={examConfig.difficulty}
-                onChange={(e) => handleConfigChange('difficulty', e.target.value)}
-              >
-                {difficultyLevels.map((level, idx) => (
-                  <option key={idx} value={level}>{level}</option>
-                ))}
-              </select>
-            </div>
-
-            {/* Time Limit */}
-            <div className={styles.formGroup}>
-              <label className={styles.label}>Time Limit (minutes)</label>
-              <input
-                type="number"
-                className={styles.input}
-                value={examConfig.timeLimit}
-                onChange={(e) => handleConfigChange('timeLimit', e.target.value)}
-                placeholder="Optional"
-              />
-            </div>
-          </div>
-
-          {/* Exam Description */}
-          <div className={styles.formGroup}>
-            <label className={styles.label}>Exam Description / Context</label>
-            <textarea
-              className={styles.textarea}
-              value={examConfig.description}
-              onChange={(e) => handleConfigChange('description', e.target.value)}
-              placeholder="Provide context or specific topics to focus on..."
-              rows={4}
+            <Select
+              label={t('academic.exam.class', 'Class')}
+              value={examConfig.class}
+              onChange={(v) => handleConfigChange('class', v)}
+              options={classOptions}
+              placeholder={t('academic.exam.selectClass', 'Select class')}
+              required
+            />
+            <Select
+              label={t('academic.subjects', 'Subject')}
+              value={examConfig.subject}
+              onChange={(v) => handleConfigChange('subject', v)}
+              options={subjectOptions}
+              placeholder={t('academic.exam.selectSubject', 'Select subject')}
+              required
+            />
+            <Select
+              label={t('academic.markLists.termLabel', 'Term')}
+              value={examConfig.term}
+              onChange={(v) => handleConfigChange('term', v)}
+              options={termOptions}
+              placeholder={t('academic.exam.selectTerm', 'Select term')}
+              required
+            />
+            <Select
+              label={t('academic.exam.component', 'Component')}
+              value={examConfig.component}
+              onChange={(v) => handleConfigChange('component', v)}
+              options={componentOptions}
+              placeholder={t('academic.exam.selectComponent', 'Select component')}
+              required
+            />
+            <Select
+              label={t('academic.exam.language', 'Language')}
+              value={examConfig.language}
+              onChange={(v) => handleConfigChange('language', v)}
+              options={languageOptions}
+            />
+            <Select
+              label={t('academic.exam.difficulty', 'Difficulty')}
+              value={examConfig.difficulty}
+              onChange={(v) => handleConfigChange('difficulty', v)}
+              options={difficultyOptions}
+            />
+            <Input
+              type="number"
+              label={t('academic.exam.timeLimit', 'Time limit (minutes)')}
+              value={examConfig.timeLimit}
+              onChange={(v) => handleConfigChange('timeLimit', v)}
+              placeholder={t('common.optional', 'Optional')}
             />
           </div>
 
-          {/* Bonus Questions Configuration */}
-          <div className={styles.bonusSection}>
-            <label className={styles.checkboxLabel}>
-              <input
-                type="checkbox"
-                checked={examConfig.bonusQuestions}
-                onChange={(e) => handleConfigChange('bonusQuestions', e.target.checked)}
-              />
-              <span>Include Bonus Questions</span>
-            </label>
+          <Textarea
+            label={t('academic.exam.description', 'Exam description / context')}
+            value={examConfig.description}
+            onChange={(v) => handleConfigChange('description', v)}
+            placeholder={t('academic.exam.descriptionPlaceholder', 'Topics or context for the AI...')}
+            rows={4}
+          />
 
+          <div className={styles.bonusSection}>
+            <Checkbox
+              label={t('academic.exam.bonusQuestions', 'Include bonus questions')}
+              checked={examConfig.bonusQuestions}
+              onChange={(checked) => handleConfigChange('bonusQuestions', checked)}
+            />
             {examConfig.bonusQuestions && (
               <div className={styles.bonusConfig}>
-                <div className={styles.formGroup}>
-                  <label className={styles.label}>Bonus Question Count</label>
-                  <input
-                    type="number"
-                    className={styles.input}
-                    value={examConfig.bonusCount}
-                    onChange={(e) => handleConfigChange('bonusCount', e.target.value)}
-                    min="0"
-                  />
-                </div>
-                <div className={styles.formGroup}>
-                  <label className={styles.label}>Marks Each</label>
-                  <input
-                    type="number"
-                    className={styles.input}
-                    value={examConfig.bonusMarksEach}
-                    onChange={(e) => handleConfigChange('bonusMarksEach', e.target.value)}
-                    min="0"
-                  />
-                </div>
+                <Input
+                  type="number"
+                  label={t('academic.exam.bonusCount', 'Bonus count')}
+                  value={String(examConfig.bonusCount)}
+                  onChange={(v) => handleConfigChange('bonusCount', v)}
+                />
+                <Input
+                  type="number"
+                  label={t('academic.exam.bonusMarks', 'Marks each')}
+                  value={String(examConfig.bonusMarksEach)}
+                  onChange={(v) => handleConfigChange('bonusMarksEach', v)}
+                />
               </div>
             )}
           </div>
 
-          {/* Question Type Distribution */}
-          <h2 className={styles.sectionTitle}>Question Type Distribution</h2>
+          <h2 className={styles.sectionTitle}>{t('academic.exam.questionTypes', 'Question types')}</h2>
           <div className={styles.questionTypesGrid}>
             {questionTypes.map((qt, index) => (
-              <div key={qt.type} className={styles.questionTypeCard}>
-                <h3 className={styles.questionTypeTitle}>
-                  {questionTypeLabels[qt.type]}
-                </h3>
+              <Card key={qt.type} className={styles.questionTypeCard} title={questionTypeLabels[qt.type]}>
                 <div className={styles.questionTypeInputs}>
-                  <div className={styles.formGroup}>
-                    <label className={styles.label}>Count</label>
-                    <input
-                      type="number"
-                      className={styles.input}
-                      value={qt.count}
-                      onChange={(e) => handleQuestionTypeChange(index, 'count', e.target.value)}
-                      min="0"
-                    />
-                  </div>
-                  <div className={styles.formGroup}>
-                    <label className={styles.label}>Marks Each</label>
-                    <input
-                      type="number"
-                      className={styles.input}
-                      value={qt.marksEach}
-                      onChange={(e) => handleQuestionTypeChange(index, 'marksEach', e.target.value)}
-                      min="0"
-                    />
-                  </div>
+                  <Input
+                    type="number"
+                    label={t('academic.exam.count', 'Count')}
+                    value={String(qt.count)}
+                    onChange={(v) => handleQuestionTypeChange(index, 'count', v)}
+                  />
+                  <Input
+                    type="number"
+                    label={t('academic.exam.marksEach', 'Marks each')}
+                    value={String(qt.marksEach)}
+                    onChange={(v) => handleQuestionTypeChange(index, 'marksEach', v)}
+                  />
                 </div>
-              </div>
+              </Card>
             ))}
           </div>
 
-          {/* Total Marks Display */}
           <div className={styles.totalMarks}>
-            <strong>Total Marks:</strong> {calculateTotalMarks()}
+            <strong>{t('academic.exam.totalMarks', 'Total marks')}:</strong> {calculateTotalMarks()}
           </div>
 
-          {/* Generate Button */}
           <div className={styles.actionButtons}>
-            <motion.button
-              className={styles.generateBtn}
-              onClick={handleGenerateExam}
-              disabled={isGenerating}
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-            >
-              {isGenerating ? (
-                <>
-                  <FiLoader className={styles.spinning} /> Generating...
-                </>
-              ) : (
-                <>
-                  <FiRefreshCw /> Generate Exam with AI
-                </>
-              )}
-            </motion.button>
-
-            <motion.button
-              className={styles.manualBtn}
-              onClick={() => setShowManualAdd(true)}
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-            >
-              <FiPlus /> Add Question Manually
-            </motion.button>
+            <Button variant="primary" onClick={handleGenerateExam} loading={isGenerating} disabled={isGenerating} icon={<RefreshCw size={16} />}>
+              {t('academic.exam.generate', 'Generate with AI')}
+            </Button>
+            <Button variant="secondary" onClick={() => setShowManualAdd(true)} icon={<Plus size={16} />}>
+              {t('academic.exam.addManual', 'Add question manually')}
+            </Button>
           </div>
-        </motion.div>
+        </Card>
       )}
 
-      {/* Exam Preview */}
       {generatedExam && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className={styles.previewSection}
-        >
-          <div className={styles.previewHeader}>
-            <h2 className={styles.sectionTitle}>Exam Preview</h2>
-            <div className={styles.previewActions}>
-              <motion.button
-                className={styles.regenerateBtn}
-                onClick={handleRegenerateExam}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-              >
-                <FiRefreshCw /> Regenerate
-              </motion.button>
-              <motion.button
-                className={styles.addQuestionBtn}
-                onClick={() => setShowManualAdd(true)}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-              >
-                <FiPlus /> Add Question
-              </motion.button>
-              <motion.button
-                className={styles.approveBtn}
-                onClick={handleApproveAndSave}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-              >
-                <FiCheckCircle /> Approve & Save
-              </motion.button>
-            </div>
+        <Card title={t('academic.exam.preview', 'Exam preview')} className={styles.previewSection}>
+          <div className={styles.previewActions}>
+            <Button variant="secondary" icon={<RefreshCw size={16} />} onClick={handleRegenerateExam}>
+              {t('academic.exam.regenerate', 'Regenerate')}
+            </Button>
+            <Button variant="secondary" icon={<Plus size={16} />} onClick={() => setShowManualAdd(true)}>
+              {t('academic.exam.addQuestion', 'Add question')}
+            </Button>
+            <Button variant="primary" icon={<CheckCircle size={16} />} onClick={handleApproveAndSave}>
+              {t('academic.exam.approveSave', 'Approve & save')}
+            </Button>
           </div>
 
           <div className={styles.examInfo}>
@@ -625,13 +516,7 @@ const AITestGenerator = () => {
 
           <div className={styles.questionsList}>
             {generatedExam.questions.map((question, index) => (
-              <motion.div
-                key={index}
-                className={styles.questionCard}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.05 }}
-              >
+              <Card key={index} className={styles.questionCard}>
                 {editingQuestion === index ? (
                   // Edit Mode
                   <div className={styles.editMode}>
@@ -682,7 +567,7 @@ const AITestGenerator = () => {
                     )}
                     <div className={styles.editActions}>
                       <button className={styles.saveEditBtn} onClick={handleSaveEdit}>
-                        <FiSave /> Save
+                        <Save size={14} /> {t('common.save', 'Save')}
                       </button>
                       <button className={styles.cancelEditBtn} onClick={handleCancelEdit}>
                         Cancel
@@ -701,13 +586,13 @@ const AITestGenerator = () => {
                           className={styles.editBtn}
                           onClick={() => handleEditQuestion(index)}
                         >
-                          <FiEdit2 />
+                          <Edit2 size={14} />
                         </button>
                         <button
                           className={styles.deleteBtn}
                           onClick={() => handleDeleteQuestion(index)}
                         >
-                          <FiTrash2 />
+                          <Trash2 size={14} />
                         </button>
                       </div>
                     </div>
@@ -735,28 +620,16 @@ const AITestGenerator = () => {
                     </div>
                   </>
                 )}
-              </motion.div>
+              </Card>
             ))}
           </div>
-        </motion.div>
+        </Card>
       )}
 
-      {/* Manual Question Addition Modal */}
-      <AnimatePresence>
-        {showManualAdd && (
-          <motion.div
-            className={styles.modal}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-          >
-            <motion.div
-              className={styles.modalContent}
-              initial={{ scale: 0.9, y: 20 }}
-              animate={{ scale: 1, y: 0 }}
-              exit={{ scale: 0.9, y: 20 }}
-            >
-              <h2 className={styles.modalTitle}>Add Question Manually</h2>
+      {showManualAdd && (
+            <div className={styles.modal}>
+            <div className={styles.modalContent}>
+              <h2 className={styles.modalTitle}>{t('academic.exam.addManual', 'Add question manually')}</h2>
               
               <div className={styles.formGroup}>
                 <label className={styles.label}>Question Type</label>
@@ -850,23 +723,16 @@ const AITestGenerator = () => {
               </div>
 
               <div className={styles.modalActions}>
-                <button
-                  className={styles.addBtn}
-                  onClick={handleAddManualQuestion}
-                >
-                  <FiPlus /> Add Question
-                </button>
-                <button
-                  className={styles.cancelBtn}
-                  onClick={() => setShowManualAdd(false)}
-                >
-                  Cancel
-                </button>
+                <Button variant="primary" icon={<Plus size={16} />} onClick={handleAddManualQuestion}>
+                  {t('academic.exam.addQuestion', 'Add question')}
+                </Button>
+                <Button variant="ghost" onClick={() => setShowManualAdd(false)}>
+                  {t('common.cancel', 'Cancel')}
+                </Button>
               </div>
-            </motion.div>
-          </motion.div>
+            </div>
+          </div>
         )}
-      </AnimatePresence>
     </div>
   );
 };

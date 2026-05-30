@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import axios from 'axios';
 import { FiCalendar, FiUsers, FiClock, FiTrendingUp, FiX, FiTrash2 } from 'react-icons/fi';
 import styles from './AttendanceSystem.module.css';
+import Button from '../../COMPONENTS/Button/Button';
+import Card from '../../COMPONENTS/Card/Card';
 import { getCurrentEthiopianMonth, getEthiopianMonthName, ethiopianToGregorian } from '../../utils/ethiopianCalendar';
 
 const API_URL = import.meta.env.VITE_API_URL || 'https://iqrab3.skoolific.com';
@@ -12,6 +15,7 @@ const ethiopianMonths = [
 ];
 
 const AttendanceSystem = () => {
+  const { t } = useTranslation();
   const [attendanceRecords, setAttendanceRecords] = useState([]);
   const [staff, setStaff] = useState([]);
   const [loading, setLoading] = useState(true);

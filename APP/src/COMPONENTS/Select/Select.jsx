@@ -230,7 +230,7 @@ const Select = forwardRef(({
       dir="auto"
     >
       {label && (
-        <label className={styles.label} htmlFor={inputId}>
+        <label className={styles.label} htmlFor={inputId} id={`${inputId}-label`}>
           {label}
           {required && <span className={styles.required} aria-label="required">*</span>}
         </label>

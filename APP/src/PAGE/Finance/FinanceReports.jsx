@@ -1,9 +1,16 @@
 import { useState, useEffect } from 'react';
-import styles from './MonthlyPayments.module.css';
+import { useTranslation } from 'react-i18next';
+import { FileSpreadsheet, FileText, Users } from 'lucide-react';
+import styles from './FinanceReports.module.css';
 import api from '../../utils/api';
 import { getCurrentEthiopianMonth } from '../../utils/ethiopianCalendar';
 
+import Card from '../../COMPONENTS/Card/Card';
+import Button from '../../COMPONENTS/Button/Button';
+import StatCard from '../../COMPONENTS/StatCard/StatCard';
+
 const FinanceReports = () => {
+  const { t } = useTranslation();
   const [overview, setOverview] = useState(null);
   const [loading, setLoading] = useState(false);
   const [currentEthiopianMonth, setCurrentEthiopianMonth] = useState(() => {
@@ -89,8 +96,18 @@ const FinanceReports = () => {
   return (
     <div className={styles.container}>
       <div className={styles.header}>
-        <h1>📊 Financial Reports</h1>
-        <p>Comprehensive financial overview and analytics</p>
+        <div>
+          <h1>{t('finance.reports.title', 'Financial Reports')}</h1>
+          <p>{t('finance.reports.subtitle', 'Comprehensive financial overview and analytics')}</p>
+        </div>
+        <div className={styles.exportActions}>
+          <Button variant="secondary" icon={<FileText size={16} />} onClick={() => window.print()}>
+            {t('finance.reports.exportPdf', 'Export PDF')}
+          </Button>
+          <Button variant="secondary" icon={<FileSpreadsheet size={16} />} onClick={fetchUnpaidStudents}>
+            {t('finance.reports.exportExcel', 'Export unpaid list')}
+          </Button>
+        </div>
       </div>
 
       {/* Current Month Indicator */}

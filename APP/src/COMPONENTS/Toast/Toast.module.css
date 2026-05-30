@@ -307,3 +307,13 @@
     right: 16px;
   }
 }
+
+@media (prefers-reduced-motion: reduce) {
+  .toast {
+    animation: none;
+  }
+
+  .toastExiting {
+    animation: none;
+  }
+}

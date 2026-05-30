@@ -10,6 +10,7 @@ import {
 } from 'react-icons/fi';
 import Webcam from 'react-webcam';
 import { getFileType, getFileIcon, isFileField, getFileUrl, formatLabel, getFileName, looksLikeFile } from '../utils/fileUtils';
+import { useTranslation } from 'react-i18next';
 import { useApp } from '../../../context/AppContext';
 import styles from './ListStudent.module.css';
 
@@ -22,7 +23,13 @@ import Button from '../../../components/Button/Button';
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://iqrab3.skoolific.com/api';
 
 const ListStudent = () => {
-  const { t } = useApp();
+  const { t: tApp } = useApp();
+  const { t: ti18n } = useTranslation();
+  const t = (key, fallback) => {
+    const i18nVal = ti18n(key, { defaultValue: '' });
+    if (i18nVal && i18nVal !== key) return i18nVal;
+    return tApp(key) || fallback || key;
+  };
   const [students, setStudents] = useState([]);
   const [filteredStudents, setFilteredStudents] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -332,8 +339,8 @@ const ListStudent = () => {
         <div className={styles.headerLeft}>
           <div className={styles.headerIcon}><FiUsers /></div>
           <div>
-            <h1>{showInactive ? t('deactivatedStudents') || 'Deactivated Students' : t('studentDirectory')}</h1>
-            <p>{showInactive ? 'View and manage deactivated students' : t('studentDirectoryDesc')}</p>
+            <h1>{showInactive ? t('students.list.deactivatedTitle', 'Deactivated Students') : t('students.list.title', 'Student Directory')}</h1>
+            <p>{showInactive ? t('students.list.deactivatedDesc', 'View and manage deactivated students') : t('students.list.subtitle', 'Browse and manage enrolled students')}</p>
           </div>
         </div>
         <div className={styles.headerStats}>
@@ -366,7 +373,7 @@ const ListStudent = () => {
         <div className={styles.searchBox}>
           <Input 
             prefixIcon={<FiSearch />}
-            placeholder={t('searchStudents') || 'Search students...'} 
+            placeholder={t('students.list.search', 'Search students...')} 
             value={searchTerm} 
             onChange={setSearchTerm} 
           />
@@ -385,10 +392,10 @@ const ListStudent = () => {
             value={filterStudentType} 
             onChange={setFilterStudentType}
             options={[
-              { value: 'all', label: 'All Student Types' },
-              { value: 'regular', label: 'Regular Students' },
-              { value: 'kg', label: 'KG Students' },
-              { value: 'evening', label: 'Evening Class Students' },
+              { value: 'all', label: t('students.list.allTypes', 'All Student Types') },
+              { value: 'regular', label: t('students.list.regular', 'Regular Students') },
+              { value: 'kg', label: t('students.list.kg', 'KG Students') },
+              { value: 'evening', label: t('students.list.evening', 'Evening Class Students') },
               { value: 'kg_evening', label: 'KG + Evening Students' }
             ]}
           />

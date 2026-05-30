@@ -1,19 +1,29 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, lazy, Suspense } from 'react';
+import { useTranslation } from 'react-i18next';
 import api from '../../utils/api';
 import styles from './Setting.module.css';
 import yearRolloverStyles from './YearRollover.module.css';
 import { useApp } from '../../context/AppContext';
-import { FiUser, FiLock, FiGlobe, FiSun, FiImage, FiSave, FiCheck, FiX, FiCamera, FiUpload, FiHome, FiSmartphone, FiDownload, FiShare2, FiCopy } from 'react-icons/fi';
+import { FiUser, FiLock, FiGlobe, FiSun, FiImage, FiSave, FiCheck, FiX, FiCamera, FiUpload, FiHome, FiSmartphone, FiDownload, FiShare2, FiCopy, FiUsers, FiShield } from 'react-icons/fi';
+import LanguageSelector from '../../COMPONENTS/LanguageSelector';
+import FileUpload from '../../COMPONENTS/FileUpload';
+import Input from '../../COMPONENTS/Input/Input';
+import Button from '../../COMPONENTS/Button/Button';
+import PermissionSelector from '../../COMPONENTS/PermissionSelector';
+
+const AdminSubAccountsPanel = lazy(() => import('../AdminSubAccounts/AdminSubAccounts'));
 
 const API_BASE_URL = import.meta.env.VITE_API_URL?.replace('/api', '') || 'https://iqrab3.skoolific.com';
 
 const Setting = () => {
-  const { theme, updateTheme, language, updateLanguage, profile, updateProfile, websiteName, updateWebsiteName, t } = useApp();
+  const { theme, updateTheme, language, updateLanguage, profile, updateProfile, websiteName, updateWebsiteName, t: appT } = useApp();
+  const { t } = useTranslation();
   
   const fileInputRef = useRef(null);
   const iconInputRef = useRef(null);
   
-  const [activeTab, setActiveTab] = useState('profile');
+  const [activeTab, setActiveTab] = useState('schoolInfo');
+  const [defaultPermissions, setDefaultPermissions] = useState([]);
   
   // PWA Install prompt state
   const [deferredPrompt, setDeferredPrompt] = useState(null);
@@ -622,22 +632,24 @@ const Setting = () => {
   }, [activeTab]);
 
   const tabs = [
-    { id: 'profile', label: t('profile'), icon: <FiUser /> },
-    { id: 'password', label: t('password'), icon: <FiLock /> },
-    { id: 'theme', label: t('theme'), icon: <FiSun /> },
-    { id: 'language', label: t('language'), icon: <FiGlobe /> },
-    { id: 'branding', label: t('branding'), icon: <FiImage /> },
-    { id: 'schoolInfo', label: t('schoolInfo') || 'School Info', icon: <FiHome /> },
+    { id: 'schoolInfo', label: t('settings.tabs.schoolInfo', 'School Info'), icon: <FiHome /> },
+    { id: 'branding', label: t('settings.tabs.branding', 'Branding'), icon: <FiImage /> },
+    { id: 'language', label: t('settings.tabs.language', 'Language'), icon: <FiGlobe /> },
+    { id: 'password', label: t('settings.tabs.password', 'Password'), icon: <FiLock /> },
+    { id: 'subAccounts', label: t('settings.tabs.subAccounts', 'Sub-Accounts'), icon: <FiUsers /> },
+    { id: 'permissions', label: t('settings.tabs.permissions', 'Permissions'), icon: <FiShield /> },
+    { id: 'profile', label: appT('profile'), icon: <FiUser /> },
+    { id: 'theme', label: appT('theme'), icon: <FiSun /> },
     { id: 'yearRollover', label: 'Year Rollover', icon: <FiDownload /> },
     { id: 'apps', label: 'Apps', icon: <FiSmartphone /> }
   ];
 
   return (
-    <div className={styles.container}>
-      <div className={styles.header}>
-        <h1 className={styles.title}>{t('settingsTitle')}</h1>
-        <p className={styles.subtitle}>{t('settingsSubtitle')}</p>
-      </div>
+    <main className={styles.container} aria-label={t('settings.title', 'Settings')}>
+      <header className={styles.header}>
+        <h1 className={styles.title}>{appT('settingsTitle') || t('settings.title', 'Settings')}</h1>
+        <p className={styles.subtitle}>{appT('settingsSubtitle')}</p>
+      </header>
 
       {message.text && (
         <div className={`${styles.message} ${styles[message.type]}`}>
@@ -862,10 +874,29 @@ const Setting = () => {
             </div>
           )}
 
-          {/* Language Tab */}
+          {activeTab === 'subAccounts' && (
+            <div className={styles.section}>
+              <Suspense fallback={<p>{t('common.loading', 'Loading...')}</p>}>
+                <AdminSubAccountsPanel />
+              </Suspense>
+            </div>
+          )}
+
+          {activeTab === 'permissions' && (
+            <div className={styles.section}>
+              <h2 className={styles.sectionTitle}>{t('settings.tabs.permissions', 'Permissions')}</h2>
+              <p className={styles.subtitle}>{t('settings.permissionsHint', 'Default permission groups for sub-accounts')}</p>
+              <PermissionSelector
+                selectedPermissions={defaultPermissions}
+                onChange={setDefaultPermissions}
+              />
+            </div>
+          )}
+
           {activeTab === 'language' && (
             <div className={styles.section}>
-              <h2 className={styles.sectionTitle}>{t('languageSettings')}</h2>
+              <h2 className={styles.sectionTitle}>{appT('languageSettings') || t('settings.language', 'Language')}</h2>
+              <LanguageSelector variant="dropdown" showFlags />
               
               <div className={styles.languageGrid}>
                 {languages.map(lang => (
@@ -1512,7 +1543,7 @@ const Setting = () => {
           )}
         </div>
       </div>
-    </div>
+    </main>
   );
 };
 

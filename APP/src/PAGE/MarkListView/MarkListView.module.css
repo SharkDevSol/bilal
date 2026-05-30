@@ -1,9 +1,46 @@
-/* MarkListView.module.css - Modern Mark List Styles */
+/* MarkListView.module.css - V2 Mark Lists */
 
 .container {
   min-height: 100vh;
-  background: linear-gradient(135deg, #f5f7fa 0%, #e8ecf1 100%);
-  padding: 24px;
+  padding: var(--spacing-lg);
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.pageHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-lg);
+}
+
+.pageTitle {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.pageSubtitle {
+  margin: 6px 0 0;
+  color: var(--color-text-secondary);
+}
+
+.headerIcon {
+  color: var(--color-primary);
+  flex-shrink: 0;
+}
+
+.filtersCard {
+  margin-bottom: var(--spacing-lg);
+}
+
+.filters {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: var(--spacing-md);
+  align-items: end;
 }
 
 .loadingContainer {
@@ -12,14 +49,13 @@
   align-items: center;
   justify-content: center;
   min-height: 60vh;
-  color: #718096;
+  color: var(--color-text-secondary);
 }
 
 .spinner {
-  font-size: 2rem;
   animation: spin 1s linear infinite;
   margin-bottom: 16px;
-  color: #667eea;
+  color: var(--color-primary);
 }
 
 @keyframes spin {
@@ -29,13 +65,16 @@
 /* View Toggle */
 .viewToggle {
   display: flex;
-  gap: 12px;
-  margin-bottom: 24px;
-  background: white;
-  padding: 8px;
-  border-radius: 12px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-  width: fit-content;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-lg);
+}
+
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-lg);
 }
 
 .toggleBtn {

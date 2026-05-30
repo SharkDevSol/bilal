@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { recordThemeSwitchMs } from '../utils/performance';
 
 const ThemeContext = createContext();
 
@@ -22,12 +23,14 @@ export const ThemeProvider = ({ children }) => {
   });
   
   useEffect(() => {
-    // Apply theme to document
+    const start = performance.now();
     document.documentElement.classList.remove('light', 'dark');
     document.documentElement.classList.add(theme);
-    
-    // Save to localStorage
     localStorage.setItem('theme', theme);
+
+    requestAnimationFrame(() => {
+      recordThemeSwitchMs(performance.now() - start);
+    });
   }, [theme]);
   
   /**
