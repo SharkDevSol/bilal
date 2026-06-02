@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Cache Bypass - iqrab3</title>
+    <style>
+        body { font-family: Arial; text-align: center; padding: 50px; background: #667eea; color: white; }
+        .btn { background: #ff6b6b; color: white; padding: 15px 30px; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; margin: 10px; }
+    </style>
+</head>
+<body>
+    <h1>🚀 iqrab3 Cache Bypass</h1>
+    <p>Current issue: Browser loading old files (1777972218928) instead of new (1778137369320)</p>
+    
+    <button class="btn" onclick="clearAndRedirect()">🔄 Clear Cache & Go to App</button>
+    <button class="btn" onclick="openIncognito()">🕵️ Instructions for Incognito</button>
+    <button class="btn" onclick="manualClear()">📋 Manual Clear Steps</button>
+    
+    <div id="result"></div>
+    
+    <script>
+        function clearAndRedirect() {
+            document.getElementById('result').innerHTML = '<p>🔄 Clearing cache...</p>';
+            
+            // Clear everything
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.getRegistrations().then(registrations => {
+                    registrations.forEach(reg => reg.unregister());
+                });
+            }
+            
+            if ('caches' in window) {
+                caches.keys().then(names => {
+                    names.forEach(name => caches.delete(name));
+                });
+            }
+            
+            localStorage.clear();
+            sessionStorage.clear();
+            
+            setTimeout(() => {
+                const timestamp = Date.now();
+                window.location.href = `/?_t=${timestamp}&_fresh=true&_build=1778137369320`;
+            }, 2000);
+        }
+        
+        function openIncognito() {
+            document.getElementById('result').innerHTML = `
+                <div style="background: rgba(0,0,0,0.3); padding: 20px; border-radius: 10px; margin: 20px;">
+                    <h3>🕵️ Use Incognito/Private Mode:</h3>
+                    <p><strong>Chrome/Edge:</strong> Ctrl+Shift+N</p>
+                    <p><strong>Firefox:</strong> Ctrl+Shift+P</p>
+                    <p>Then visit: <strong>https://iqrab3.skoolific.com/</strong></p>
+                    <p>This will load fresh files without cache interference.</p>
+                </div>
+            `;
+        }
+        
+        function manualClear() {
+            document.getElementById('result').innerHTML = `
+                <div style="background: rgba(0,0,0,0.3); padding: 20px; border-radius: 10px; margin: 20px;">
+                    <h3>📋 Manual Cache Clear:</h3>
+                    <p><strong>1.</strong> Press Ctrl+Shift+Delete</p>
+                    <p><strong>2.</strong> Select "All time" or "Everything"</p>
+                    <p><strong>3.</strong> Check ALL boxes (cookies, cache, etc.)</p>
+                    <p><strong>4.</strong> Click "Clear data"</p>
+                    <p><strong>5.</strong> Close browser completely</p>
+                    <p><strong>6.</strong> Reopen and visit iqrab3.skoolific.com</p>
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html>

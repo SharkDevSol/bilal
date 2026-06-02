@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/png" href="/skoolific-icon.png?v=1778137369320" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    
+    <!-- AGGRESSIVE Cache Control -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate, max-age=0" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+    <meta http-equiv="Last-Modified" content="Thu, 07 May 2026 10:00:00 GMT" />
+    <meta http-equiv="ETag" content="1778137369320" />
+    
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#667eea" />
+    <meta name="description" content="Skoolific - Complete school management system powered by ALKHWARIZMI" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <link rel="manifest" href="/manifest.json?v=1778137369320" />
+    <link rel="apple-touch-icon" href="/skoolific-icon.png?v=1778137369320" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="Skoolific" />
+    
+    <title>Skoolific - School Management System</title>
+    
+    <!-- Content Security Policy -->
+    <meta http-equiv="Content-Security-Policy" content="
+      default-src 'self';
+      script-src 'self' 'unsafe-inline' 'unsafe-eval';
+      style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+      style-src-elem 'self' 'unsafe-inline' https://fonts.googleapis.com;
+      font-src 'self' https://fonts.gstatic.com;
+      img-src 'self' data: blob: https:;
+      connect-src 'self' https: wss:;
+      worker-src 'self' blob:;
+      manifest-src 'self' blob:;
+    " />
+    
+    <!-- FORCE FRESH ASSETS WITH CACHE BUSTING -->
+    <script type="module" crossorigin src="/assets/index-13041958-1778137369320.js?v=1778137369320&t=1778137369320"></script>
+    <link rel="modulepreload" crossorigin href="/assets/vendor-react-1960947a-1778137369320.js?v=1778137369320&t=1778137369320">
+    <link rel="modulepreload" crossorigin href="/assets/vendor-axios-edfcd65b-1778137369320.js?v=1778137369320&t=1778137369320">
+    <link rel="stylesheet" href="/assets/index-999a6040-1778137369320.css?v=1778137369320&t=1778137369320">
+  </head>
+  <body>
+    <div id="root"></div>
+    
+    <!-- CACHE CLEARING SCRIPT -->
+    <script>
+      console.log('🚀 FRESH INDEX LOADED - Build: 1778137369320');
+      
+      // Immediately clear any cached service workers
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.getRegistrations().then(function(registrations) {
+          for(let registration of registrations) {
+            registration.unregister();
+            console.log('🗑️ Service worker unregistered:', registration);
+          }
+        });
+      }
+
+      // Clear cache storage
+      if ('caches' in window) {
+        caches.keys().then(function(names) {
+          names.forEach(function(name) {
+            caches.delete(name);
+            console.log('🗑️ Cache deleted:', name);
+          });
+        });
+      }
+
+      // Add install prompt handler
+      let deferredPrompt;
+      window.addEventListener('beforeinstallprompt', (e) => {
+        console.log('✅ beforeinstallprompt event fired');
+        e.preventDefault();
+        deferredPrompt = e;
+      });
+
+      window.addEventListener('appinstalled', () => {
+        console.log('✅ PWA was installed');
+      });
+      
+      // Log successful load
+      window.addEventListener('load', () => {
+        console.log('✅ Fresh application loaded successfully!');
+        console.log('Build timestamp: 1778137369320');
+      });
+    </script>
+  </body>
+</html>
